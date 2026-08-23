@@ -1,0 +1,370 @@
+[
+  {
+    "file": "Geologica.ttf",
+    "family": "Geologica",
+    "glyphs": 836,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      814,
+      1076,
+      1156,
+      1168,
+      1200,
+      1224,
+      1244,
+      1268,
+      1348
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "ss01",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 900.0
+      },
+      {
+        "tag": "CRSV",
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "tag": "SHRP",
+        "min": 0.0,
+        "max": 100.0
+      },
+      {
+        "tag": "slnt",
+        "min": -12.0,
+        "max": 0.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Onest.ttf",
+    "family": "Onest",
+    "glyphs": 780,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      363,
+      505,
+      566,
+      599,
+      616,
+      620,
+      622,
+      623,
+      633,
+      665
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "ss01",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "IBMPlexSans.ttf",
+    "family": "IBM Plex Sans",
+    "glyphs": 891,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": true,
+    "digitWidths": [
+      600
+    ],
+    "numericFeatures": [
+      "lnum",
+      "onum",
+      "ss01",
+      "zero"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 700.0
+      },
+      {
+        "tag": "wdth",
+        "min": 75.0,
+        "max": 100.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "GolosText.ttf",
+    "family": "Golos Text",
+    "glyphs": 566,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      485,
+      530,
+      580,
+      585,
+      605,
+      610,
+      620
+    ],
+    "numericFeatures": [
+      "case",
+      "lnum",
+      "onum",
+      "pnum",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Manrope.ttf",
+    "family": "Manrope",
+    "glyphs": 678,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      716,
+      962,
+      1068,
+      1106,
+      1118,
+      1144,
+      1154,
+      1156,
+      1240
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 200.0,
+        "max": 800.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "InterTight.ttf",
+    "family": "Inter Tight",
+    "glyphs": 2504,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      728,
+      1056,
+      1138,
+      1144,
+      1160,
+      1164,
+      1184,
+      1208,
+      1218
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "ss01",
+      "tnum",
+      "zero"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Oswald.ttf",
+    "family": "Oswald",
+    "glyphs": 850,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "→"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      378,
+      386,
+      476,
+      477,
+      478,
+      483,
+      499,
+      502,
+      503,
+      517
+    ],
+    "numericFeatures": [
+      "case"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 200.0,
+        "max": 700.0
+      }
+    ],
+    "verdict": false
+  },
+  {
+    "file": "WixMadeforDisplay.ttf",
+    "family": "Wix Madefor Display",
+    "glyphs": 608,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "≈"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      456,
+      592,
+      594,
+      598,
+      599,
+      622,
+      624,
+      646
+    ],
+    "numericFeatures": [
+      "case"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 800.0
+      }
+    ],
+    "verdict": false
+  },
+  {
+    "file": "SairaCondensed.ttf",
+    "family": "Saira Condensed",
+    "glyphs": 608,
+    "cyrillicUpper": false,
+    "cyrillicLower": false,
+    "digits": true,
+    "missingService": [
+      "₽"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      274,
+      403,
+      423,
+      436,
+      439,
+      468,
+      476,
+      484,
+      490
+    ],
+    "numericFeatures": [
+      "case",
+      "zero"
+    ],
+    "axes": [],
+    "verdict": false
+  },
+  {
+    "file": "Commissioner.ttf",
+    "family": "Commissioner",
+    "glyphs": 983,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "→"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      816,
+      1022,
+      1086,
+      1122,
+      1136,
+      1178,
+      1196,
+      1198,
+      1286
+    ],
+    "numericFeatures": [
+      "case"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 900.0
+      },
+      {
+        "tag": "slnt",
+        "min": -12.0,
+        "max": 0.0
+      },
+      {
+        "tag": "FLAR",
+        "min": 0.0,
+        "max": 100.0
+      },
+      {
+        "tag": "VOLM",
+        "min": 0.0,
+        "max": 100.0
+      }
+    ],
+    "verdict": false
+  }
+]

@@ -1,0 +1,316 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  CATEGORIES,
+  FRACTION_FILTERS,
+  GOST_FILTERS,
+  MATERIALS,
+  categoryById,
+  type CategoryId,
+} from '@/lib/catalog';
+import { MaterialCard } from './MaterialCard';
+import { RequestPanel } from './RequestPanel';
+import { GrainPlate } from '@/components/ui/GrainPlate';
+import { useFlipArrival } from '@/components/providers/FlipArrival';
+import { captureSource } from '@/lib/flip-store';
+import { prefersReducedMotion } from '@/lib/motion';
+import { ArrowIcon } from '@/components/site/Icons';
+import { plural } from '@/lib/format';
+import { PREFILTER_KEYS } from '@/lib/prefilter';
+
+const ALL = 'all';
+
+const KEYS = ['category', 'fraction', 'gost'] as const;
+type Filters = Record<(typeof KEYS)[number], string>;
+const EMPTY: Filters = { category: ALL, fraction: ALL, gost: ALL };
+
+function readUrl(): Filters {
+  if (typeof window === 'undefined') return EMPTY;
+  const sp = new URLSearchParams(window.location.search);
+  return {
+    category: sp.get('category') ?? ALL,
+    fraction: sp.get('fraction') ?? ALL,
+    gost: sp.get('gost') ?? ALL,
+  };
+}
+
+/**
+ * Каталог. Фильтры работают без перезагрузки и живут в адресе страницы —
+ * ссылку на выборку можно скинуть менеджеру, и он увидит ровно ту же выборку.
+ *
+ * Начальное состояние намеренно пустое, а не взятое из useSearchParams:
+ * при статическом экспорте параметры адреса на сервере неизвестны, и хук
+ * заставил бы отдать в HTML пустую заглушку вместо позиций. Здесь в сборку
+ * попадают все двадцать четыре карточки, а фильтр из адреса применяется в
+ * layout-эффекте — до первой отрисовки, поэтому мигания списка нет.
+ */
+export function CatalogClient() {
+  const router = useRouter();
+  const plateRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [filters, setFilters] = useState<Filters>(EMPTY);
+
+  useLayoutEffect(() => {
+    setFilters(readUrl());
+    // Правила дофильтрации отработали своё: дальше выборкой управляет React,
+    // и если атрибуты оставить, CSS продолжит прятать карточки поверх него.
+    PREFILTER_KEYS.forEach((k) => document.documentElement.removeAttribute(`data-f-${k}`));
+  }, []);
+
+  // Кнопка «назад» в браузере меняет адрес — выборка обязана поехать следом.
+  useEffect(() => {
+    const onPop = () => setFilters(readUrl());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  const { category, fraction, gost } = filters;
+  const active = category !== ALL || fraction !== ALL || gost !== ALL;
+  const activeCategory =
+    category !== ALL ? CATEGORIES.find((c) => c.id === (category as CategoryId)) : undefined;
+
+  // Прилёт карточки с главной. Пусто в хранилище — страница просто открывается.
+  useFlipArrival('to-catalog', () => plateRef.current, { fadeIn: listRef });
+
+  const apply = useCallback((next: Filters) => {
+    setFilters(next);
+    const sp = new URLSearchParams();
+    KEYS.forEach((k) => {
+      if (next[k] !== ALL) sp.set(k, next[k]);
+    });
+    const qs = sp.toString();
+    window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
+  }, []);
+
+  const setParam = useCallback(
+    (key: (typeof KEYS)[number], value: string) => apply({ ...filters, [key]: value }),
+    [apply, filters],
+  );
+
+  const reset = useCallback(() => apply(EMPTY), [apply]);
+
+  const items = useMemo(() => {
+    const fr = FRACTION_FILTERS.find((f) => f.id === fraction);
+    return MATERIALS.filter((m) => {
+      if (category !== ALL && m.categoryId !== category) return false;
+      if (fr && !fr.test(m)) return false;
+      if (gost !== ALL && m.gost !== gost) return false;
+      return true;
+    });
+  }, [category, fraction, gost]);
+
+  const backHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!activeCategory || prefersReducedMotion() || !plateRef.current) return;
+    e.preventDefault();
+    captureSource(plateRef.current, activeCategory.id, 'to-home');
+    router.push('/#materialy');
+  };
+
+  return (
+    <>
+      <div className="shell py-6 md:py-10">
+        <nav aria-label="Хлебные крошки" className="mb-5 flex flex-wrap items-center text-[13px] text-ink-2">
+          <Link href="/#materialy" onClick={backHome} className="-my-2 rounded py-2 hover:text-accent">
+            Главная
+          </Link>
+          <span className="mx-2 text-line-strong" aria-hidden="true">
+            /
+          </span>
+          <span className="text-ink">Каталог</span>
+          {activeCategory && (
+            <>
+              <span className="mx-2 text-line-strong" aria-hidden="true">
+                /
+              </span>
+              <span className="text-ink">{activeCategory.name}</span>
+            </>
+          )}
+        </nav>
+
+        {/* Плашка категории — сюда прилетает карточка с главной. */}
+        <div ref={plateRef} data-catalog-plate>
+          {activeCategory ? (
+            <GrainPlate
+              category={activeCategory}
+              className="flex min-h-[132px] items-end rounded-card border border-line md:min-h-[168px]"
+            >
+              <div className="w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
+                <h1 className="font-display text-[clamp(28px,5vw,44px)] font-semibold leading-none tracking-[-.03em]">
+                  {activeCategory.name}
+                </h1>
+                <p className="mt-2 max-w-[62ch] text-[14px] text-ink-2 md:text-[15px]">
+                  {activeCategory.fractionsLine} · {activeCategory.summary}
+                </p>
+              </div>
+            </GrainPlate>
+          ) : (
+            <div className="rounded-card border border-line bg-surface p-5 md:p-7">
+              <h1 className="font-display text-[clamp(28px,5vw,44px)] font-semibold leading-none tracking-[-.03em]">
+                Каталог материалов
+              </h1>
+              <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-ink-2">
+                {MATERIALS.length} {plural(MATERIALS.length, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
+                на условиях самовывоза. Стоимость доставки считается отдельно —{' '}
+                <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
+                  в калькуляторе
+                </Link>
+                .
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Фильтры ───────────────────────────────────────────────────────
+            Открыты и на телефоне: прятать их за кнопкой — значит прятать
+            главный инструмент выбора. */}
+        <div className="mt-6 rounded-card border border-line bg-surface p-4 md:mt-8 md:p-5">
+          <FilterRow label="Категория">
+            <Chip chip="category:all" active={category === ALL} onClick={() => setParam('category', ALL)}>
+              Все
+            </Chip>
+            {CATEGORIES.map((c) => (
+              <Chip
+                key={c.id}
+                chip={`category:${c.id}`}
+                active={category === c.id}
+                onClick={() => setParam('category', c.id)}
+              >
+                {c.name}
+              </Chip>
+            ))}
+          </FilterRow>
+
+          <FilterRow label="Фракция">
+            <Chip chip="fraction:all" active={fraction === ALL} onClick={() => setParam('fraction', ALL)}>
+              Любая
+            </Chip>
+            {FRACTION_FILTERS.map((f) => (
+              <Chip
+                key={f.id}
+                chip={`fraction:${f.id}`}
+                active={fraction === f.id}
+                onClick={() => setParam('fraction', f.id)}
+              >
+                {f.label}
+              </Chip>
+            ))}
+          </FilterRow>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
+            <label htmlFor="gost" className="text-[13px] font-medium">
+              ГОСТ
+            </label>
+            <select
+              id="gost"
+              value={gost}
+              onChange={(e) => setParam('gost', e.target.value)}
+              className="h-10 rounded-card border border-line-strong bg-surface px-2.5 text-[14px] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+            >
+              <option value={ALL}>Любой</option>
+              {GOST_FILTERS.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+
+            <p data-found className="tnum ml-auto text-[14px] text-ink-2" aria-live="polite">
+              Найдено: <span className="font-medium text-ink">{items.length}</span>
+            </p>
+            {active && (
+              <button
+                type="button"
+                onClick={reset}
+                className="rounded text-[14px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+              >
+                Сбросить фильтры
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Список ────────────────────────────────────────────────────── */}
+        <div ref={listRef} className="mt-6 md:mt-8">
+          {/* Заголовок для читалок: без него от h1 сразу шёл бы h3 карточки. */}
+          <h2 className="sr-only">Позиции каталога</h2>
+          {items.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {items.map((m) => (
+                <MaterialCard key={m.id} material={m} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-card border border-line bg-surface p-8 text-center">
+              <p className="font-display text-[19px] font-semibold">Под такой набор фильтров ничего нет</p>
+              <p className="mx-auto mt-2 max-w-[48ch] text-[15px] text-ink-2">
+                Снимите фракцию или ГОСТ — либо позвоните: часть позиций возим под заказ
+                и в каталог они не попадают.
+              </p>
+              <button
+                type="button"
+                onClick={reset}
+                className="mt-4 inline-flex h-11 items-center rounded-card bg-accent px-5 text-[15px] font-medium text-white hover:bg-accent-hover"
+              >
+                Показать все позиции
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Отступ, чтобы полоса заявки не накрывала последнюю карточку. */}
+        <div className="h-24 md:h-20" aria-hidden="true" />
+
+        <Link
+          href="/#zayavka"
+          className="mt-2 inline-flex items-center gap-2 rounded text-[15px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+        >
+          Не нашли нужную позицию — напишите нам
+          <ArrowIcon className="h-4 w-4" />
+        </Link>
+      </div>
+
+      <RequestPanel />
+    </>
+  );
+}
+
+function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 [&+&]:mt-3">
+      <span className="mr-1 w-[74px] shrink-0 text-[13px] font-medium">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function Chip({
+  active,
+  onClick,
+  children,
+  chip,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  chip: string;
+}) {
+  return (
+    <button
+      type="button"
+      data-chip={chip}
+      onClick={onClick}
+      aria-pressed={active}
+      className={`h-10 rounded-pill border px-3.5 text-[14px] transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        active
+          ? 'border-accent bg-accent text-white'
+          : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
