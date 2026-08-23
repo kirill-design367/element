@@ -6,8 +6,13 @@ import localFont from 'next/font/local';
  * Пара выбрана по проверке cmap — см. /fonts и CLAUDE.md.
  */
 
+/**
+ * Имена констант попадают в имя семейства, которое next/font регистрирует в
+ * браузере: назовёшь их display и text — в инспекторе так и будет написано.
+ */
+
 /** Geologica — заголовки и цифры. Технический гротеск, tnum в наличии. */
-export const display = localFont({
+export const geologica = localFont({
   src: [{ path: '../assets/fonts/Geologica.woff2', weight: '200 800', style: 'normal' }],
   variable: '--font-display',
   display: 'swap',
@@ -17,7 +22,7 @@ export const display = localFont({
 });
 
 /** Onest — интерфейс и текст. */
-export const text = localFont({
+export const onest = localFont({
   src: [{ path: '../assets/fonts/Onest.woff2', weight: '300 800', style: 'normal' }],
   variable: '--font-text',
   display: 'swap',

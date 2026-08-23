@@ -43,10 +43,10 @@ jobs:
         # то есть весь каталог _next.
         run: touch out/.nojekyll
 
+      # Pages включается один раз руками: Settings → Pages → Source:
+      # GitHub Actions. Штатный GITHUB_TOKEN создать сайт не может —
+      # «Resource not accessible by integration».
       - uses: actions/configure-pages@v5
-        with:
-          # Включает Pages в настройках репозитория, если он ещё не включён.
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:

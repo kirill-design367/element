@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Link from 'next/link';
-import { display, text } from '../type';
+import { geologica, onest } from '../type';
 import report from '@/lib/font-check.json';
 import { MATERIALS, pricePerTon } from '@/lib/catalog';
 import { rub } from '@/lib/format';
@@ -85,7 +85,7 @@ const TABLE = MATERIALS.filter((m) => m.categoryId === 'shcheben').slice(0, 5);
 export default function FontsPage() {
   return (
     <div
-      className={`${display.variable} ${text.variable} ${plexCond.variable} ${golos.variable} ${manrope.variable} ${interTight.variable}`}
+      className={`${geologica.variable} ${onest.variable} ${plexCond.variable} ${golos.variable} ${manrope.variable} ${interTight.variable}`}
     >
       <div className="shell py-8 md:py-14">
         <nav aria-label="Хлебные крошки" className="mb-5 text-[13px] text-ink-2">
