@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, type MouseEvent } from 'react';
-import { GrainPlate } from '@/components/ui/GrainPlate';
+import { PhotoSlot } from '@/components/ui/PhotoSlot';
 import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
 import { priceFrom, materialsOf, type Category } from '@/lib/catalog';
+import { categorySlot } from '@/lib/assets';
 import { plural, rub } from '@/lib/format';
 import { ArrowIcon } from '@/components/site/Icons';
 
@@ -39,11 +40,15 @@ export function CategoryCard({ category }: { category: Category }) {
       className="group flex flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-[box-shadow,border-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-line-strong hover:shadow-lift focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div ref={plateRef} data-flip-plate={category.id} className="relative">
-        <GrainPlate category={category} className="aspect-[16/10] w-full sm:aspect-[4/3]">
+        <PhotoSlot
+          category={category}
+          slot={categorySlot(category.id)}
+          className="aspect-[16/10] w-full sm:aspect-[4/3]"
+        >
           <span className="absolute left-3 top-3 rounded bg-white/85 px-2 py-1 text-t1 font-medium tabular-nums text-ink-2">
             {count} {plural(count, 'позиция', 'позиции', 'позиций')}
           </span>
-        </GrainPlate>
+        </PhotoSlot>
       </div>
 
       <div className="flex flex-1 flex-col p-4 md:p-5">

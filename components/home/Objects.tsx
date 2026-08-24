@@ -1,4 +1,5 @@
 import { volume } from '@/lib/format';
+import { PHOTO, asset } from '@/lib/assets';
 
 /** Заглушки: объекты вымышленные, объёмы правдоподобные. */
 const OBJECTS = [
@@ -34,7 +35,18 @@ const OBJECTS = [
 
 export function Objects() {
   return (
-    <ul className="grid gap-4 sm:grid-cols-2">
+    <>
+      {/* Слот под кадр объекта. Пока src равен null, ничего не рисуется —
+          список объектов держит блок сам. Спецификация — PHOTO.objects. */}
+      {PHOTO.objects.src && (
+        <img
+          src={asset(PHOTO.objects.src)}
+          alt={PHOTO.objects.brief}
+          className="mb-5 w-full rounded-card border border-line object-cover"
+          style={{ aspectRatio: PHOTO.objects.ratio }}
+        />
+      )}
+      <ul className="grid gap-4 sm:grid-cols-2">
       {OBJECTS.map((o) => (
         <li
           key={o.name}
@@ -62,6 +74,7 @@ export function Objects() {
           </p>
         </li>
       ))}
-    </ul>
+      </ul>
+    </>
   );
 }

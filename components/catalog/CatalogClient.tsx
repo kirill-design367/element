@@ -14,7 +14,8 @@ import {
 } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
 import { RequestPanel } from './RequestPanel';
-import { GrainPlate } from '@/components/ui/GrainPlate';
+import { PhotoSlot } from '@/components/ui/PhotoSlot';
+import { categorySlot } from '@/lib/assets';
 import { useFlipArrival } from '@/components/providers/FlipArrival';
 import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
@@ -135,8 +136,9 @@ export function CatalogClient() {
         {/* Плашка категории — сюда прилетает карточка с главной. */}
         <div ref={plateRef} data-catalog-plate>
           {activeCategory ? (
-            <GrainPlate
+            <PhotoSlot
               category={activeCategory}
+              slot={categorySlot(activeCategory.id)}
               className="flex min-h-[132px] items-end rounded-card border border-line md:min-h-[168px]"
             >
               <div className="w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
@@ -147,7 +149,7 @@ export function CatalogClient() {
                   {activeCategory.fractionsLine} · {activeCategory.summary}
                 </p>
               </div>
-            </GrainPlate>
+            </PhotoSlot>
           ) : (
             <div className="rounded-card border border-line bg-surface p-5 md:p-7">
               <h1 className="font-display text-t4 font-semibold leading-none tracking-[-.03em]">
