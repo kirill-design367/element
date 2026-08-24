@@ -52,7 +52,7 @@ export default function HomePage() {
         <CatalogPreview />
       </Section>
 
-      <Section id="usloviya" tone="muted">
+      <Section id="usloviya" tone="muted" width="narrow" pad="loose">
         <SectionHead
           title="Условия для юридических лиц"
           lead="То, ради чего снабженец меняет поставщика: документы вовремя, отсрочка и один ответственный человек."
@@ -60,7 +60,7 @@ export default function HomePage() {
         <Terms />
       </Section>
 
-      <Section id="process">
+      <Section id="process" width="shift" pad="normal">
         <SectionHead
           title="Как работаем"
           lead="От заявки до закрывающих документов — пять шагов и ни одного лишнего согласования."
@@ -81,7 +81,7 @@ export default function HomePage() {
         <Objects />
       </Section>
 
-      <Section id="zayavka" tone="muted">
+      <Section id="zayavka" width="narrow" pad="loose">
         <SectionHead
           title="Заявка на просчёт"
           lead="Ответим ценой на материал и доставку в течение рабочего часа. Держим цену пять дней."
@@ -91,7 +91,7 @@ export default function HomePage() {
         </div>
       </Section>
 
-      <Section id="kontakty">
+      <Section id="kontakty" tone="muted" width="shell" pad="normal">
         <SectionHead title="Контакты" />
         <Contacts />
       </Section>
