@@ -27,7 +27,7 @@ export const FACTS = [
  */
 export function Hero() {
   return (
-    <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-24 md:pb-24 md:pt-28">
+    <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-24 md:pb-36 md:pt-28">
       {/* Фоновый слот. Спецификация — PHOTO.hero в lib/assets.ts.
           Кадр выше блока на 48 px и поднят на 24: параллакс возит его на
           ±20, и без этого запаса на краях показалась бы полоса фона. */}
@@ -57,9 +57,9 @@ export function Hero() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 -z-[5]"
           style={{
-            top: '-17rem',
+            top: '-10rem',
             background:
-              'linear-gradient(to top, rgba(244,244,241,.98) 0%, rgba(244,244,241,.97) 68%, rgba(244,244,241,.86) 84%, rgba(244,244,241,.4) 94%, rgba(244,244,241,0) 100%)',
+              'linear-gradient(to top, rgba(244,244,241,.96) 0%, rgba(244,244,241,.94) 66%, rgba(244,244,241,.88) 82%, rgba(244,244,241,.42) 94%, rgba(244,244,241,0) 100%)',
           }}
         />
       )}
