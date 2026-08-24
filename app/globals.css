@@ -176,7 +176,37 @@ body {
 }
 
 /* ── Служебное ───────────────────────────────────────────────── */
-.shell { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: var(--shell-x); }
+/* ── Три ширины ──────────────────────────────────────────────
+   Каждая секция выбирает свою, подряд две одинаковых не идут — на этом
+   держится ритм страницы. Ширины считаются в процентах и максимумах, без
+   единиц vw: vw включает полосу прокрутки, и «навылет» превращался бы в
+   горизонтальный скролл на пиксель.
+
+   .edge    — во всю ширину экрана, без полей вообще
+   .shell   — контейнер, 1320 px плюс поля
+   .narrow  — узкая колонка, 880 px: две трети контейнера
+   .bleed-r — левая линия по контейнеру, правый край уходит за экран
+   .shift-r — контейнер, сдвинутый вправо на треть своей ширины
+   ──────────────────────────────────────────────────────────── */
+:root { --shell-max: 1320px; --narrow-max: 880px; }
+
+.shell { width: 100%; max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--shell-x); }
+.narrow { width: 100%; max-width: var(--narrow-max); margin-inline: auto; padding-inline: var(--shell-x); }
+
+/* Левый край совпадает с контейнером, правый — с краем экрана. Родитель
+   должен быть во всю ширину, иначе выходить неоткуда. */
+.bleed-r { width: 100%; padding-left: max(var(--shell-x), (100% - var(--shell-max)) / 2); padding-right: 0; }
+.bleed-l { width: 100%; padding-right: max(var(--shell-x), (100% - var(--shell-max)) / 2); padding-left: 0; }
+
+/* Сдвиг вправо: колонка стоит не от левой линии контейнера, а с отступом. */
+@media (min-width: 900px) {
+  .shift-r { padding-left: 33%; }
+  .narrow-left { margin-inline: 0; margin-right: auto; padding-left: max(var(--shell-x), (100% - var(--shell-max)) / 2); }
+}
+
+/* Страница не прокручивается вбок ни при каком вылете. clip, а не hidden:
+   hidden создаёт контекст прокрутки и ломает position: sticky у шапки. */
+html { overflow-x: clip; }
 
 .tnum { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum' 1; }
 
@@ -296,7 +326,6 @@ body {
 }
 
 /* ── Служебное ───────────────────────────────────────────────── */
-.shell { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: var(--shell-x); }
 
 .tnum { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum' 1; }
 
