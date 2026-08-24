@@ -95,9 +95,9 @@ function Availability({ material }: { material: Material }) {
   const label = AVAILABILITY_LABEL[material.availability];
   const style =
     material.availability === 'in-stock'
-      ? 'border-accent/30 bg-accent-soft text-accent'
+      ? 'border-line-strong bg-surface-2 text-ink'
       : material.availability === 'on-order'
-        ? 'border-line-strong bg-surface-2 text-ink-2'
+        ? 'border-line bg-surface-2 text-ink-2'
         : 'border-warn/30 bg-warn-soft text-warn';
   return (
     <span

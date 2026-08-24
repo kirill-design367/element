@@ -32,7 +32,7 @@ export function Terms() {
     <ul className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
       {TERMS.map((t) => (
         <li key={t.title} data-reveal className="bg-surface p-5 md:p-6">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-accent">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-line-strong text-ink">
             <CheckIcon className="h-4 w-4" />
           </span>
           <h3 className="mt-4 text-t3 font-bold leading-snug tracking-[-.01em]">

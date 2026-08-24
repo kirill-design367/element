@@ -28,7 +28,7 @@ export function Hero() {
         <div className="lg:col-span-7">
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-t1 text-ink-2">
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+              <span className="h-1.5 w-1.5 rounded-full bg-ink-3" aria-hidden="true" />
               Поставка инертных материалов
             </span>
             <span className="hidden text-line-strong sm:inline" aria-hidden="true">

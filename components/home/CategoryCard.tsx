@@ -60,7 +60,7 @@ export function CategoryCard({ category }: { category: Category }) {
               <span className="ml-1 text-t1 font-normal text-ink-2">/ м³</span>
             </div>
           </div>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-accent transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-white">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-ink-2 transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-white">
             <ArrowIcon className="h-4 w-4" />
           </span>
         </div>

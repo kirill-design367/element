@@ -10,7 +10,7 @@ export function Contacts() {
             href={`tel:${COMPANY.phone}`}
             className="flex items-center gap-2.5 rounded font-display text-t4 font-semibold leading-none tracking-[-.02em] transition-colors hover:text-accent"
           >
-            <PhoneIcon className="h-6 w-6 shrink-0 text-accent" />
+            <PhoneIcon className="h-6 w-6 shrink-0 text-ink-3" />
             {COMPANY.phoneLabel}
           </a>
           <a
@@ -76,7 +76,7 @@ export function Contacts() {
             }}
           />
           <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-            <span className="h-3 w-3 rounded-full bg-accent ring-4 ring-accent/20" aria-hidden="true" />
+            <span className="h-3 w-3 rounded-full bg-ink ring-4 ring-ink/15" aria-hidden="true" />
             <span className="mt-2 rounded bg-surface px-2 py-1 text-t1 font-medium shadow-card">
               Площадка отгрузки
             </span>

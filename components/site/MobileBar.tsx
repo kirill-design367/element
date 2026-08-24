@@ -14,7 +14,7 @@ export function MobileBar() {
           href={`tel:${COMPANY.phone}`}
           className="flex h-12 items-center justify-center gap-2 rounded-card border border-line-strong bg-surface text-t2 font-medium text-ink transition-colors hover:border-ink"
         >
-          <PhoneIcon className="h-[18px] w-[18px] text-accent" />
+          <PhoneIcon className="h-[18px] w-[18px] text-ink-3" />
           Позвонить
         </a>
         <Link

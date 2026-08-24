@@ -268,7 +268,7 @@ export function Calculator() {
             </p>
           )}
           {result?.beyondRange && (
-            <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
+            <p className="mt-4 rounded border-l-2 border-line-strong bg-surface-2 px-3 py-2 text-t1 leading-snug text-ink">
               Дальше {MAX_KM} км от МКАД возим по согласованию — цена в расчёте ориентировочная.
             </p>
           )}

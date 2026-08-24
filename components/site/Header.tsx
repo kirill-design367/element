@@ -54,7 +54,7 @@ export function Header() {
             href={`tel:${COMPANY.phone}`}
             className="tnum -my-2 flex min-h-[44px] items-center gap-1.5 rounded py-2 text-t1 font-semibold tracking-[-.01em] transition-colors hover:text-accent md:text-t2"
           >
-            <PhoneIcon className="h-4 w-4 text-accent md:h-[18px] md:w-[18px]" />
+            <PhoneIcon className="h-4 w-4 text-ink-3 md:h-[18px] md:w-[18px]" />
             <span className="whitespace-nowrap">{COMPANY.phoneLabel}</span>
           </a>
           <ButtonLink href="/#zayavka" size="md" className="hidden md:inline-flex">

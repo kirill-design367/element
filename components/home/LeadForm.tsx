@@ -127,7 +127,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     return (
       <div className="rounded-card border border-line bg-surface p-6 shadow-card md:p-8">
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-bg">
             <CheckIcon className="h-5 w-5" />
           </span>
           <div>
@@ -187,7 +187,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label className={label} htmlFor={`${uid}-name`}>
-            Имя <span aria-hidden="true" className="text-accent">*</span>
+            Имя <span aria-hidden="true" className="text-ink-2">*</span>
           </label>
           <input
             id={`${uid}-name`}
@@ -210,7 +210,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
 
         <div>
           <label className={label} htmlFor={`${uid}-phone`}>
-            Телефон <span aria-hidden="true" className="text-accent">*</span>
+            Телефон <span aria-hidden="true" className="text-ink-2">*</span>
           </label>
           <input
             id={`${uid}-phone`}
@@ -384,7 +384,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         style={{ opacity: status === 'sending' ? 1 : 0 }}
       >
         <div
-          className="h-full bg-accent"
+          className="h-full bg-ink"
           style={{
             width: status === 'sending' ? '100%' : '0%',
             transition: 'width 800ms cubic-bezier(.22,1,.36,1)',

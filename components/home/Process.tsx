@@ -21,7 +21,7 @@ export function Process() {
       {STEPS.map((s, i) => (
         <li key={s.title} data-reveal className="relative pl-11 md:pl-0">
           <span className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border border-line-strong bg-surface md:relative md:mb-4">
-            <span className="tnum text-t1 font-bold text-accent">{i + 1}</span>
+            <span className="tnum text-t1 font-bold text-ink">{i + 1}</span>
           </span>
           <h3 className="text-t3 font-bold leading-snug tracking-[-.01em]">
             {s.title}
