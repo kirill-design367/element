@@ -1,19 +1,27 @@
 'use client';
 
 import { AVAILABILITY_LABEL, pricePerTon, type Material } from '@/lib/catalog';
-import { rub } from '@/lib/format';
+import { num } from '@/lib/format';
 import { useRequest } from '@/components/providers/RequestProvider';
-import { CheckIcon } from '@/components/site/Icons';
 import { fractionIds } from '@/lib/prefilter';
 
 /**
- * Карточка позиции. Цена и наличие — самое заметное: снабженец сравнивает
- * именно их, всё остальное читает вторым заходом.
+ * Позиция каталога — лист спецификации. Характеристики набраны таблицей
+ * с выравниванием по колонке, маркировка моноширинным, цены самым крупным
+ * кеглем в карточке. Рамки нет: позицию отделяет линейка сверху.
  */
 export function MaterialCard({ material }: { material: Material }) {
   const req = useRequest();
   const inList = req.has(material.id);
   const out = material.availability === 'out';
+
+  const specs: [string, string][] = [
+    ['Фракция', material.fraction],
+    ['ГОСТ', material.gost.replace('ГОСТ ', '')],
+    ...(material.strength ? ([['Марка', material.strength]] as [string, string][]) : []),
+    ...(material.frost ? ([['Мороз.', material.frost]] as [string, string][]) : []),
+    ['Плотность', `${String(material.density).replace('.', ',')} т/м³`],
+  ];
 
   return (
     <article
@@ -21,98 +29,59 @@ export function MaterialCard({ material }: { material: Material }) {
       data-cat={material.categoryId}
       data-fr={fractionIds(material)}
       data-gost={material.gost}
-      className="flex flex-col rounded-card border border-line bg-surface p-4 shadow-card transition-[border-color,box-shadow] duration-200 hover:border-line-strong hover:shadow-lift md:p-5"
+      className="flex flex-col border-t border-ink pt-4"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="font-display text-[17px] font-semibold leading-snug tracking-[-.015em] md:text-[18px]">
-            {material.name}
-          </h3>
-          <p className="mt-1 text-[13px] text-ink-2">
-            {material.fraction} · {material.gost}
-          </p>
-        </div>
-        <Availability material={material} />
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-t2 font-semibold leading-snug">{material.name}</h3>
+        <span
+          className={`mark shrink-0 whitespace-nowrap ${
+            out ? 'text-warn' : material.availability === 'on-order' ? 'text-ink-2' : 'text-ink-2'
+          }`}
+        >
+          {AVAILABILITY_LABEL[material.availability]}
+        </span>
       </div>
 
-      {/* Цены — крупно и в табличных цифрах, чтобы колонки не плясали. */}
-      <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
-        <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[.07em] text-ink-2">за м³</div>
-          <div className="tnum mt-0.5 font-display text-[19px] font-semibold leading-none">
-            {rub(material.pricePerM3)}
-          </div>
+      {/* Цены — самое заметное в карточке: крупнее названия и всей маркировки. */}
+      <dl className="mt-4 grid grid-cols-2 gap-x-4">
+        <div>
+          <dt className="mark text-ink-2">за м³</dt>
+          <dd className="figure mt-1 text-t3 font-semibold">{num(material.pricePerM3)}</dd>
         </div>
-        <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[.07em] text-ink-2">за тонну</div>
-          <div className="tnum mt-0.5 font-display text-[19px] font-semibold leading-none">
-            {rub(pricePerTon(material))}
-          </div>
+        <div className="border-l border-line pl-4">
+          <dt className="mark text-ink-2">за тонну</dt>
+          <dd className="figure mt-1 text-t3 font-semibold">{num(pricePerTon(material))}</dd>
         </div>
-      </div>
-
-      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-ink-2">
-        {material.strength && <Spec term="Марка" value={material.strength} />}
-        {material.frost && <Spec term="Морозостойкость" value={material.frost} />}
-        <Spec term="Насыпная плотность" value={`${material.density} т/м³`} />
       </dl>
 
-      {material.note && (
-        <p className="mt-3 text-[13px] leading-relaxed text-ink-2">{material.note}</p>
-      )}
-
-      <ul className="mt-3 flex flex-wrap gap-1.5">
-        {material.uses.map((u) => (
-          <li
-            key={u}
-            className="rounded-pill border border-line bg-surface-2 px-2 py-0.5 text-[12px] text-ink-2"
-          >
-            {u}
-          </li>
+      <dl className="mt-5">
+        {specs.map(([term, value]) => (
+          <div key={term} className="flex items-baseline justify-between gap-4 border-b border-line py-1.5">
+            <dt className="mark text-ink-2">{term}</dt>
+            <dd className="mark-value text-right">{value}</dd>
+          </div>
         ))}
-      </ul>
+      </dl>
+
+      {material.note && <p className="mt-4 text-t2 text-ink-2">{material.note}</p>}
+
+      <p className="mark-value mt-4 pb-5 text-ink-2">{material.uses.join(' · ')}</p>
 
       <button
         type="button"
         onClick={() => (inList ? req.remove(material.id) : req.add(material.id))}
         disabled={out}
         aria-pressed={inList}
-        className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-card text-[15px] font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        className={`mt-auto inline-flex h-12 w-full items-center justify-center rounded-control text-t2 font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
           out
-            ? 'cursor-not-allowed border border-line bg-surface-2 text-ink-2'
+            ? 'cursor-not-allowed border border-line text-ink-2'
             : inList
-              ? 'border border-accent bg-accent-soft text-accent'
+              ? 'border border-accent text-accent hover:bg-accent-soft'
               : 'bg-accent text-white hover:bg-accent-hover'
         }`}
       >
-        {out ? 'Нет в наличии' : inList ? <><CheckIcon className="h-4 w-4" /> В заявке</> : 'В заявку'}
+        {out ? 'Нет в наличии' : inList ? 'В заявке' : 'В заявку'}
       </button>
     </article>
-  );
-}
-
-function Availability({ material }: { material: Material }) {
-  const label = AVAILABILITY_LABEL[material.availability];
-  const style =
-    material.availability === 'in-stock'
-      ? 'border-accent/30 bg-accent-soft text-accent'
-      : material.availability === 'on-order'
-        ? 'border-line-strong bg-surface-2 text-ink-2'
-        : 'border-warn/30 bg-warn-soft text-warn';
-  return (
-    <span
-      className={`shrink-0 whitespace-nowrap rounded-pill border px-2.5 py-1 text-[12px] font-medium ${style}`}
-    >
-      {label}
-    </span>
-  );
-}
-
-function Spec({ term, value }: { term: string; value: string }) {
-  return (
-    <div className="flex gap-1">
-      <dt>{term}</dt>
-      <dd className="tnum font-medium text-ink">{value}</dd>
-    </div>
   );
 }

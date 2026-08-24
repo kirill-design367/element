@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { CatalogClient } from '@/components/catalog/CatalogClient';
 import { PREFILTER_SCRIPT, prefilterCss } from '@/lib/prefilter';
+import { GrainDefs } from '@/components/ui/GrainDefs';
 
 export const metadata: Metadata = {
   title: 'Каталог инертных материалов',
@@ -15,6 +16,7 @@ export default function CatalogPage() {
           раньше, чем браузер разберёт карточки. Подробности — lib/prefilter.ts */}
       <style dangerouslySetInnerHTML={{ __html: prefilterCss() }} />
       <script dangerouslySetInnerHTML={{ __html: PREFILTER_SCRIPT }} />
+      <GrainDefs />
       <CatalogClient />
     </>
   );

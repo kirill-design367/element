@@ -1,14 +1,38 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CATEGORIES, MATERIALS, materialsOf } from '@/lib/catalog';
 import { DESTINATIONS, MAX_KM, MIN_ORDER_M3, calculate, type Unit } from '@/lib/pricing';
-import { rides, rub, tons, volume } from '@/lib/format';
+import { num, rides, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
-import { ArrowIcon } from '@/components/site/Icons';
 
 const QUICK = [10, 20, 30, 60];
+
+/**
+ * Короткий подсвет пересчитанной строки. Это обратная связь, а не украшение:
+ * когда меняешь расстояние, глаз должен увидеть, какая именно цифра поехала.
+ * Двести миллисекунд линейно; в режиме покоя глобальное правило в globals.css
+ * обнуляет длительность, и подсвет просто не появляется.
+ */
+function useRecalcFlash(value: string): string {
+  const [on, setOn] = useState(false);
+  const prev = useRef(value);
+
+  useEffect(() => {
+    if (prev.current === value) return;
+    prev.current = value;
+    setOn(false);
+    const raf = requestAnimationFrame(() => setOn(true));
+    const timer = window.setTimeout(() => setOn(false), 260);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timer);
+    };
+  }, [value]);
+
+  return on ? 'recalc' : '';
+}
 
 /**
  * Калькулятор стоит вторым блоком и считает на месте: цифры пересчитываются
@@ -35,6 +59,16 @@ export function Calculator() {
     [materialId, amount, unit, km, valid],
   );
 
+  const vVolume = result ? `${volume(result.volumeM3)} · ${tons(result.massT)}` : '—';
+  const vMaterial = result ? rub(result.materialCost) : '—';
+  const vDelivery = result ? rub(result.deliveryCost) : '—';
+  const vTotal = result ? num(result.total) : '—';
+
+  const fVolume = useRecalcFlash(vVolume);
+  const fMaterial = useRecalcFlash(vMaterial);
+  const fDelivery = useRecalcFlash(vDelivery);
+  const fTotal = useRecalcFlash(vTotal);
+
   const onDestination = (id: string) => {
     setDestinationId(id);
     const d = DESTINATIONS.find((x) => x.id === id);
@@ -56,16 +90,17 @@ export function Calculator() {
     document.getElementById('zayavka')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // Поля прямоугольные: рамка снизу, как в бланке, а не карточка.
   const field =
-    'h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-[15px] text-ink ' +
-    'transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
-  const label = 'mb-1.5 block text-[13px] font-medium text-ink';
+    'h-12 w-full border border-line-strong bg-transparent px-3 text-t2 text-ink ' +
+    'transition-colors hover:border-ink-3 focus:border-accent focus:outline-none';
+  const label = 'mark mb-2 block text-ink-2';
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+    <div className="grid gap-12 lg:grid-cols-12 lg:gap-x-12">
       {/* ── Поля ─────────────────────────────────────────────────────────── */}
       <div className="lg:col-span-7">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-7 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className={label} htmlFor={`${uid}-material`}>
               Материал
@@ -104,12 +139,12 @@ export function Calculator() {
                 onChange={(e) => setAmountText(e.target.value)}
                 aria-describedby={valid ? undefined : `${uid}-amount-hint`}
               />
-              <fieldset className="flex shrink-0 rounded-card border border-line-strong bg-surface p-1">
+              <fieldset className="flex shrink-0 border border-line-strong">
                 <legend className="sr-only">Единица измерения</legend>
                 {(['m3', 't'] as Unit[]).map((u) => (
                   <label
                     key={u}
-                    className={`flex h-10 cursor-pointer items-center justify-center rounded px-3 text-[14px] font-medium transition-colors ${
+                    className={`flex h-[46px] w-12 cursor-pointer items-center justify-center text-t2 transition-colors ${
                       unit === u ? 'bg-accent text-white' : 'text-ink-2 hover:text-ink'
                     }`}
                   >
@@ -126,11 +161,11 @@ export function Calculator() {
               </fieldset>
             </div>
             {!valid && (
-              <p id={`${uid}-amount-hint`} className="mt-1.5 text-[13px] text-warn">
+              <p id={`${uid}-amount-hint`} className="mt-2 text-t2 text-warn">
                 Укажите объём числом — например, 20
               </p>
             )}
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-3 flex flex-wrap gap-2">
               {QUICK.map((q) => (
                 <button
                   key={q}
@@ -139,7 +174,7 @@ export function Calculator() {
                     setAmountText(String(q));
                     setUnit('m3');
                   }}
-                  className="tnum inline-flex h-9 items-center rounded-pill border border-line px-3 text-[13px] text-ink-2 transition-colors hover:border-accent hover:text-accent"
+                  className="mark-value inline-flex h-9 items-center border border-line px-3 text-ink-2 transition-colors hover:border-ink hover:text-ink"
                 >
                   {q} м³
                 </button>
@@ -165,7 +200,7 @@ export function Calculator() {
               ))}
             </select>
 
-            <label className={`${label} mt-4`} htmlFor={`${uid}-km`}>
+            <label className={`${label} mt-6`} htmlFor={`${uid}-km`}>
               Расстояние от МКАД, км
             </label>
             <input
@@ -182,7 +217,7 @@ export function Calculator() {
 
           <div className="sm:col-span-2">
             <label className={label} htmlFor={`${uid}-address`}>
-              Адрес объекта <span className="font-normal text-ink-2">— необязательно</span>
+              Адрес объекта — необязательно
             </label>
             <input
               id={`${uid}-address`}
@@ -194,7 +229,7 @@ export function Calculator() {
               onChange={(e) => setAddress(e.target.value)}
               aria-describedby={`${uid}-address-hint`}
             />
-            <p id={`${uid}-address-hint`} className="mt-1.5 text-[13px] text-ink-2">
+            <p id={`${uid}-address-hint`} className="mt-2 text-t2 text-ink-2">
               Адрес уходит менеджеру вместе с заявкой. На расчёт влияет расстояние от МКАД —
               его можно поправить вручную.
             </p>
@@ -202,54 +237,51 @@ export function Calculator() {
         </div>
       </div>
 
-      {/* ── Результат ────────────────────────────────────────────────────── */}
+      {/* ── Результат ────────────────────────────────────────────────────
+          Отделён от полей белым полем и жирной линейкой сверху: это уже
+          не форма, а счёт. Итог набран самым крупным кеглем на сайте. */}
       <div className="lg:col-span-5">
-        <div className="rounded-card border border-line bg-surface p-5 shadow-card md:p-6 lg:sticky lg:top-24">
-          <div className="flex items-baseline justify-between">
-            <h3 className="font-display text-[15px] font-semibold uppercase tracking-[.07em]">
-              Расчёт
-            </h3>
-            <span className="text-[12px] text-ink-2">цены с НДС</span>
+        <div className="border-t-2 border-ink bg-surface p-5 md:p-6 lg:sticky lg:top-20">
+          <div className="flex items-baseline justify-between border-b border-line pb-3">
+            <p className="mark">Расчёт</p>
+            <p className="mark text-ink-2">цены с НДС</p>
           </div>
 
-          <div className="mt-4 space-y-3 text-[15px]" aria-live="polite">
-            <Row
-              label="Объём"
-              value={result ? `${volume(result.volumeM3)} · ${tons(result.massT)}` : '—'}
-            />
-            <Row label="Материал" value={result ? rub(result.materialCost) : '—'} />
+          <dl className="mt-1" aria-live="polite">
+            <Row label="Объём" value={vVolume} flash={fVolume} />
+            <Row label="Материал" value={vMaterial} flash={fMaterial} />
             <Row
               label="Доставка"
-              value={result ? rub(result.deliveryCost) : '—'}
+              value={vDelivery}
+              flash={fDelivery}
               note={
                 result
                   ? `${rides(result.rides)} · ${result.truck.name} · до ${volume(result.perRideM3)} за рейс`
                   : undefined
               }
             />
+          </dl>
 
-            <div className="rule pt-3">
-              <div className="flex items-end justify-between gap-3">
-                <span className="text-[13px] uppercase tracking-[.07em] text-ink-2">Итого</span>
-                <span className="tnum font-display text-[clamp(26px,5vw,34px)] font-semibold leading-none tracking-[-.02em]">
-                  {result ? rub(result.total) : '—'}
-                </span>
-              </div>
-              {result && result.volumeM3 > 0 && (
-                <p className="tnum mt-2 text-right text-[13px] text-ink-2">
-                  {rub(result.totalPerM3)} за м³ с доставкой на объект
-                </p>
-              )}
-            </div>
+          <div className="mt-5 border-t border-ink pt-4">
+            <p className="mark text-ink-2">Итого</p>
+            <p className={`figure mt-1 text-t5 font-semibold ${fTotal}`}>
+              {vTotal}
+              <span className="ml-2 align-baseline text-t3 font-medium text-ink-2">₽</span>
+            </p>
+            {result && result.volumeM3 > 0 && (
+              <p className="mark-value mt-3 text-ink-2">
+                {rub(result.totalPerM3)} за м³ с доставкой на объект
+              </p>
+            )}
           </div>
 
           {result?.belowMinimum && (
-            <p className="mt-4 rounded border-l-2 border-warn bg-warn-soft px-3 py-2 text-[13px] leading-snug text-ink">
+            <p className="mt-5 border-l-2 border-warn bg-warn-soft px-3 py-2 text-t2">
               Меньше {MIN_ORDER_M3} м³ не возим: машина оплачивается целиком независимо от загрузки.
             </p>
           )}
           {result?.beyondRange && (
-            <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-[13px] leading-snug text-ink">
+            <p className="mt-5 border-l-2 border-ink px-3 py-2 text-t2">
               Дальше {MAX_KM} км от МКАД возим по согласованию — цена в расчёте ориентировочная.
             </p>
           )}
@@ -257,15 +289,14 @@ export function Calculator() {
           <Button
             type="button"
             size="lg"
-            className="mt-5 w-full"
+            className="mt-6 w-full"
             onClick={toRequest}
             disabled={!result}
           >
             {sent ? 'Добавлено в заявку' : 'Отправить на просчёт'}
-            <ArrowIcon className="h-4 w-4" />
           </Button>
 
-          <p className="mt-3 text-[12px] leading-snug text-ink-2">
+          <p className="mt-4 text-t2 text-ink-2">
             Расчёт ориентировочный: не учитывает простой под разгрузкой, ночную подачу и
             подъезд, недоступный для самосвала. Менеджер подтвердит цену письмом.
           </p>
@@ -275,14 +306,23 @@ export function Calculator() {
   );
 }
 
-function Row({ label, value, note }: { label: string; value: string; note?: string }) {
+/** Строка счёта: метка слева, сумма справа, выравнивание по разряду. */
+function Row({
+  label,
+  value,
+  note,
+  flash,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  flash: string;
+}) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <span className="text-ink-2">{label}</span>
-        {note && <p className="mt-0.5 text-[12px] leading-snug text-ink-2">{note}</p>}
-      </div>
-      <span className="tnum shrink-0 font-display font-medium">{value}</span>
+    <div className="border-b border-line py-3">
+      <dt className="mark float-left text-ink-2">{label}</dt>
+      <dd className={`figure tnum text-right text-t2 font-medium ${flash}`}>{value}</dd>
+      {note && <dd className="mark-value clear-both block pt-1.5 text-ink-2">{note}</dd>}
     </div>
   );
 }

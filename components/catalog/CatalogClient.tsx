@@ -113,11 +113,11 @@ export function CatalogClient() {
   return (
     <>
       <div className="shell py-6 md:py-10">
-        <nav aria-label="Хлебные крошки" className="mb-5 flex flex-wrap items-center text-[13px] text-ink-2">
+        <nav aria-label="Хлебные крошки" className="mark mb-6 flex flex-wrap items-center text-ink-2">
           <Link href="/#materialy" onClick={backHome} className="-my-2 rounded py-2 hover:text-accent">
             Главная
           </Link>
-          <span className="mx-2 text-line-strong" aria-hidden="true">
+          <span className="mx-2 text-ink-2" aria-hidden="true">
             /
           </span>
           <span className="text-ink">Каталог</span>
@@ -136,38 +136,47 @@ export function CatalogClient() {
           {activeCategory ? (
             <GrainPlate
               category={activeCategory}
-              className="flex min-h-[132px] items-end rounded-card border border-line md:min-h-[168px]"
+              className="flex min-h-[120px] items-end md:min-h-[150px]"
             >
-              <div className="w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
-                <h1 className="font-display text-[clamp(28px,5vw,44px)] font-semibold leading-none tracking-[-.03em]">
+              <div className="w-full bg-gradient-to-t from-white/92 via-white/72 to-transparent p-4 md:p-6">
+                <p className="mark text-ink-2">{activeCategory.fractionsLine}</p>
+                <h1 className="mt-2 text-t4 font-display font-semibold tracking-[-.03em]">
                   {activeCategory.name}
                 </h1>
-                <p className="mt-2 max-w-[62ch] text-[14px] text-ink-2 md:text-[15px]">
-                  {activeCategory.fractionsLine} · {activeCategory.summary}
-                </p>
               </div>
             </GrainPlate>
           ) : (
-            <div className="rounded-card border border-line bg-surface p-5 md:p-7">
-              <h1 className="font-display text-[clamp(28px,5vw,44px)] font-semibold leading-none tracking-[-.03em]">
+            <div className="border-t border-ink pt-4">
+              <p className="mark text-ink-2">
+                {MATERIALS.length} {plural(MATERIALS.length, 'позиция', 'позиции', 'позиций')} · пять групп
+              </p>
+              <h1 className="mt-3 text-t4 font-display font-semibold tracking-[-.03em]">
                 Каталог материалов
               </h1>
-              <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-ink-2">
-                {MATERIALS.length} {plural(MATERIALS.length, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
-                на условиях самовывоза. Стоимость доставки считается отдельно —{' '}
-                <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
-                  в калькуляторе
-                </Link>
-                .
-              </p>
             </div>
           )}
         </div>
 
+        {activeCategory ? (
+          <p className="mt-4 max-w-[64ch] text-t2 text-ink-2">{activeCategory.summary}</p>
+        ) : (
+          <p className="mt-4 max-w-[64ch] text-t2 text-ink-2">
+            Цены за кубометр и за тонну, с НДС, на условиях самовывоза. Стоимость доставки
+            считается отдельно —{' '}
+            <Link
+              href="/#raschet"
+              className="text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+            >
+              в калькуляторе
+            </Link>
+            .
+          </p>
+        )}
+
         {/* ── Фильтры ───────────────────────────────────────────────────────
             Открыты и на телефоне: прятать их за кнопкой — значит прятать
             главный инструмент выбора. */}
-        <div className="mt-6 rounded-card border border-line bg-surface p-4 md:mt-8 md:p-5">
+        <div className="mt-8 border-t border-ink pt-4 md:mt-12">
           <FilterRow label="Категория">
             <Chip chip="category:all" active={category === ALL} onClick={() => setParam('category', ALL)}>
               Все
@@ -200,15 +209,15 @@ export function CatalogClient() {
             ))}
           </FilterRow>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
-            <label htmlFor="gost" className="text-[13px] font-medium">
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line pt-4">
+            <label htmlFor="gost" className="mark w-[74px] shrink-0 text-ink-2">
               ГОСТ
             </label>
             <select
               id="gost"
               value={gost}
               onChange={(e) => setParam('gost', e.target.value)}
-              className="h-10 rounded-card border border-line-strong bg-surface px-2.5 text-[14px] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+              className="h-10 border border-line-strong bg-transparent px-2.5 text-t2 focus:border-accent focus:outline-none"
             >
               <option value={ALL}>Любой</option>
               {GOST_FILTERS.map((g) => (
@@ -218,14 +227,14 @@ export function CatalogClient() {
               ))}
             </select>
 
-            <p data-found className="tnum ml-auto text-[14px] text-ink-2" aria-live="polite">
-              Найдено: <span className="font-medium text-ink">{items.length}</span>
+            <p data-found className="tnum ml-auto text-t2 text-ink-2" aria-live="polite">
+              Найдено: <span className="figure font-semibold text-ink">{items.length}</span>
             </p>
             {active && (
               <button
                 type="button"
                 onClick={reset}
-                className="rounded text-[14px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+                className="text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
               >
                 Сбросить фильтры
               </button>
@@ -238,22 +247,22 @@ export function CatalogClient() {
           {/* Заголовок для читалок: без него от h1 сразу шёл бы h3 карточки. */}
           <h2 className="sr-only">Позиции каталога</h2>
           {items.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
               {items.map((m) => (
                 <MaterialCard key={m.id} material={m} />
               ))}
             </div>
           ) : (
-            <div className="rounded-card border border-line bg-surface p-8 text-center">
-              <p className="font-display text-[19px] font-semibold">Под такой набор фильтров ничего нет</p>
-              <p className="mx-auto mt-2 max-w-[48ch] text-[15px] text-ink-2">
+            <div className="border-t border-ink py-10 text-center">
+              <p className="text-t3 font-display font-semibold">Под такой набор фильтров ничего нет</p>
+              <p className="mx-auto mt-3 max-w-[48ch] text-t2 text-ink-2">
                 Снимите фракцию или ГОСТ — либо позвоните: часть позиций возим под заказ
                 и в каталог они не попадают.
               </p>
               <button
                 type="button"
                 onClick={reset}
-                className="mt-4 inline-flex h-11 items-center rounded-card bg-accent px-5 text-[15px] font-medium text-white hover:bg-accent-hover"
+                className="mt-5 inline-flex h-12 items-center rounded-control bg-accent px-6 text-t2 font-medium text-white hover:bg-accent-hover"
               >
                 Показать все позиции
               </button>
@@ -266,7 +275,7 @@ export function CatalogClient() {
 
         <Link
           href="/#zayavka"
-          className="mt-2 inline-flex items-center gap-2 rounded text-[15px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+          className="mt-2 inline-flex items-center gap-2 text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
         >
           Не нашли нужную позицию — напишите нам
           <ArrowIcon className="h-4 w-4" />
@@ -281,7 +290,7 @@ export function CatalogClient() {
 function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-center gap-2 [&+&]:mt-3">
-      <span className="mr-1 w-[74px] shrink-0 text-[13px] font-medium">{label}</span>
+      <span className="mark w-[74px] shrink-0 text-ink-2">{label}</span>
       {children}
     </div>
   );
@@ -304,10 +313,10 @@ function Chip({
       data-chip={chip}
       onClick={onClick}
       aria-pressed={active}
-      className={`h-10 rounded-pill border px-3.5 text-[14px] transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+      className={`h-10 border px-4 text-t2 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
         active
           ? 'border-accent bg-accent text-white'
-          : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'
+          : 'border-line-strong bg-transparent text-ink-2 hover:border-ink hover:text-ink'
       }`}
     >
       {children}

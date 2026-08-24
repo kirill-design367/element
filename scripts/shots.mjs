@@ -41,7 +41,7 @@ for (const [name, vp] of Object.entries(VIEWPORTS)) {
     const el = page.locator(sel).first();
     if (!(await el.count())) { console.log('нет', sel); continue; }
     await el.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(650);
+    await page.waitForTimeout(1300);
     await el.screenshot({ path: `${OUT}/${name}-${id}.png` });
   }
 

@@ -1,8 +1,10 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Цвета живут в CSS-переменных (app/globals.css) — здесь только имена.
- * Правка палитры = правка одного блока :root, а не поиск по классам.
+ * Цвета и кегли живут в CSS-переменных (app/globals.css) — здесь только имена.
+ * Скругление по умолчанию нулевое: визуальный язык документа не терпит
+ * скруглённых рамок. Радиус остался ровно у одного токена — `control`,
+ * он стоит на кнопках.
  */
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
@@ -26,13 +28,17 @@ const config: Config = {
       fontFamily: {
         display: 'var(--font-display)',
         sans: 'var(--font-text)',
+        mono: 'var(--font-mono)',
+      },
+      fontSize: {
+        t1: ['var(--t1)', { lineHeight: '1.25' }],
+        t2: ['var(--t2)', { lineHeight: '1.55' }],
+        t3: ['var(--t3)', { lineHeight: '1.2' }],
+        t4: ['var(--t4)', { lineHeight: '1.03' }],
+        t5: ['var(--t5)', { lineHeight: '.9' }],
       },
       maxWidth: { shell: '1320px' },
-      borderRadius: { card: '10px', pill: '999px' },
-      boxShadow: {
-        card: '0 1px 2px rgba(23,25,28,.05), 0 8px 24px -16px rgba(23,25,28,.18)',
-        lift: '0 2px 4px rgba(23,25,28,.06), 0 18px 40px -22px rgba(23,25,28,.28)',
-      },
+      borderRadius: { none: '0', control: 'var(--r-control)' },
       transitionTimingFunction: { out: 'cubic-bezier(.22,1,.36,1)' },
     },
   },

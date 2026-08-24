@@ -24,7 +24,7 @@ export function fractionIds(m: Material): string {
 }
 
 const chipOn = 'background:var(--accent);color:#fff;border-color:var(--accent)';
-const chipOff = 'background:var(--surface);color:var(--ink-2);border-color:var(--line-strong)';
+const chipOff = 'background:transparent;color:var(--ink-2);border-color:var(--line-strong)';
 
 /** Скрипт выполняется до разбора списка — карточки не успевают мигнуть. */
 export const PREFILTER_SCRIPT = `(function(){try{var p=new URLSearchParams(location.search),d=document.documentElement;${JSON.stringify(

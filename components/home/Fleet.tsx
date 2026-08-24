@@ -1,6 +1,10 @@
 import { Counter } from './Counter';
 
-/** Заглушки. Порядок величин правдоподобный для поставщика такого размера. */
+/**
+ * Цифры парка — самый крупный кегль на сайте наравне с итогом расчёта.
+ * Это блок про числа, и числа в нём главные: подпись рядом мельче
+ * примерно в семь раз. Заглушки, порядок величин правдоподобный.
+ */
 const NUMBERS = [
   { value: 24, unit: '', label: 'единицы техники', note: 'самосвалы 10–30 м³, свои и партнёрские' },
   { value: 1800, unit: 'м³', label: 'в сутки', note: 'пиковая отгрузка с трёх площадок' },
@@ -10,18 +14,17 @@ const NUMBERS = [
 
 export function Fleet() {
   return (
-    <dl className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">
       {NUMBERS.map((n) => (
-        <div key={n.label} data-reveal className="bg-surface p-5 md:p-6">
-          <dd className="font-display text-[clamp(34px,6vw,52px)] font-semibold leading-none tracking-[-.03em]">
+        <li key={n.label} data-reveal className="figure-fit border-t border-line pt-4 pb-8">
+          <p className="figure font-semibold leading-[.9]">
             <Counter value={n.value} />
-            {n.unit && <span className="ml-1.5 text-[.42em] font-medium text-ink-2">{n.unit}</span>}
-          </dd>
-          <dt className="mt-3 text-[15px] font-medium">{n.label}</dt>
-          {/* Внутри div в <dl> допустимы только dt и dd — примечание тоже dd. */}
-          <dd className="mt-1 text-[13px] leading-snug text-ink-2">{n.note}</dd>
-        </div>
+            {n.unit && <span className="ml-2 text-t3 font-medium text-ink-2">{n.unit}</span>}
+          </p>
+          <p className="mt-4 text-t2">{n.label}</p>
+          <p className="mark-value mt-2 max-w-[34ch] text-ink-2">{n.note}</p>
+        </li>
       ))}
-    </dl>
+    </ul>
   );
 }

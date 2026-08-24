@@ -51,17 +51,17 @@ export function RequestPanel() {
           <button
             type="button"
             onClick={() => req.setOpen(true)}
-            className="flex w-full items-center gap-3 rounded-card border border-ink bg-ink px-4 py-3 text-left text-white shadow-lift transition-colors hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="flex w-full items-center gap-3 border border-ink bg-ink px-4 py-3.5 text-left text-white transition-colors hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             <ListIcon className="h-5 w-5 shrink-0" />
-            <span className="flex-1 text-[15px] font-medium">
+            <span className="flex-1 text-t2 font-medium">
               Заявка · {req.count}{' '}
               {req.count === 1 ? 'позиция' : req.count < 5 ? 'позиции' : 'позиций'}
             </span>
-            <span className="tnum hidden text-[15px] text-white/75 sm:inline">
+            <span className="figure hidden text-t2 text-white/75 sm:inline">
               ≈ {rub(estimate)}
             </span>
-            <span className="rounded bg-white/15 px-3 py-1 text-[14px]">Открыть</span>
+            <span className="mark bg-white/15 px-3 py-1.5">Открыть</span>
           </button>
         </div>
       </div>
@@ -74,9 +74,9 @@ export function RequestPanel() {
             onClick={() => req.setOpen(false)}
             className="absolute inset-0 bg-ink/35 backdrop-blur-[2px]"
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-[14px] border-t border-line bg-bg md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[560px] md:rounded-none md:border-l md:border-t-0">
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur md:px-6">
-              <h2 className="font-display text-[17px] font-semibold">
+          <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto border-t-2 border-ink bg-bg md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[580px] md:border-l-2 md:border-t-0">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-bg px-4 py-3 md:px-6">
+              <h2 className="text-t2 font-display font-semibold">
                 Заявка · {req.count}{' '}
                 {req.count === 1 ? 'позиция' : req.count < 5 ? 'позиции' : 'позиций'}
               </h2>
@@ -84,7 +84,7 @@ export function RequestPanel() {
                 ref={closeRef}
                 type="button"
                 onClick={() => req.setOpen(false)}
-                className="rounded p-2 text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
+                className="p-2 text-ink-2 transition-colors hover:text-ink"
                 aria-label="Закрыть"
               >
                 <CloseIcon className="h-5 w-5" />
@@ -92,7 +92,7 @@ export function RequestPanel() {
             </div>
 
             <div className="px-4 py-4 md:px-6 md:py-6">
-              <ul className="space-y-2">
+              <ul className="border-t border-ink">
                 {req.detailed.map(({ item, material }) => {
                   const calc = calculate({
                     materialId: item.materialId,
@@ -103,12 +103,12 @@ export function RequestPanel() {
                   return (
                     <li
                       key={item.materialId}
-                      className="rounded-card border border-line bg-surface p-3 md:p-4"
+                      className="border-b border-line py-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-[15px] font-medium leading-snug">{material.name}</p>
-                          <p className="text-[12px] text-ink-2">
+                          <p className="text-t2 font-medium leading-snug">{material.name}</p>
+                          <p className="mark-value mt-1 text-ink-2">
                             {material.fraction} · {rub(material.pricePerM3)}/м³
                           </p>
                         </div>
@@ -136,16 +136,16 @@ export function RequestPanel() {
                           onChange={(e) =>
                             req.setAmount(item.materialId, Math.max(0, Number(e.target.value) || 0))
                           }
-                          className="tnum h-10 w-24 rounded-card border border-line-strong bg-surface px-2.5 text-[15px] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+                          className="tnum h-10 w-24 border border-line-strong bg-transparent px-2.5 text-t2 focus:border-accent focus:outline-none"
                         />
-                        <div className="flex rounded-card border border-line-strong bg-surface p-0.5">
+                        <div className="flex border border-line-strong">
                           {(['m3', 't'] as Unit[]).map((u) => (
                             <button
                               key={u}
                               type="button"
                               onClick={() => req.setUnit(item.materialId, u)}
                               aria-pressed={item.unit === u}
-                              className={`h-9 rounded px-3 text-[13px] font-medium transition-colors ${
+                              className={`h-[38px] w-11 text-t2 transition-colors ${
                                 item.unit === u ? 'bg-accent text-white' : 'text-ink-2 hover:text-ink'
                               }`}
                             >
@@ -153,11 +153,11 @@ export function RequestPanel() {
                             </button>
                           ))}
                         </div>
-                        <span className="tnum ml-auto text-right text-[14px] text-ink-2">
+                        <span className="figure ml-auto text-right text-t2 text-ink-2">
                           {calc ? (
                             <>
                               {item.unit === 'm3' ? tons(calc.massT) : volume(calc.volumeM3)}
-                              <span className="ml-2 font-medium text-ink">≈ {rub(calc.total)}</span>
+                              <span className="ml-2 font-semibold text-ink">≈ {rub(calc.total)}</span>
                             </>
                           ) : (
                             '—'
@@ -169,11 +169,11 @@ export function RequestPanel() {
                 })}
               </ul>
 
-              <p className="mt-3 flex items-baseline justify-between border-t border-line pt-3 text-[14px]">
+              <p className="mt-5 flex items-baseline justify-between border-t border-ink pt-4 text-t2">
                 <span className="text-ink-2">Ориентировочно с доставкой</span>
-                <span className="tnum font-display text-[20px] font-semibold">{rub(estimate)}</span>
+                <span className="figure text-t3 font-semibold">{rub(estimate)}</span>
               </p>
-              <p className="mt-1 text-[12px] leading-snug text-ink-2">
+              <p className="mark-value mt-2 text-ink-2">
                 Доставка посчитана на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.
               </p>
 

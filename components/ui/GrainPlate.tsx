@@ -1,38 +1,37 @@
 import type { Category } from '@/lib/catalog';
 
 /**
- * Заглушка вместо фотографии фактуры.
- * Точки рисуются размером с фракцию: у отсева — крошка, у щебня 40–70 —
- * крупная россыпь. Так пустое место всё-таки сообщает о материале.
- * Когда придут снимки, компонент подменит фон на кадр из lib/assets.ts.
+ * Плашка фактуры: поле, замощённое россыпью зёрен своей категории.
+ * Узор объявлен один раз в GrainDefs — здесь только ссылка на него,
+ * поэтому разметка плашки помещается в пару строк и её не жалко
+ * копировать целиком при перелёте в каталог.
  */
 export function GrainPlate({
   category,
   className = '',
-  scale = 1,
   children,
 }: {
-  category: Pick<Category, 'grain'>;
+  category: Pick<Category, 'id' | 'grain'>;
   className?: string;
-  scale?: number;
   children?: React.ReactNode;
 }) {
-  const g = category.grain;
   return (
     <div
-      aria-hidden="true"
-      className={`grain relative overflow-hidden ${className}`}
-      style={
-        {
-          '--grain-bg': g.bg,
-          '--grain-tint': g.tint,
-          '--grain-tint-2': g.tint2,
-          '--grain-rot': `${g.rot}deg`,
-          '--grain-dot': `${g.dot * scale}px`,
-          '--grain-step': `${g.step * scale}px`,
-        } as React.CSSProperties
-      }
+      className={`relative overflow-hidden ${className}`}
+      style={{ background: category.grain.bg }}
     >
+      <svg className="absolute inset-0 h-full w-full" aria-hidden="true" focusable="false">
+        <rect width="100%" height="100%" fill={`url(#grain-${category.id})`} />
+      </svg>
+      {/* Свет сверху слева, тень снизу справа — поле получает объём. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(115% 85% at 20% 10%, rgba(255,255,255,.4), transparent 62%), radial-gradient(95% 85% at 84% 92%, rgba(23,25,28,.16), transparent 60%)',
+        }}
+      />
       {children}
     </div>
   );
