@@ -66,10 +66,17 @@ export function Fleet() {
       </div>
 
       <div className="shell mt-16 flex flex-col gap-10 md:flex-row md:items-end md:justify-between md:gap-16">
+        {/* tracking-normal на потомках — не украшение. letter-spacing в em
+            наследуется вычисленным значением: −0,04em от 128 px это −5,1 px,
+            и на подписи в 16 px буквы налезали друг на друга. */}
         <p data-fleet="lead" className="font-black text-t5 leading-[.82] tracking-[-.04em]">
           <Counter value={LEAD.value} />
-          <span className="ml-3 text-[.28em] font-medium text-ink-2">{LEAD.unit}</span>
-          <span className="mt-3 block text-t2 font-medium text-ink-2">{LEAD.label}</span>
+          <span className="ml-3 text-[.28em] font-medium tracking-normal text-ink-2">
+            {LEAD.unit}
+          </span>
+          <span className="mt-3 block text-t2 font-medium tracking-normal text-ink-2">
+            {LEAD.label}
+          </span>
         </p>
 
         {/* dt стоит перед dd — этого требует разметка списка определений;
