@@ -7,7 +7,7 @@ export function Footer() {
       <div className="shell">
         <div className="flex flex-col gap-8 md:flex-row md:justify-between">
           <div className="max-w-[34ch]">
-            <div className="font-display text-t3 font-bold uppercase tracking-[.12em]">
+            <div className="font-black text-t3 font-bold uppercase tracking-[.12em]">
               Элемент
             </div>
             <p className="mt-2 text-t2 leading-relaxed text-ink-2">

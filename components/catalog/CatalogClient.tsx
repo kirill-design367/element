@@ -142,7 +142,7 @@ export function CatalogClient() {
               className="flex min-h-[132px] items-end rounded-card border border-line md:min-h-[168px]"
             >
               <div className="w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
-                <h1 className="font-display text-t4 font-semibold leading-none tracking-[-.03em]">
+                <h1 className="font-black text-t4 font-semibold leading-none tracking-[-.03em]">
                   {activeCategory.name}
                 </h1>
                 <p className="mt-2 max-w-[62ch] text-t2 text-ink-2">
@@ -152,7 +152,7 @@ export function CatalogClient() {
             </PhotoSlot>
           ) : (
             <div className="rounded-card border border-line bg-surface p-5 md:p-7">
-              <h1 className="font-display text-t4 font-semibold leading-none tracking-[-.03em]">
+              <h1 className="font-black text-t4 font-semibold leading-none tracking-[-.03em]">
                 Каталог материалов
               </h1>
               <p className="mt-3 max-w-[64ch] text-t2 leading-relaxed text-ink-2">

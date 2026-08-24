@@ -31,7 +31,6 @@ SOURCES = [
     # Боевые гарнитуры — CoFo от Contrast Foundry, статические OTF.
     # Исходники лежат рядом, в assets/fonts: словолитня отдаёт пробные файлы
     # архивом, распаковка руками, оси у них нет.
-    ("CoFoPeshka75-75Black-Trial.otf",  "CoFoPeshka-Black",     {}),
     ("CoFoSans-Light-Trial.otf",        "CoFoSans-Light",       {}),
     ("CoFoSans-Regular-Trial.otf",      "CoFoSans-Regular",     {}),
     ("CoFoSans-Medium-Trial.otf",       "CoFoSans-Medium",      {}),

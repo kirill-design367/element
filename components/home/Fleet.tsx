@@ -29,7 +29,7 @@ export function Fleet() {
       <dl className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
       {FLEET_NUMBERS.map((n) => (
         <div key={n.label} data-reveal className="bg-surface p-5 md:p-6">
-          <dd className="font-display text-t5 font-semibold leading-none tracking-[-.03em]">
+          <dd className="font-black text-t5 font-semibold leading-none tracking-[-.03em]">
             <Counter value={n.value} />
             {n.unit && <span className="ml-1.5 text-[.42em] font-medium text-ink-2">{n.unit}</span>}
           </dd>

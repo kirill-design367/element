@@ -249,7 +249,7 @@ export function Calculator() {
             <dl className="flex items-end justify-between gap-3">
               <dt className="mark text-t1 pb-1 text-ink-2">Итого</dt>
               <dd
-                className={`font-display text-t5 leading-[.85] ${flash[2] ? 'recalc' : ''}`}
+                className={`font-black text-t5 leading-[.85] ${flash[2] ? 'recalc' : ''}`}
                 key={result ? result.total : 'empty'}
               >
                 {result ? rub(result.total) : '—'}

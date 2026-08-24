@@ -24,7 +24,7 @@ const config: Config = {
         'warn-soft': 'var(--warn-soft)',
       },
       fontFamily: {
-        display: 'var(--font-display)',
+        display: 'var(--font-text)',
         sans: 'var(--font-text)',
         mono: 'var(--font-mono)',
       },

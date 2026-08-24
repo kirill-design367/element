@@ -41,7 +41,7 @@ export function Hero() {
           {/* Две строки заданы разметкой, а не переносом по ширине: у Peshka
               на разных экранах точка переноса уезжает, и «с доставкой» то и
               дело оставалось висеть в первой строке. */}
-          <h1 className="mt-4 font-display text-t4 leading-[.95] tracking-[-.005em]">
+          <h1 className="mt-4 font-black text-t4 leading-[.95] tracking-[-.005em]">
             <span className="block">Щебень, песок и грунт</span>
             <span className="block">
               с доставкой <span className="text-accent">на объект</span>
@@ -94,7 +94,7 @@ export function Hero() {
                       <span className="mark text-t1 text-ink-2">от</span>
                       {/* Цена — крупная ступень, название — мелкая. Разрыв
                           между ними и есть сообщение: смотреть надо на цифру. */}
-                      <span className="font-display text-t4 leading-[.9]">
+                      <span className="font-black text-t4 leading-[.9]">
                         {num(priceFrom(c.id))}
                       </span>
                       <span className="mark text-t1 text-ink-2">₽</span>

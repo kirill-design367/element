@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Link from 'next/link';
-import { cofoPeshka, cofoSans } from '../type';
+import { cofoSans } from '../type';
 import report from '@/lib/font-check.json';
 import {
   CATEGORIES,
@@ -107,16 +107,15 @@ const PAIRS: Pair[] = [
   },
   {
     id: 'cofo-sans',
-    name: 'CoFo Peshka 75 Black + CoFo Sans + CoFo Sans Mono',
-    role: 'Принято и стоит на сайте. Peshka — заголовки блоков и крупные числа, Sans — интерфейс и текст, Mono — маркировка.',
-    heading: 'var(--font-display)',
+    name: 'CoFo Sans + CoFo Sans Mono',
+    role: 'Принято и стоит на сайте. Sans — заголовки, интерфейс, текст и числа, Mono — только маркировка.',
+    heading: 'var(--font-text)',
     body: 'var(--font-text)',
     license: 'Коммерческая лицензия Contrast Foundry (десктоп, веб, приложение — раздельно)',
     price: 'Файлы пробные (Trial). Для боевой выкладки нужна купленная веб-лицензия',
     buyLabel: 'CoFo Sans в Contrast Foundry',
     buyHref: 'https://contrastfoundry.com/ru/typeface/cofo-sans',
     checks: [
-      byFile('CoFoPeshka75-75Black-Trial.otf'),
       byFile('CoFoSans-Regular-Trial.otf'),
       byFile('CoFoSansMono-Regular-Trial.otf'),
     ],
@@ -136,7 +135,7 @@ export default function FontsPage() {
           </Link>
         </p>
 
-        <h1 className="mt-5 max-w-[20ch] font-display text-[clamp(30px,5vw,46px)] font-semibold leading-[1.06] tracking-[-.025em]">
+        <h1 className="mt-5 max-w-[20ch] font-black text-[clamp(30px,5vw,46px)] font-semibold leading-[1.06] tracking-[-.025em]">
           Типографика: что выбрано и почему
         </h1>
         <p className="mt-4 max-w-[64ch] text-[16px] leading-relaxed text-ink-2 md:text-[17px]">
@@ -175,7 +174,7 @@ function Criteria() {
   ];
   return (
     <section className="mt-9 rounded-card border border-line bg-surface p-5 shadow-card md:mt-12 md:p-7">
-      <h2 className="font-display text-[19px] font-semibold md:text-[21px]">По каким критериям отбирал</h2>
+      <h2 className="font-black text-[19px] font-semibold md:text-[21px]">По каким критериям отбирал</h2>
       <dl className="mt-4 grid gap-x-10 gap-y-3 sm:grid-cols-2">
         {ITEMS.map(([term, value]) => (
           <div key={term} className="border-t border-line pt-2.5">
@@ -207,7 +206,7 @@ function PairSection({ pair, index }: { pair: Pair; index: number }) {
           <p className="text-[12px] uppercase tracking-[.08em] text-ink-2">
             {pair.baseline ? 'Принято, стоит на сайте' : `Отвергнутый кандидат ${index + 1}`}
           </p>
-          <h2 className="mt-1.5 font-display text-[24px] font-semibold tracking-[-.02em] md:text-[28px]">
+          <h2 className="mt-1.5 font-black text-[24px] font-semibold tracking-[-.02em] md:text-[28px]">
             {pair.name}
           </h2>
           <p className="mt-2 text-[15px] leading-snug text-ink-2">{pair.role}</p>
@@ -469,7 +468,7 @@ function Fact({ term, value, ok }: { term: string; value: string; ok?: boolean }
 function FullTable() {
   return (
     <section className="mt-12 rounded-card border border-line bg-surface p-5 shadow-card md:mt-16 md:p-7">
-      <h2 className="font-display text-[19px] font-semibold md:text-[21px]">
+      <h2 className="font-black text-[19px] font-semibold md:text-[21px]">
         Проверка по бинарнику: все {report.length}{' '}
         {plural(report.length, 'файл', 'файла', 'файлов')}
       </h2>
