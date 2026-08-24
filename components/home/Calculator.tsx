@@ -71,9 +71,12 @@ export function Calculator() {
   const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+    /* Поля и результат встают во всю ширину экрана: поля слева на две трети,
+       результат справа на треть, полей по краям нет. Левый край полей
+       совпадает с линией контейнера — заголовок стоит над ним. */
+    <div className="bleed-r grid gap-8 lg:grid-cols-12 lg:gap-10">
       {/* ── Поля ─────────────────────────────────────────────────────────── */}
-      <div className="lg:col-span-7">
+      <div className="pr-[var(--shell-x)] lg:col-span-8 lg:pr-0">
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className={label} htmlFor={`${uid}-material`}>
@@ -212,8 +215,8 @@ export function Calculator() {
       </div>
 
       {/* ── Результат ────────────────────────────────────────────────────── */}
-      <div className="lg:col-span-5">
-        <div className="rounded-card border border-line bg-surface p-5 shadow-card md:p-6 lg:sticky lg:top-24">
+      <div className="lg:col-span-4">
+        <div className="rounded-l-card border border-r-0 border-line bg-surface p-5 shadow-lift md:p-6 lg:sticky lg:top-24">
           <div className="flex items-baseline justify-between">
             <h3 className="text-t2 font-black">
               Расчёт
@@ -245,11 +248,15 @@ export function Calculator() {
             />
           </div>
 
-          <div className="-mx-5 mt-5 border-t border-line-strong bg-surface-2 px-5 pb-5 pt-4 md:-mx-6 md:px-6">
-            <dl className="flex items-end justify-between gap-3">
-              <dt className="text-t1 pb-1 font-medium text-ink-2">Итого</dt>
+          {/* Итог — самое крупное число на странице. Прижат к правому краю
+              экрана и обрезается им, как вордмарк: цифра не помещается в
+              карточку целиком, и это читается как масштаб, а не как ошибка. */}
+          <div className="-mx-5 mt-5 overflow-hidden border-t border-line-strong bg-surface-2 px-5 pb-5 pt-4 md:-mx-6 md:px-6">
+            <dt className="text-t1 font-medium text-ink-2">Итого</dt>
+            <dl>
               <dd
-                className={`font-black text-t5 leading-[.85] ${flash[2] ? 'recalc' : ''}`}
+                data-total
+                className={`-mr-6 mt-1 whitespace-nowrap text-right font-black text-t5 leading-[.85] tracking-[-.04em] md:-mr-10 ${flash[2] ? 'recalc' : ''}`}
                 key={result ? result.total : 'empty'}
               >
                 {result ? rub(result.total) : '—'}
