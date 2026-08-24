@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { typo } from '@/lib/format';
 
 /**
  * Заголовок секции. Нумерации блоков нет — только слово и подзаголовок:
@@ -28,10 +29,10 @@ export function SectionHead({
     >
       <div className="max-w-[720px]">
         <h2 id={id} className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
-          {title}
+          {typo(title)}
         </h2>
         {lead && (
-          <p className="mt-3 max-w-[54ch] text-t2 leading-relaxed text-ink-2">{lead}</p>
+          <p className="mt-3 max-w-[54ch] text-t2 leading-relaxed text-ink-2">{typo(lead)}</p>
         )}
       </div>
       {aside && <div className={stacked ? 'mt-6' : 'shrink-0'}>{aside}</div>}

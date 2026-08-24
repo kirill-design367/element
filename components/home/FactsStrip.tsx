@@ -1,4 +1,5 @@
 import { FACTS } from './Hero';
+import { typo } from '@/lib/format';
 
 /**
  * Перебивка между экранами: три факта о поставке во всю ширину экрана.
@@ -16,7 +17,7 @@ export function FactsStrip() {
         {FACTS.map((f) => (
           <div key={f.label} data-fact className="md:max-w-[30ch]">
             <dt className="text-t1 text-ink-2">{f.label}</dt>
-            <dd className="mt-1.5 text-t2 font-medium leading-snug">{f.value}</dd>
+            <dd className="mt-1.5 text-t2 font-medium leading-snug">{typo(f.value)}</dd>
           </div>
         ))}
       </dl>

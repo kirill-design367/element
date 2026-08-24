@@ -1,7 +1,7 @@
 'use client';
 
 import { AVAILABILITY_LABEL, pricePerTon, type Material } from '@/lib/catalog';
-import { rub } from '@/lib/format';
+import { rub, typo } from '@/lib/format';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { CheckIcon } from '@/components/site/Icons';
 import { fractionIds } from '@/lib/prefilter';
@@ -26,7 +26,7 @@ export function MaterialCard({ material }: { material: Material }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-t3 font-bold leading-snug tracking-[-.015em]">
-            {material.name}
+            {typo(material.name)}
           </h3>
           {/* Маркировка партии — единственное место моноширинного. */}
           <p className="mark mt-1.5 text-t1 text-ink-2">

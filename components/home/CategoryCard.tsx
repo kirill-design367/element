@@ -8,7 +8,7 @@ import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
 import { priceFrom, materialsOf, type Category } from '@/lib/catalog';
 import { categorySlot } from '@/lib/assets';
-import { plural, rub } from '@/lib/format';
+import { plural, rub, typo } from '@/lib/format';
 import { ArrowIcon } from '@/components/site/Icons';
 
 /**
@@ -63,9 +63,9 @@ export function CategoryCard({ category, tall }: { category: Category; tall?: bo
 
       <div className="flex flex-1 flex-col p-4 md:p-5">
         <h3 className="text-t3 font-bold leading-tight tracking-[-.015em]">
-          {category.name}
+          {typo(category.name)}
         </h3>
-        <p className="mt-1.5 text-t1 leading-snug text-ink-2">{category.fractionsLine}</p>
+        <p className="mt-1.5 text-t1 leading-snug text-ink-2">{typo(category.fractionsLine)}</p>
 
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
           <div>

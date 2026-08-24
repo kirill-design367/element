@@ -1,4 +1,4 @@
-import { volume } from '@/lib/format';
+import { typo, volume } from '@/lib/format';
 import { PHOTO, asset } from '@/lib/assets';
 
 /** Заглушки: объекты вымышленные, объёмы правдоподобные. */
@@ -47,18 +47,18 @@ export function Objects() {
       <div className="narrow narrow-left lg:col-span-6 lg:max-w-none lg:pr-10">
         <h2 className="font-black text-t4 leading-[1.04] tracking-[-.02em]">Объекты</h2>
         <p className="mt-3 max-w-[42ch] text-t2 leading-relaxed text-ink-2">
-          Что и в каком объёме поставляли за последний год.
+          {typo('Что и в каком объёме поставляли за последний год.')}
         </p>
 
         <ul className="mt-8 divide-y divide-line">
           {OBJECTS.map((o) => (
             <li key={o.name} data-reveal className="flex items-start justify-between gap-5 py-4">
               <div className="min-w-0">
-                <h3 className="text-t2 font-bold leading-snug tracking-[-.015em]">{o.name}</h3>
+                <h3 className="text-t2 font-bold leading-snug tracking-[-.015em]">{typo(o.name)}</h3>
                 <p className="mt-1 text-t1 text-ink-2">
                   {o.place} · {o.period}
                 </p>
-                <p className="mt-2 text-t1 leading-snug text-ink-2">{o.supplied}</p>
+                <p className="mt-2 text-t1 leading-snug text-ink-2">{typo(o.supplied)}</p>
               </div>
               <div className="shrink-0 text-right">
                 <div className="tnum font-black text-t3 leading-none">{volume(o.m3)}</div>

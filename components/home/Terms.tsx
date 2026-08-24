@@ -1,4 +1,5 @@
 import { CheckIcon } from '@/components/site/Icons';
+import { typo } from '@/lib/format';
 
 const TERMS = [
   {
@@ -36,9 +37,9 @@ export function Terms() {
             <CheckIcon className="h-4 w-4" />
           </span>
           <h3 className="mt-4 text-t3 font-bold leading-snug tracking-[-.01em]">
-            {t.title}
+            {typo(t.title)}
           </h3>
-          <p className="mt-2 text-t2 leading-relaxed text-ink-2">{t.body}</p>
+          <p className="mt-2 text-t2 leading-relaxed text-ink-2">{typo(t.body)}</p>
         </li>
       ))}
     </ul>

@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CATEGORIES, MATERIALS, materialsOf } from '@/lib/catalog';
 import { DESTINATIONS, MAX_KM, MIN_ORDER_M3, calculate, type Unit } from '@/lib/pricing';
-import { rides, rub, tons, volume } from '@/lib/format';
+import { rides, rub, tons, volume, typo } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { ArrowIcon } from '@/components/site/Icons';
@@ -242,7 +242,7 @@ export function Calculator() {
               flash={flash[1]}
               note={
                 result
-                  ? `${rides(result.rides)} · ${result.truck.name} · до ${volume(result.perRideM3)} за рейс`
+                  ? typo(`${rides(result.rides)} · ${result.truck.name} · до ${volume(result.perRideM3)} за рейс`)
                   : undefined
               }
             />

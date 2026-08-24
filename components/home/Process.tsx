@@ -1,3 +1,4 @@
+import { typo } from '@/lib/format';
 const STEPS = [
   { title: 'Заявка', body: 'Материал, объём, адрес и срок. Через форму, по телефону или письмом.' },
   { title: 'Просчёт', body: 'Цена материала и доставки в письме в течение рабочего часа. Держим её 5 дней.' },
@@ -24,9 +25,9 @@ export function Process() {
             <span className="tnum text-t1 font-bold text-ink">{i + 1}</span>
           </span>
           <h3 className="text-t3 font-bold leading-snug tracking-[-.01em]">
-            {s.title}
+            {typo(s.title)}
           </h3>
-          <p className="mt-1.5 text-t2 leading-relaxed text-ink-2">{s.body}</p>
+          <p className="mt-1.5 text-t2 leading-relaxed text-ink-2">{typo(s.body)}</p>
         </li>
       ))}
     </ol>
