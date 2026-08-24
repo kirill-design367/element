@@ -3,67 +3,37 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────
-   Визуальный язык — технический документ: паспорт качества,
-   спецификация, накладная. Разделяют линейка и воздух, а не
-   рамка со скруглением. Прямые углы читаются точнее.
+   Токены. Всё, что задаёт вид сайта, лежит здесь.
+   Акцент — один, меняется значением --accent.
    ───────────────────────────────────────────────────────────── */
 :root {
-  /* Светлая база: цементно-серый, чуть тёплый. */
+  /* Светлая база: цементно-серый, чуть тёплый. Не крем и не чистый белый —
+     белый уходит фону карточек, чтобы карточка читалась как лист поверх поля. */
   --bg: #f4f4f1;
   --surface: #ffffff;
-  --surface-2: #ebebe6;
+  --surface-2: #edede8;
 
   --ink: #17191c;      /* 15.98:1 к фону */
-  --ink-2: #5a5f66;    /*  5.84:1 — вторичный текст, проходит AA */
-  --ink-3: #8b9096;    /* ТОЛЬКО нетекстовая графика: 3.1:1, для текста не годится */
+  --ink-2: #5a5f66;    /*  5.84:1 к фону — вторичный текст, проходит AA */
+  --ink-3: #85898f;    /* только для нетекстовой графики и разделителей */
 
-  --line: #d9d9d2;
-  --line-strong: #b9b9b0;
+  --line: #dedeD8;
+  --line-strong: #c9c9c1;
 
-  /* Акцент только на действиях: кнопки, активные фильтры, ссылки.
-     В заголовках, подписях и графике его нет — иерархию держат
-     светлота и кегль. */
+  /* Акцент — чернильный ультрамарин. 9.14:1 с белым, 8.29:1 с фоном. */
   --accent: #173fa6;
   --accent-hover: #102e7c;
-  --accent-soft: #e6ebf7;
+  --accent-soft: #e8ecf8;
 
+  /* Служебный цвет: только «нет в наличии» и ошибки формы. */
   --warn: #b3261e;
-  --warn-soft: #f9eae9;
-
-  /* ── Шкала кеглей. Пять ступеней на весь сайт.
-     Разрыв между крайними: 10,9× на десктопе, 5,5× на телефоне. */
-  --t1: 11px;                              /* маркировка партии, моно */
-  --t2: 16px;                              /* весь текст и поля */
-  --t3: 24px;                              /* названия позиций, цены */
-  --t4: clamp(30px, 5vw, 56px);            /* H1 и заголовки секций */
-  --t5: clamp(60px, 10vw, 120px);          /* итог расчёта, цифры парка */
+  --warn-soft: #fbeceb;
 
   --shell-x: clamp(16px, 4vw, 40px);
-  /* Скругление живёт ровно в одном месте — на кнопках. */
-  --r-control: 4px;
 
   --dur-1: 140ms;
   --dur-2: 240ms;
   --ease-out: cubic-bezier(.22, 1, .36, 1);
-}
-
-/* Перепад регистра. Секция переопределяет токены — потомки ничего
-   не знают о теме и продолжают читать те же переменные.
-   Стык резкий: фон меняется на границе, без градиентов и промежуточных серых. */
-.inv {
-  --bg: #14161a;
-  --surface: #14161a;
-  --surface-2: #1c1f24;
-  --ink: #f2f1ec;      /* 16.02:1 */
-  --ink-2: #a3aab2;    /*  7.72:1 */
-  --ink-3: #6d747c;
-  --line: rgba(242, 241, 236, .16);
-  --line-strong: rgba(242, 241, 236, .3);
-  --accent: #93aef5;   /*  8.29:1 */
-  --accent-soft: rgba(147, 174, 245, .16);
-  --warn: #e8877c;
-  background: var(--bg);
-  color: var(--ink);
 }
 
 * { border-color: var(--line); }
@@ -77,7 +47,6 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-text);
-  font-size: var(--t2);
   /* Цифры — главное содержание сайта: колонки цен не должны плясать. */
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -85,75 +54,31 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Фокус виден всегда и одинаково — на кнопках, ссылках, полях, карточках. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 0;
+  border-radius: 4px;
 }
 
-::selection { background: var(--ink); color: var(--bg); }
-
-/* ── Маркировка партии ───────────────────────────────────────
-   Фракции, ГОСТы, марки прочности, названия полей. Моноширинный,
-   мелко, с крупным трекингом — как штамп на бирке. Отдельный
-   класс, а не набор утилит: маркировка обязана выглядеть
-   одинаково во всех девяти блоках и в каталоге.
-   ──────────────────────────────────────────────────────────── */
-.mark {
-  font-family: var(--font-mono);
-  font-size: var(--t1);
-  line-height: 1.25;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
-
-.mark-value {
-  font-family: var(--font-mono);
-  font-size: var(--t1);
-  letter-spacing: .06em;
-  font-variant-numeric: tabular-nums;
-  text-transform: none;
-}
-
-/* ── Сетка и линейки ─────────────────────────────────────────
-   Колонки выровнены по всей странице: одна оболочка, одна
-   ширина, один отступ. Ничего не «плавает».
-   ──────────────────────────────────────────────────────────── */
-.shell { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: var(--shell-x); }
-
-/* Колоночная сетка документа: слева поле метки, справа содержимое. */
-.doc-grid { display: grid; gap: 12px 32px; }
-@media (min-width: 900px) { .doc-grid { grid-template-columns: 168px minmax(0, 1fr); gap: 0 32px; } }
-
-.tnum { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum' 1; }
-
-/* Числа набираются акцидентным: у него цифры шире и с плоскими
-   окончаниями — строка цен читается как приборная шкала. */
-.figure { font-family: var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
-
-/* Крупное число в узкой колонке. Ступень шкалы та же — t5, — но меряется
-   по ширине своей колонки, а не всего экрана: «1 800» на ста двадцати
-   пикселях в четверть ширины не помещается и наезжает на соседа. */
-.figure-fit { container-type: inline-size; }
-.figure-fit > .figure { font-size: min(var(--t5), 27cqw); white-space: nowrap; }
-
-/* Подсвет пересчитанной цифры. Обратная связь, а не украшение:
-   0,2 с — ровно столько, чтобы глаз заметил, какая строка поехала. */
-@keyframes recalc {
-  from { background-color: var(--accent-soft); }
-  to   { background-color: transparent; }
-}
-.recalc { animation: recalc .2s linear; }
+::selection { background: var(--accent); color: #fff; }
 
 /* ── Заглушка фактуры ────────────────────────────────────────
-   Осталась только на карточках категорий и на плашке каталога,
-   где несёт смысл: размер точки пропорционален фракции.
-   В hero её место занял разрез гранулометрии — см. FractionScale.
+   Фотографий нет. Вместо стока — гранулометрия: размер точки
+   пропорционален фракции материала. У отсева 0–5 мм — пыль,
+   у щебня 40–70 — крупная россыпь, у ПГС видно и то и другое.
+   Заглушка не просто занимает место, она сообщает о материале.
+
+   Три слоя точек разного калибра, повёрнутые на несколько
+   градусов, чтобы не читалось как экранный паттерн, плюс
+   световой градиент сверху — иначе поле выглядит плоской
+   обоиной. Всё на CSS: ни одного файла, ни одного запроса.
    ──────────────────────────────────────────────────────────── */
 .grain {
   position: relative;
   isolation: isolate;
+  /* Слой с точками повёрнут и вылезает за границы — режем его здесь, а не
+     надеемся на overflow родителя: иначе фактура заезжает на соседний блок. */
   overflow: hidden;
   --grain-dot: 3px;
   --grain-step: 11px;
@@ -167,6 +92,7 @@ body {
 .grain::before {
   content: '';
   position: absolute;
+  /* Запас на поворот: у широкой невысокой полосы углы иначе оголяются. */
   inset: -60%;
   z-index: -2;
   opacity: var(--grain-op);
@@ -185,16 +111,26 @@ body {
     calc(var(--grain-step) * 1.13) calc(var(--grain-step) * .71);
 }
 
+/* Свет сверху слева, тень снизу справа — поле получает объём. */
 .grain::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(115% 85% at 20% 10%, rgba(255, 255, 255, .5), transparent 60%),
+    radial-gradient(115% 85% at 20% 10%, rgba(255, 255, 255, .55), transparent 60%),
     radial-gradient(95% 85% at 84% 92%, rgba(23, 25, 28, .1), transparent 62%);
 }
 
+/* ── Служебное ───────────────────────────────────────────────── */
+.shell { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: var(--shell-x); }
+
+.tnum { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum' 1; }
+
+.rule { border-top: 1px solid var(--line); }
+
+/* Появление блоков ведёт GSAP. До его инициализации элемент уже виден —
+   если скрипт не выполнится, контент не пропадёт. */
 .will-reveal { will-change: transform, opacity; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -206,8 +142,8 @@ body {
   }
 }
 
+/* Печать: снабженец распечатывает расчёт и несёт его в отдел закупок. */
 @media print {
   .no-print { display: none !important; }
   body { background: #fff; }
-  .inv { background: #fff !important; color: #000 !important; }
 }

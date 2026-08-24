@@ -115,7 +115,7 @@ export default function FontsPage() {
           {PAIRS.map((p, i) => (
             <section
               key={p.id}
-              className="overflow-hidden border border-line bg-surface"
+              className="overflow-hidden rounded-card border border-line bg-surface"
               style={{ ['--h' as string]: p.headingVar, ['--b' as string]: p.bodyVar }}
             >
               <header className="flex flex-wrap items-baseline gap-x-4 gap-y-2 border-b border-line bg-surface-2 px-5 py-4 md:px-7">
@@ -126,7 +126,7 @@ export default function FontsPage() {
                   {p.name}
                 </h2>
                 {p.recommended && (
-                  <span className="bg-accent px-2.5 py-1 text-[12px] font-medium text-white">
+                  <span className="rounded-pill bg-accent px-2.5 py-1 text-[12px] font-medium text-white">
                     Стоит сейчас
                   </span>
                 )}
@@ -156,7 +156,7 @@ export default function FontsPage() {
                     <p className="text-[11px] uppercase tracking-[.09em] text-ink-2">
                       Карточка материала
                     </p>
-                    <div className="mt-2 border border-line bg-surface p-4">
+                    <div className="mt-2 rounded-card border border-line bg-surface p-4 shadow-card">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h3
@@ -169,7 +169,7 @@ export default function FontsPage() {
                             {SAMPLE.fraction} · {SAMPLE.gost}
                           </p>
                         </div>
-                        <span className="shrink-0 border border-accent/30 bg-accent-soft px-2.5 py-1 text-[12px] font-medium text-accent">
+                        <span className="shrink-0 rounded-pill border border-accent/30 bg-accent-soft px-2.5 py-1 text-[12px] font-medium text-accent">
                           В наличии
                         </span>
                       </div>
@@ -261,7 +261,7 @@ export default function FontsPage() {
           ))}
         </div>
 
-        <section className="mt-12 border border-line bg-surface p-5 md:mt-16 md:p-7">
+        <section className="mt-12 rounded-card border border-line bg-surface p-5 md:mt-16 md:p-7">
           <h2 className="font-display text-[20px] font-semibold tracking-[-.015em]">
             Кого проверка отсеяла
           </h2>
@@ -274,7 +274,7 @@ export default function FontsPage() {
             {report
               .filter((r) => !r.verdict)
               .map((r) => (
-                <li key={r.file} className="border border-warn/25 bg-warn-soft p-4">
+                <li key={r.file} className="rounded-card border border-warn/25 bg-warn-soft p-4">
                   <p className="font-display text-[16px] font-semibold">{r.family}</p>
                   <p className="mt-1.5 text-[13px] leading-snug text-ink">
                     {!r.cyrillicUpper
@@ -296,7 +296,7 @@ export default function FontsPage() {
 function CheckCard({ c }: { c: Row }) {
   const tabular = c.uniformDigitWidths || c.numericFeatures.includes('tnum');
   return (
-    <div className="border border-line bg-surface-2 p-4">
+    <div className="rounded-card border border-line bg-surface-2 p-4">
       <p className="font-display text-[15px] font-semibold">{c.family}</p>
       <dl className="tnum mt-2 space-y-1 text-[13px]">
         <Fact term="Глифов в cmap" value={String(c.glyphs)} />

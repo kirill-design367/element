@@ -34,10 +34,6 @@ SOURCES = [
     ("GolosText.ttf",   "GolosText",       {"wght": (400, 900)}),
     ("Manrope.ttf",     "Manrope",         {"wght": (400, 800)}),
     ("InterTight.ttf",  "InterTight",      {"wght": (400, 800)}),
-    # Маркировка партии: фракции, ГОСТы, марки прочности. Статические
-    # начертания — оси нет, инстансер их просто пропускает.
-    ("IBMPlexMono.ttf",       "IBMPlexMono",       {}),
-    ("IBMPlexMonoMedium.ttf", "IBMPlexMonoMedium", {}),
 ]
 
 

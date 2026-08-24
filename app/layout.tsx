@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { geologica, onest, plexMono } from './type';
+import { geologica, onest } from './type';
 import './globals.css';
 import { Header } from '@/components/site/Header';
 import { MobileBar } from '@/components/site/MobileBar';
@@ -30,11 +30,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`${geologica.variable} ${onest.variable} ${plexMono.variable}`}>
+    <html lang="ru" className={`${geologica.variable} ${onest.variable}`}>
       <body className="min-h-screen antialiased">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[100] focus:rounded-control focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[100] focus:rounded-card focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
         >
           К основному содержанию
         </a>

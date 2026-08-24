@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/Button';
+
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
-import { CATEGORIES, POSITIONS_IN_STOCK, POSITIONS_TOTAL, priceFrom } from '@/lib/catalog';
-import { num, plural } from '@/lib/format';
-import { FractionScale } from './FractionScale';
+import { CATEGORIES, MATERIALS, priceFrom } from '@/lib/catalog';
+import { plural, rub } from '@/lib/format';
 
 const FACTS = [
   { label: 'География', value: `Москва и область, до ${MAX_KM} км от МКАД` },
@@ -12,105 +12,121 @@ const FACTS = [
 ];
 
 /**
- * Первый экран — обложка спецификации: шапка с полем маркировки,
- * заявление и сразу колонка цен. Цифры на первом экране без прокрутки,
- * потому что снабженец сверяет порядок величин раньше, чем читает текст.
+ * Первый экран. Слева — заявление, справа — цены: на этом сайте главный
+ * аргумент это цифра, и она должна попасть в кадр без прокрутки.
+ *
+ * Фотографии нет, поэтому под будущий кадр отведена полоса с фактурой.
+ * Когда PHOTO.hero получит путь, снимок встанет ровно сюда, а строка фактов
+ * останется поверх него.
  *
  * H1 отрисован на сервере и не участвует ни в одной анимации — это LCP.
  */
 export function Hero() {
+  const positions = MATERIALS.filter((m) => m.availability !== 'out').length;
+
   return (
-    <section className="border-b border-line">
-      <div className="shell pt-6 md:pt-10">
-        <div className="doc-grid border-t border-line-strong pt-4 md:pt-5">
-          <p className="mark pb-4 text-ink-2 md:pb-0">
-            Поставка
-            <br className="hidden md:block" /> инертных материалов
+    <section className="relative border-b border-line pt-8 md:pt-14">
+      <div className="shell grid gap-8 lg:grid-cols-12 lg:gap-10">
+        <div className="lg:col-span-7">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-2">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+              Поставка инертных материалов
+            </span>
+            <span className="hidden text-line-strong sm:inline" aria-hidden="true">
+              ·
+            </span>
+            <span>Москва и Московская область</span>
           </p>
 
-          <div className="grid gap-10 lg:grid-cols-12 lg:gap-x-10">
-            <div className="lg:col-span-7">
-              <h1 className="text-t4 font-display font-semibold tracking-[-.035em]">
-                Щебень, песок и грунт&nbsp;— на объект, а не на склад
-              </h1>
+          <h1 className="mt-4 font-display text-[clamp(34px,6.4vw,64px)] font-semibold leading-[1.02] tracking-[-.035em]">
+            Щебень, песок и грунт&nbsp;— <span className="text-accent">на объект</span>, а не на склад
+          </h1>
 
-              <p className="mt-6 max-w-[54ch] text-t2 text-ink-2">
-                Пять групп, {POSITIONS_TOTAL}{' '}
-                {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}, из них{' '}
-                {POSITIONS_IN_STOCK} на площадке сегодня. Считаем стоимость с доставкой прямо на
-                странице — до звонка. Подаём машину под график работ, а не под свой.
-              </p>
+          <p className="mt-5 max-w-[52ch] text-[16px] leading-relaxed text-ink-2 md:text-[18px]">
+            Пять групп материалов, {positions}{' '}
+            {plural(positions, 'позиция', 'позиции', 'позиций')} в наличии на площадке. Считаем
+            стоимость с доставкой прямо на странице — до звонка. Подаём машину под график работ,
+            а не под свой.
+          </p>
 
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <ButtonLink href="/#zayavka" size="lg" className="w-full sm:w-auto">
-                  Запросить прайс
-                </ButtonLink>
-                <ButtonLink
-                  href="/catalog/"
-                  variant="secondary"
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  Каталог материалов
-                </ButtonLink>
-              </div>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <ButtonLink href="/#zayavka" size="lg" className="w-full sm:w-auto">
+              Запросить прайс
+            </ButtonLink>
+            <ButtonLink href="/catalog/" variant="secondary" size="lg" className="w-full sm:w-auto">
+              Каталог материалов
+            </ButtonLink>
+          </div>
+        </div>
+
+        {/* Цены сразу, без прокрутки: снабженец сверяет порядок величин
+            за три секунды и только потом решает, читать ли дальше. */}
+        <div className="lg:col-span-5">
+          <div className="rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
+            <div className="flex items-baseline justify-between">
+              <h2 className="font-display text-[13px] font-semibold uppercase tracking-[.08em]">
+                Цены на площадке
+              </h2>
+              <span className="text-[12px] text-ink-2">₽ за м³, с НДС</span>
             </div>
-
-            {/* Прайс как отрывной талон: колонка цен выровнена по разряду. */}
-            <div className="lg:col-span-5">
-              <div className="flex items-baseline justify-between border-b border-ink pb-2">
-                <p className="mark">Цены на площадке</p>
-                <p className="mark text-ink-2">₽ / м³, с НДС</p>
-              </div>
-              <ul>
-                {CATEGORIES.map((c) => (
-                  <li key={c.id} className="border-b border-line">
-                    <Link
-                      href={`/catalog/?category=${c.id}`}
-                      className="flex items-baseline justify-between gap-4 py-3 transition-colors hover:text-accent"
-                    >
-                      <span className="text-t2">{c.name}</span>
-                      <span className="flex items-baseline gap-1.5">
-                        <span className="mark text-ink-2">от</span>
-                        <span className="figure text-t3 font-semibold">
-                          {num(priceFrom(c.id))}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 text-t2 text-ink-2">
-                Самовывоз с площадки. Доставка считается отдельно —{' '}
-                <Link
-                  href="/#raschet"
-                  className="text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
-                >
-                  в калькуляторе ниже
-                </Link>
-                .
-              </p>
-            </div>
+            <ul className="mt-3 divide-y divide-line">
+              {CATEGORIES.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    href={`/catalog/?category=${c.id}`}
+                    className="group flex items-baseline justify-between gap-3 py-2.5 transition-colors hover:text-accent"
+                  >
+                    <span className="text-[15px]">{c.name}</span>
+                    <span className="tnum font-display text-[16px] font-semibold">
+                      от {rub(priceFrom(c.id))}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 border-t border-line pt-3 text-[13px] leading-snug text-ink-2">
+              Самовывоз с площадки. Доставка считается отдельно —{' '}
+              <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
+                в калькуляторе ниже
+              </Link>
+              .
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Гранулометрия вместо фотографии: заглушка, которая сообщает о товаре. */}
-      <div className="shell mt-12 md:mt-16">
-        <FractionScale />
+      {/* Место под кадр с карьера или разгрузки. Бриф — в lib/assets.ts.
+          Пропорция кадра описана там же; здесь задана высота, чтобы полоса
+          держала ширину колонки и не сжималась под соотношение сторон. */}
+      <div className="shell mt-10 md:mt-14">
+        <div className="overflow-hidden rounded-card border border-line">
+          <div
+            className="grain h-[168px] border-b border-line md:h-[260px]"
+            style={
+              {
+                '--grain-bg': '#dedbd6',
+                '--grain-tint': '#978e86',
+                '--grain-tint-2': '#b5aca3',
+                '--grain-dot': '4.5px',
+                '--grain-step': '16px',
+                '--grain-rot': '-6deg',
+              } as React.CSSProperties
+            }
+          />
+          <dl className="grid grid-cols-1 divide-y divide-line bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {FACTS.map((f) => (
+              <div key={f.label} className="px-4 py-3 md:px-5 md:py-4">
+                <dt className="text-[11px] uppercase tracking-[.09em] text-ink-2">{f.label}</dt>
+                <dd className="mt-1 font-display text-[14px] font-medium leading-snug md:text-[15px]">
+                  {f.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
-
-      <div className="shell">
-        <dl className="grid grid-cols-1 sm:grid-cols-3">
-          {FACTS.map((f) => (
-            <div key={f.label} className="border-b border-line py-4 sm:border-b-0 sm:pr-8">
-              <dt className="mark text-ink-2">{f.label}</dt>
-              <dd className="mt-2 text-t2">{f.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-      <div className="h-8 md:h-12" aria-hidden="true" />
+      <div className="h-10 md:h-14" aria-hidden="true" />
     </section>
   );
 }

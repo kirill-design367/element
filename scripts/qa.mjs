@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 const OUT='/tmp/claude-0/-home-user-Ai-Agent/ae36228a-3a88-5d5f-ba6c-41e656162fdc/scratchpad/shots';
-const BASE = process.env.BASE ?? 'http://localhost:4173';
+const BASE='http://localhost:4173';
 const b = await chromium.launch();
 
 // ── 1. Клавиатура: у каждого элемента в табе должен быть видимый фокус ──

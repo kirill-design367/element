@@ -21,22 +21,6 @@ export const geologica = localFont({
   fallback: ['system-ui', 'Segoe UI', 'Arial', 'sans-serif'],
 });
 
-/**
- * IBM Plex Mono — маркировка партии: фракции, ГОСТы, марки прочности,
- * названия полей. Цифры табличные по умолчанию, без включения фич.
- */
-export const plexMono = localFont({
-  src: [
-    { path: '../assets/fonts/IBMPlexMono.woff2', weight: '400', style: 'normal' },
-    { path: '../assets/fonts/IBMPlexMonoMedium.woff2', weight: '500', style: 'normal' },
-  ],
-  variable: '--font-mono',
-  display: 'swap',
-  preload: true,
-  adjustFontFallback: false,
-  fallback: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
-});
-
 /** Onest — интерфейс и текст. */
 export const onest = localFont({
   src: [{ path: '../assets/fonts/Onest.woff2', weight: '300 800', style: 'normal' }],

@@ -28,23 +28,10 @@ export interface Category {
   /** Для чего берут. Короткие формулировки без маркетинга. */
   uses: string[];
   /**
-   * Заглушка фактуры. Фотографий нет, поэтому карточка рисует россыпь
-   * зёрен: размер и форма — от самого материала. Масштаб внутри карточки
-   * подобран под читаемость (в отличие от разреза в hero, где масштаб
-   * единый и о нём заявлено прямо).
-   *
-   * min/max — размер зерна в пикселях, count — сколько их в поле,
-   * round — окатанное зерно вместо дроблёного (песок, грунт).
+   * Заглушка фактуры. Фотографий нет, поэтому карточка рисует
+   * гранулометрию: размер точки пропорционален фракции.
    */
-  grain: {
-    bg: string;
-    tint: string;
-    tint2: string;
-    min: number;
-    max: number;
-    count: number;
-    round?: boolean;
-  };
+  grain: { bg: string; tint: string; tint2: string; dot: number; step: number; rot: number };
 }
 
 export interface Material {
@@ -82,7 +69,7 @@ export const CATEGORIES: Category[] = [
     summary:
       'Гранитный, известняковый, гравийный и вторичный. Марка прочности от М300 до М1400 — выбирается под нагрузку на основание.',
     uses: ['бетон', 'основание дороги', 'дренаж', 'отсыпка площадок'],
-    grain: { bg: '#ddd9d3', tint: '#8f867e', tint2: '#a49a91', min: 9, max: 34, count: 46 },
+    grain: { bg: '#dedbd6', tint: '#978e86', tint2: '#b5aca3', dot: 5, step: 17, rot: -6 },
   },
   {
     id: 'pesok',
@@ -92,7 +79,7 @@ export const CATEGORIES: Category[] = [
     summary:
       'Карьерный на подсыпку и обратную засыпку, мытый — под кладочный и бетонный раствор. Модуль крупности в паспорте.',
     uses: ['подушка под фундамент', 'раствор', 'обратная засыпка', 'благоустройство'],
-    grain: { bg: '#ebe0c9', tint: '#c3a163', tint2: '#d4b985', min: 3, max: 7, count: 90, round: true },
+    grain: { bg: '#ece2cd', tint: '#c2a26a', tint2: '#dbc79c', dot: 1.5, step: 5.5, rot: 4 },
   },
   {
     id: 'pgs',
@@ -102,7 +89,7 @@ export const CATEGORIES: Category[] = [
     summary:
       'Песчано-гравийная смесь: природная для отсыпки и планировки, обогащённая — с нормированным содержанием гравия под бетон.',
     uses: ['отсыпка', 'планировка участка', 'подстилающий слой', 'бетон'],
-    grain: { bg: '#e2dbcd', tint: '#9c8f78', tint2: '#bfb49c', min: 4, max: 26, count: 40 },
+    grain: { bg: '#e4ded2', tint: '#a1947c', tint2: '#c6bca6', dot: 3.4, step: 12.5, rot: -11 },
   },
   {
     id: 'otsev',
@@ -112,7 +99,7 @@ export const CATEGORIES: Category[] = [
     summary:
       'Побочный продукт дробления. Дешевле песка на отсыпке, плотно трамбуется — берут под тротуарную плитку и дорожки.',
     uses: ['подсыпка под плитку', 'дорожки', 'антигололёдная посыпка', 'отсыпка'],
-    grain: { bg: '#e4e1db', tint: '#9c968d', tint2: '#b4aea5', min: 3, max: 9, count: 64 },
+    grain: { bg: '#e6e3de', tint: '#a29c94', tint2: '#bdb8b0', dot: 1.15, step: 4.4, rot: 7 },
   },
   {
     id: 'grunt',
@@ -122,7 +109,7 @@ export const CATEGORIES: Category[] = [
     summary:
       'Плодородные грунты под озеленение и планировочный грунт под вертикальную планировку. Отбираем по агрохимическому анализу.',
     uses: ['газон', 'озеленение', 'вертикальная планировка', 'рекультивация'],
-    grain: { bg: '#cbc2b3', tint: '#7d7161', tint2: '#9b9080', min: 5, max: 18, count: 52, round: true },
+    grain: { bg: '#cdc5b8', tint: '#6b5f51', tint2: '#8d7f6d', dot: 2.6, step: 9, rot: -3 },
   },
 ];
 
@@ -481,15 +468,6 @@ export const MATERIALS: Material[] = [
 ];
 
 // ── Производные и помощники ─────────────────────────────────────────────────
-
-/**
- * Счётчики позиций. Выведены из данных, а не записаны словами: в hero и в
- * превью каталога однажды разъехались «23 позиции» и «двадцать четыре»,
- * потому что одно число считалось, а другое было набрано руками.
- */
-export const POSITIONS_TOTAL = MATERIALS.length;
-export const POSITIONS_IN_STOCK = MATERIALS.filter((m) => m.availability === 'in-stock').length;
-export const POSITIONS_ON_ORDER = MATERIALS.filter((m) => m.availability === 'on-order').length;
 
 /** Цена за тонну выводится из цены за куб и насыпной плотности. */
 export function pricePerTon(m: Material): number {

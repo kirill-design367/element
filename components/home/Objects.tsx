@@ -1,4 +1,4 @@
-import { num } from '@/lib/format';
+import { volume } from '@/lib/format';
 
 /** Заглушки: объекты вымышленные, объёмы правдоподобные. */
 const OBJECTS = [
@@ -32,30 +32,34 @@ const OBJECTS = [
   },
 ];
 
-/**
- * Объекты — строки реестра поставок, а не карточки: объём стоит в своей
- * колонке и выровнен по разряду, поэтому четыре числа читаются столбцом.
- */
 export function Objects() {
   return (
-    <ul>
+    <ul className="grid gap-4 sm:grid-cols-2">
       {OBJECTS.map((o) => (
         <li
           key={o.name}
           data-reveal
-          className="grid grid-cols-1 gap-x-8 gap-y-3 border-t border-line py-6 md:grid-cols-12 md:items-baseline"
+          className="flex flex-col rounded-card border border-line bg-surface p-5 shadow-card md:p-6"
         >
-          <div className="md:col-span-5">
-            <h3 className="text-t3 font-display font-semibold tracking-[-.02em]">{o.name}</h3>
-            <p className="mark-value mt-2 text-ink-2">
-              {o.place} · {o.period}
-            </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-display text-[18px] font-semibold leading-snug tracking-[-.015em]">
+                {o.name}
+              </h3>
+              <p className="mt-1 text-[13px] text-ink-2">
+                {o.place} · {o.period}
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              <div className="tnum font-display text-[20px] font-semibold leading-none">
+                {volume(o.m3)}
+              </div>
+              <div className="mt-1 text-[11px] uppercase tracking-[.08em] text-ink-2">поставлено</div>
+            </div>
           </div>
-          <p className="text-t2 text-ink-2 md:col-span-5">{o.supplied}</p>
-          <div className="md:col-span-2 md:text-right">
-            <span className="figure text-t3 font-semibold">{num(o.m3)}</span>
-            <span className="mark ml-2 text-ink-2">м³</span>
-          </div>
+          <p className="mt-4 border-t border-line pt-3 text-[14px] leading-relaxed text-ink-2">
+            {o.supplied}
+          </p>
         </li>
       ))}
     </ul>
