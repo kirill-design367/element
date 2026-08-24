@@ -45,7 +45,17 @@ export function CategoryCard({ category, tall }: { category: Category; tall?: bo
           slot={categorySlot(category.id)}
           className={`w-full ${tall ? "aspect-[3/4]" : "aspect-[4/3]"}`}
         >
-          <span className="absolute left-3 top-3 rounded bg-white/85 px-2 py-1 text-t1 font-medium tabular-nums text-ink-2">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-16"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgba(244,244,241,.95) 0%, rgba(244,244,241,.75) 46%, rgba(244,244,241,0) 100%)',
+            }}
+          />
+          {/* Метка лежит на градиенте от верхнего края кадра, а не на плашке:
+              плашка закрывала бы фактуру прямоугольником. */}
+          <span className="absolute left-3 top-2.5 text-t1 font-medium tabular-nums text-ink">
             {count} {plural(count, 'позиция', 'позиции', 'позиций')}
           </span>
         </PhotoSlot>

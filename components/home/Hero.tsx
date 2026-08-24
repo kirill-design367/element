@@ -46,13 +46,28 @@ export function Hero() {
             />
           </picture>
         )}
-        {/* Читаемость текста поверх кадра — отдельным слоем ниже. */}
       </div>
+
+      {/* Читаемость: светлый градиент под текстом, а не по всей секции.
+          Привязан к содержимому, потому что на узком экране секция выше
+          вьюпорта и градиент по её нижнему краю до текста не доставал.
+          Не сплошная заливка и не размытие — верх кадра остаётся чистым. */}
+      {PHOTO.hero.src && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 -z-[5]"
+          style={{
+            top: '-17rem',
+            background:
+              'linear-gradient(to top, rgba(244,244,241,.98) 0%, rgba(244,244,241,.97) 68%, rgba(244,244,241,.86) 84%, rgba(244,244,241,.4) 94%, rgba(244,244,241,0) 100%)',
+          }}
+        />
+      )}
 
       {/* bleed-r: левый край сетки совпадает с линией контейнера, правый —
           с краем экрана. Дальше карточка выходит за него отрицательным
           полем, а overflow секции её обрезает. */}
-      <div className="bleed-r">
+      <div className="relative bleed-r">
         <div className="grid w-full items-end gap-10 lg:grid-cols-12 lg:gap-10">
           {/* Левая колонка стоит по линии контейнера. */}
           <div className="pr-[var(--shell-x)] lg:col-span-7 lg:pr-0">

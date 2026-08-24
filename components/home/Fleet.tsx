@@ -27,8 +27,13 @@ const REST = FLEET_NUMBERS.filter((n) => n !== LEAD);
  */
 export function Fleet() {
   return (
-    <div className="inv relative flex min-h-[86svh] flex-col justify-between overflow-hidden py-16 md:py-24">
-      <div className="absolute inset-0 -z-10 overflow-hidden">
+    <div
+      className="inv relative flex min-h-[86svh] flex-col justify-between overflow-hidden py-16 md:py-24"
+      /* Фон .inv прозрачный: он непрозрачным перекрывал фотографию, лежащую
+         ниже по стопке. Тёмный тон теперь даёт сам кадр плюс градиент. */
+      style={{ background: 'transparent' }}
+    >
+      <div className="absolute inset-0 -z-10 overflow-hidden bg-[#14161a]">
         {PHOTO.fleet.src && (
           <img
             src={asset(PHOTO.fleet.src)}
@@ -37,6 +42,19 @@ export function Fleet() {
             loading="lazy"
             decoding="async"
             className="absolute inset-x-0 -top-6 h-[calc(100%+48px)] w-full object-cover"
+          />
+        )}
+        {/* Читаемость: градиент от левого и нижнего краёв кадра. Не сплошная
+            заливка и не размытие — правая часть снимка остаётся чистой. */}
+        {PHOTO.fleet.src && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to right, rgba(12,14,17,.92) 0%, rgba(12,14,17,.72) 34%, rgba(12,14,17,.18) 64%, rgba(12,14,17,0) 88%),' +
+                'linear-gradient(to top, rgba(12,14,17,.93) 0%, rgba(12,14,17,.82) 42%, rgba(12,14,17,.42) 72%, rgba(12,14,17,0) 100%)',
+            }}
           />
         )}
       </div>
