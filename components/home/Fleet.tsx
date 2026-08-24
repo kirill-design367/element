@@ -1,7 +1,11 @@
 import { Counter } from './Counter';
 
-/** Заглушки. Порядок величин правдоподобный для поставщика такого размера. */
-const NUMBERS = [
+/**
+ * Заглушки. Порядок величин правдоподобный для поставщика такого размера.
+ * Экспортируется, чтобы страница сравнения шрифтов набирала ту же цифру,
+ * что стоит в блоке, а не свою копию.
+ */
+export const FLEET_NUMBERS = [
   { value: 24, unit: '', label: 'единицы техники', note: 'самосвалы 10–30 м³, свои и партнёрские' },
   { value: 1800, unit: 'м³', label: 'в сутки', note: 'пиковая отгрузка с трёх площадок' },
   { value: 150, unit: 'км', label: 'радиус доставки', note: 'от МКАД по всем направлениям' },
@@ -11,7 +15,7 @@ const NUMBERS = [
 export function Fleet() {
   return (
     <dl className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-      {NUMBERS.map((n) => (
+      {FLEET_NUMBERS.map((n) => (
         <div key={n.label} data-reveal className="bg-surface p-5 md:p-6">
           <dd className="font-display text-[clamp(34px,6vw,52px)] font-semibold leading-none tracking-[-.03em]">
             <Counter value={n.value} />

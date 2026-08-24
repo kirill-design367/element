@@ -86,38 +86,6 @@
     "verdict": true
   },
   {
-    "file": "IBMPlexSans.ttf",
-    "family": "IBM Plex Sans",
-    "glyphs": 891,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [],
-    "uniformDigitWidths": true,
-    "digitWidths": [
-      600
-    ],
-    "numericFeatures": [
-      "lnum",
-      "onum",
-      "ss01",
-      "zero"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 100.0,
-        "max": 700.0
-      },
-      {
-        "tag": "wdth",
-        "min": 75.0,
-        "max": 100.0
-      }
-    ],
-    "verdict": true
-  },
-  {
     "file": "GolosText.ttf",
     "family": "Golos Text",
     "glyphs": 566,
@@ -152,65 +120,175 @@
     "verdict": true
   },
   {
-    "file": "Manrope.ttf",
-    "family": "Manrope",
-    "glyphs": 678,
+    "file": "Unbounded.ttf",
+    "family": "Unbounded",
+    "glyphs": 1138,
     "cyrillicUpper": true,
     "cyrillicLower": true,
     "digits": true,
     "missingService": [],
     "uniformDigitWidths": false,
     "digitWidths": [
-      716,
-      962,
-      1068,
-      1106,
-      1118,
-      1144,
-      1154,
-      1156,
-      1240
+      471,
+      704,
+      775,
+      789,
+      803,
+      804,
+      825,
+      854,
+      893
     ],
     "numericFeatures": [
       "case",
       "pnum",
+      "ss01",
       "tnum"
     ],
     "axes": [
       {
         "tag": "wght",
         "min": 200.0,
-        "max": 800.0
+        "max": 900.0
       }
     ],
     "verdict": true
   },
   {
-    "file": "InterTight.ttf",
-    "family": "Inter Tight",
-    "glyphs": 2504,
+    "file": "Tektur.ttf",
+    "family": "Tektur",
+    "glyphs": 962,
     "cyrillicUpper": true,
     "cyrillicLower": true,
     "digits": true,
     "missingService": [],
     "uniformDigitWidths": false,
     "digitWidths": [
-      728,
-      1056,
-      1138,
-      1144,
-      1160,
-      1164,
-      1184,
-      1208,
-      1218
+      430,
+      610,
+      620,
+      640,
+      650,
+      660,
+      670
     ],
     "numericFeatures": [
-      "case",
       "pnum",
       "ss01",
       "tnum",
       "zero"
+    ],
+    "axes": [
+      {
+        "tag": "wdth",
+        "min": 75.0,
+        "max": 100.0
+      },
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "IBMPlexSans.ttf",
+    "family": "IBM Plex Sans",
+    "glyphs": 891,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": true,
+    "digitWidths": [
+      600
+    ],
+    "numericFeatures": [
+      "lnum",
+      "onum",
+      "ss01",
+      "zero"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 700.0
+      },
+      {
+        "tag": "wdth",
+        "min": 75.0,
+        "max": 100.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Rubik.ttf",
+    "family": "Rubik",
+    "glyphs": 885,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "→"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      398,
+      487,
+      560,
+      572,
+      576,
+      582,
+      595,
+      616,
+      618
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "tnum",
+      "zero"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 300.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Exo2.ttf",
+    "family": "Exo 2",
+    "glyphs": 911,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "→"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      398,
+      512,
+      536,
+      556,
+      562,
+      572,
+      603,
+      607,
+      615
+    ],
+    "numericFeatures": [
+      "case",
+      "lnum",
+      "onum",
+      "pnum",
+      "tnum"
     ],
     "axes": [
       {
@@ -220,103 +298,6 @@
       }
     ],
     "verdict": true
-  },
-  {
-    "file": "Oswald.ttf",
-    "family": "Oswald",
-    "glyphs": 850,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [
-      "→"
-    ],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      378,
-      386,
-      476,
-      477,
-      478,
-      483,
-      499,
-      502,
-      503,
-      517
-    ],
-    "numericFeatures": [
-      "case"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 200.0,
-        "max": 700.0
-      }
-    ],
-    "verdict": false
-  },
-  {
-    "file": "WixMadeforDisplay.ttf",
-    "family": "Wix Madefor Display",
-    "glyphs": 608,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [
-      "≈"
-    ],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      456,
-      592,
-      594,
-      598,
-      599,
-      622,
-      624,
-      646
-    ],
-    "numericFeatures": [
-      "case"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 400.0,
-        "max": 800.0
-      }
-    ],
-    "verdict": false
-  },
-  {
-    "file": "SairaCondensed.ttf",
-    "family": "Saira Condensed",
-    "glyphs": 608,
-    "cyrillicUpper": false,
-    "cyrillicLower": false,
-    "digits": true,
-    "missingService": [
-      "₽"
-    ],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      274,
-      403,
-      423,
-      436,
-      439,
-      468,
-      476,
-      484,
-      490
-    ],
-    "numericFeatures": [
-      "case",
-      "zero"
-    ],
-    "axes": [],
-    "verdict": false
   },
   {
     "file": "Commissioner.ttf",
@@ -363,6 +344,265 @@
         "tag": "VOLM",
         "min": 0.0,
         "max": 100.0
+      }
+    ],
+    "verdict": false
+  },
+  {
+    "file": "NunitoSans.ttf",
+    "family": "Nunito Sans",
+    "glyphs": 939,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "→"
+    ],
+    "uniformDigitWidths": true,
+    "digitWidths": [
+      600
+    ],
+    "numericFeatures": [
+      "case",
+      "onum",
+      "ss01"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 200.0,
+        "max": 1000.0
+      },
+      {
+        "tag": "wdth",
+        "min": 75.0,
+        "max": 125.0
+      },
+      {
+        "tag": "opsz",
+        "min": 6.0,
+        "max": 12.0
+      },
+      {
+        "tag": "YTLC",
+        "min": 440.0,
+        "max": 540.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Ruda.ttf",
+    "family": "Ruda",
+    "glyphs": 609,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "₽",
+      "№",
+      "≈"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      471,
+      507,
+      509,
+      537,
+      540,
+      545,
+      550,
+      552,
+      572
+    ],
+    "numericFeatures": [],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": false
+  },
+  {
+    "file": "WixMadeforText.ttf",
+    "family": "Wix Madefor Text",
+    "glyphs": 608,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "≈"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      479,
+      543,
+      575,
+      581,
+      584,
+      610,
+      612,
+      639,
+      640
+    ],
+    "numericFeatures": [
+      "case"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 800.0
+      }
+    ],
+    "verdict": false
+  },
+  {
+    "file": "WixMadeforDisplay.ttf",
+    "family": "Wix Madefor Display",
+    "glyphs": 608,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [
+      "≈"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      456,
+      592,
+      594,
+      598,
+      599,
+      622,
+      624,
+      646
+    ],
+    "numericFeatures": [
+      "case"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 800.0
+      }
+    ],
+    "verdict": false
+  },
+  {
+    "file": "AlumniSans.ttf",
+    "family": "Alumni Sans",
+    "glyphs": 700,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      218,
+      279,
+      342,
+      367,
+      389,
+      393,
+      394,
+      398,
+      400,
+      404
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Archivo.ttf",
+    "family": "Archivo",
+    "glyphs": 653,
+    "cyrillicUpper": false,
+    "cyrillicLower": false,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      575,
+      576,
+      577
+    ],
+    "numericFeatures": [
+      "case",
+      "lnum",
+      "onum",
+      "pnum",
+      "tnum",
+      "zero"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 100.0,
+        "max": 900.0
+      },
+      {
+        "tag": "wdth",
+        "min": 62.0,
+        "max": 125.0
+      }
+    ],
+    "verdict": false
+  },
+  {
+    "file": "InstrumentSans.ttf",
+    "family": "Instrument Sans",
+    "glyphs": 343,
+    "cyrillicUpper": false,
+    "cyrillicLower": false,
+    "digits": true,
+    "missingService": [
+      "₽",
+      "№",
+      "≈"
+    ],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      391,
+      532,
+      545,
+      574,
+      582,
+      599,
+      600,
+      610,
+      666
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "ss01",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wdth",
+        "min": 75.0,
+        "max": 100.0
+      },
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 700.0
       }
     ],
     "verdict": false

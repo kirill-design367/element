@@ -27,13 +27,19 @@ KEEP_AXES = {"wght", "wdth"}
 
 SOURCES = [
     # (файл, имя на выходе, {ось: значение или диапазон})
-    ("Geologica.ttf",   "Geologica",       {"wght": (200, 800)}),
-    ("Onest.ttf",       "Onest",           {"wght": (300, 800)}),
-    ("IBMPlexSans.ttf", "IBMPlexSans",     {"wght": (400, 700), "wdth": 100}),
-    ("IBMPlexSans.ttf", "IBMPlexSansCond", {"wght": (400, 700), "wdth": 75}),
-    ("GolosText.ttf",   "GolosText",       {"wght": (400, 900)}),
-    ("Manrope.ttf",     "Manrope",         {"wght": (400, 800)}),
-    ("InterTight.ttf",  "InterTight",      {"wght": (400, 800)}),
+    # Боевая пара — стоит на лендинге и в каталоге.
+    ("Geologica.ttf",   "Geologica", {"wght": (200, 800)}),
+    ("Onest.ttf",       "Onest",     {"wght": (300, 800)}),
+    # Кандидаты для страницы сравнения. На боевые страницы не подключаются:
+    # их грузит только маршрут /fonts, с preload: false.
+    ("GolosText.ttf",   "GolosText", {"wght": (400, 900)}),
+    ("Unbounded.ttf",   "Unbounded", {"wght": (200, 900)}),
+    # Ось ширины оставлена живой: длинный русский H1 поджимается по ширине,
+    # а не уезжает в третью строку.
+    ("Tektur.ttf",      "Tektur",    {"wght": (400, 900), "wdth": (75, 100)}),
+    # Подмена для платной CoFo Sans: тот же класс рационального гротеска,
+    # цифры одной ширины по умолчанию. На странице подписана как подмена.
+    ("IBMPlexSans.ttf", "IBMPlexSans", {"wght": (400, 700), "wdth": 100}),
 ]
 
 
