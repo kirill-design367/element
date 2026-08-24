@@ -34,7 +34,11 @@ export function Hero() {
       <div className="absolute inset-0 -z-10 overflow-hidden bg-surface-2">
         {PHOTO.hero.src && (
           <picture>
-            <source media="(max-width: 767px)" srcSet={asset(PHOTO.hero.srcMobile ?? PHOTO.hero.src)} />
+            <source
+              media="(max-width: 767px)"
+              type="image/webp"
+              srcSet={asset(PHOTO.hero.srcMobile ?? PHOTO.hero.src)}
+            />
             <img
               src={asset(PHOTO.hero.src)}
               alt={PHOTO.hero.brief}
