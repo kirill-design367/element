@@ -75,11 +75,9 @@ export default function HomePage() {
         <Fleet />
       </Section>
 
-      <Section id="obyekty">
-        <SectionHead
-          title="Объекты"
-          lead="Что и в каком объёме поставляли за последний год."
-        />
+      {/* Заголовок живёт внутри Objects: он стоит в левой колонке рядом со
+          списком, а не над блоком во всю ширину. */}
+      <Section id="obyekty" width="edge" pad="tight">
         <Objects />
       </Section>
 
