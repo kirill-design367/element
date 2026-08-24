@@ -223,7 +223,7 @@ export function Calculator() {
 
           {/* Разбивка как в счёте: строка — статья — сумма. Итог отделён
               от строк и от полей ввода: он не продолжение формы, а ответ. */}
-          <dl className="mt-5 space-y-3 text-t2" aria-live="polite">
+          <div className="mt-5 space-y-3 text-t2" aria-live="polite">
             <Row
               label="Объём"
               value={result ? `${volume(result.volumeM3)} · ${tons(result.massT)}` : '—'}
@@ -243,7 +243,7 @@ export function Calculator() {
                   : undefined
               }
             />
-          </dl>
+          </div>
 
           <div className="-mx-5 mt-5 border-t border-line-strong bg-surface-2 px-5 pb-5 pt-4 md:-mx-6 md:px-6">
             <dl className="flex items-end justify-between gap-3">
@@ -308,10 +308,10 @@ function Row({
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <dt className="text-ink-2">{label}</dt>
-        {note && <dd className="mt-0.5 text-t1 leading-snug text-ink-2">{note}</dd>}
+        <span className="text-ink-2">{label}</span>
+        {note && <p className="mt-0.5 text-t1 leading-snug text-ink-2">{note}</p>}
       </div>
-      <dd className={`tnum shrink-0 font-medium ${flash ? 'recalc' : ''}`}>{value}</dd>
+      <span className={`tnum shrink-0 font-medium ${flash ? 'recalc' : ''}`}>{value}</span>
     </div>
   );
 }
