@@ -100,16 +100,24 @@ export function Reveal() {
       enter('[data-fleet="rest"], [data-fleet="label"]', { opacity: 0, y: 16, duration: DUR.slow, ease: EASE }, { stagger: 0.06 });
 
       /**
-       * Параллакс на фоновых слотах. Амплитуда 20 пикселей, двигается только
-       * transform. Включится, когда появятся фотографии: пустое поле двигать
-       * нечем и незачем, а лишний ScrollTrigger стоит кадров.
+       * Параллакс на фоновых слотах: первый экран, парк, объекты. Амплитуда
+       * 40 пикселей на весь проход, по 20 в каждую сторону; двигается только
+       * transform, вёрстка не пересчитывается. Кадры выше своих блоков на
+       * 48 px и подняты на 24 — иначе на краях показалась бы полоса фона.
+       * Селектор стоит на изображениях внутри слотов, поэтому пока в
+       * lib/assets.ts не заполнен src, ни одного триггера не создаётся.
        */
       const parallax = Array.from(document.querySelectorAll<HTMLElement>('[data-parallax]'));
       parallax.forEach((el) => {
+        const box = el.parentElement ?? el;
+        // У блока в самом верху документа диапазон «top bottom → bottom top»
+        // почти исчерпан ещё до первой прокрутки, и кадр стоит на упоре.
+        // Для него отсчёт начинается от верха экрана.
+        const atTop = box.getBoundingClientRect().top + window.scrollY < window.innerHeight * 0.5;
         triggers.push(
           ScrollTrigger.create({
-            trigger: el.parentElement ?? el,
-            start: 'top bottom',
+            trigger: box,
+            start: atTop ? 'top top' : 'top bottom',
             end: 'bottom top',
             scrub: true,
             onUpdate: (self) => {
@@ -117,6 +125,9 @@ export function Reveal() {
             },
           }),
         );
+        // Начальное положение: без этого кадр стоит по центру диапазона,
+        // а видно его с самого верха.
+        gsap.set(el, { y: atTop ? -20 : 0 });
       });
     };
 

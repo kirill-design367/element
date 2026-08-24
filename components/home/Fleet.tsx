@@ -28,13 +28,15 @@ const REST = FLEET_NUMBERS.filter((n) => n !== LEAD);
 export function Fleet() {
   return (
     <div className="inv relative flex min-h-[86svh] flex-col justify-between overflow-hidden py-16 md:py-24">
-      <div className="absolute inset-0 -z-10" aria-hidden={!PHOTO.fleet.src}>
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         {PHOTO.fleet.src && (
           <img
             src={asset(PHOTO.fleet.src)}
             alt={PHOTO.fleet.brief}
             data-parallax="fleet"
-            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-x-0 -top-6 h-[calc(100%+48px)] w-full object-cover"
           />
         )}
       </div>

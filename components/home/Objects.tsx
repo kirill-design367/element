@@ -78,7 +78,9 @@ export function Objects() {
               src={asset(PHOTO.objects.src)}
               alt={PHOTO.objects.brief}
               data-parallax="objects"
-              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-x-0 -top-6 h-[calc(100%+48px)] w-full object-cover"
             />
           )}
         </div>

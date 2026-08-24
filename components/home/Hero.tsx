@@ -28,16 +28,25 @@ export const FACTS = [
 export function Hero() {
   return (
     <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-24 md:pb-24 md:pt-28">
-      {/* Фоновый слот. Спецификация — PHOTO.hero в lib/assets.ts. */}
-      <div className="absolute inset-0 -z-10 bg-surface-2" aria-hidden={!PHOTO.hero.src}>
+      {/* Фоновый слот. Спецификация — PHOTO.hero в lib/assets.ts.
+          Кадр выше блока на 48 px и поднят на 24: параллакс возит его на
+          ±20, и без этого запаса на краях показалась бы полоса фона. */}
+      <div className="absolute inset-0 -z-10 overflow-hidden bg-surface-2">
         {PHOTO.hero.src && (
-          <img
-            src={asset(PHOTO.hero.src)}
-            alt={PHOTO.hero.brief}
-            data-parallax="hero"
-            className="h-full w-full object-cover"
-          />
+          <picture>
+            <source media="(max-width: 767px)" srcSet={asset(PHOTO.hero.srcMobile ?? PHOTO.hero.src)} />
+            <img
+              src={asset(PHOTO.hero.src)}
+              alt={PHOTO.hero.brief}
+              data-parallax="hero"
+              /* Это LCP: грузим первым и не откладываем. */
+              fetchPriority="high"
+              decoding="async"
+              className="absolute inset-x-0 -top-6 h-[calc(100%+48px)] w-full object-cover"
+            />
+          </picture>
         )}
+        {/* Читаемость текста поверх кадра — отдельным слоем ниже. */}
       </div>
 
       {/* bleed-r: левый край сетки совпадает с линией контейнера, правый —
