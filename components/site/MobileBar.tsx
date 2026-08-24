@@ -12,14 +12,14 @@ export function MobileBar() {
       <div className="grid grid-cols-2 gap-2 px-3 py-2.5 pb-[max(10px,env(safe-area-inset-bottom))]">
         <a
           href={`tel:${COMPANY.phone}`}
-          className="flex h-12 items-center justify-center gap-2 rounded-card border border-line-strong bg-surface text-[15px] font-medium text-ink transition-colors hover:border-ink"
+          className="flex h-12 items-center justify-center gap-2 rounded-card border border-line-strong bg-surface text-t2 font-medium text-ink transition-colors hover:border-ink"
         >
           <PhoneIcon className="h-[18px] w-[18px] text-accent" />
           Позвонить
         </a>
         <Link
           href="/#zayavka"
-          className="flex h-12 items-center justify-center rounded-card bg-accent text-[15px] font-medium text-white transition-colors hover:bg-accent-hover"
+          className="flex h-12 items-center justify-center rounded-card bg-accent text-t2 font-medium text-white transition-colors hover:bg-accent-hover"
         >
           Оставить заявку
         </Link>

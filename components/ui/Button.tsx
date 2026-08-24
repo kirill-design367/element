@@ -18,7 +18,7 @@ const variants: Record<Variant, string> = {
 
 // 48px — минимальная цель нажатия на телефоне.
 const sizes: Record<Size, string> = {
-  md: 'h-11 px-4 text-[15px]',
+  md: 'h-11 px-4 text-t2',
   lg: 'h-[52px] px-6 text-base',
 };
 

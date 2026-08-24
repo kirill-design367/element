@@ -114,7 +114,7 @@ export function CatalogClient() {
   return (
     <>
       <div className="shell py-6 md:py-10">
-        <nav aria-label="Хлебные крошки" className="mb-5 flex flex-wrap items-center text-[13px] text-ink-2">
+        <nav aria-label="Хлебные крошки" className="mb-5 flex flex-wrap items-center text-t1 text-ink-2">
           <Link href="/#materialy" onClick={backHome} className="-my-2 rounded py-2 hover:text-accent">
             Главная
           </Link>
@@ -140,20 +140,20 @@ export function CatalogClient() {
               className="flex min-h-[132px] items-end rounded-card border border-line md:min-h-[168px]"
             >
               <div className="w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
-                <h1 className="font-display text-[clamp(28px,5vw,44px)] font-semibold leading-none tracking-[-.03em]">
+                <h1 className="font-display text-t4 font-semibold leading-none tracking-[-.03em]">
                   {activeCategory.name}
                 </h1>
-                <p className="mt-2 max-w-[62ch] text-[14px] text-ink-2 md:text-[15px]">
+                <p className="mt-2 max-w-[62ch] text-t2 text-ink-2">
                   {activeCategory.fractionsLine} · {activeCategory.summary}
                 </p>
               </div>
             </GrainPlate>
           ) : (
             <div className="rounded-card border border-line bg-surface p-5 md:p-7">
-              <h1 className="font-display text-[clamp(28px,5vw,44px)] font-semibold leading-none tracking-[-.03em]">
+              <h1 className="font-display text-t4 font-semibold leading-none tracking-[-.03em]">
                 Каталог материалов
               </h1>
-              <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-ink-2">
+              <p className="mt-3 max-w-[64ch] text-t2 leading-relaxed text-ink-2">
                 {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
                 на условиях самовывоза. Стоимость доставки считается отдельно —{' '}
                 <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
@@ -202,14 +202,14 @@ export function CatalogClient() {
           </FilterRow>
 
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
-            <label htmlFor="gost" className="text-[13px] font-medium">
+            <label htmlFor="gost" className="text-t1 font-medium">
               ГОСТ
             </label>
             <select
               id="gost"
               value={gost}
               onChange={(e) => setParam('gost', e.target.value)}
-              className="h-10 rounded-card border border-line-strong bg-surface px-2.5 text-[14px] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+              className="h-10 rounded-card border border-line-strong bg-surface px-2.5 text-t2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
             >
               <option value={ALL}>Любой</option>
               {GOST_FILTERS.map((g) => (
@@ -219,14 +219,14 @@ export function CatalogClient() {
               ))}
             </select>
 
-            <p data-found className="tnum ml-auto text-[14px] text-ink-2" aria-live="polite">
+            <p data-found className="tnum ml-auto text-t2 text-ink-2" aria-live="polite">
               Найдено: <span className="font-medium text-ink">{items.length}</span>
             </p>
             {active && (
               <button
                 type="button"
                 onClick={reset}
-                className="rounded text-[14px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+                className="rounded text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
               >
                 Сбросить фильтры
               </button>
@@ -246,15 +246,15 @@ export function CatalogClient() {
             </div>
           ) : (
             <div className="rounded-card border border-line bg-surface p-8 text-center">
-              <p className="text-[19px] font-bold">Под такой набор фильтров ничего нет</p>
-              <p className="mx-auto mt-2 max-w-[48ch] text-[15px] text-ink-2">
+              <p className="text-t3 font-bold">Под такой набор фильтров ничего нет</p>
+              <p className="mx-auto mt-2 max-w-[48ch] text-t2 text-ink-2">
                 Снимите фракцию или ГОСТ — либо позвоните: часть позиций возим под заказ
                 и в каталог они не попадают.
               </p>
               <button
                 type="button"
                 onClick={reset}
-                className="mt-4 inline-flex h-11 items-center rounded-card bg-accent px-5 text-[15px] font-medium text-white hover:bg-accent-hover"
+                className="mt-4 inline-flex h-11 items-center rounded-card bg-accent px-5 text-t2 font-medium text-white hover:bg-accent-hover"
               >
                 Показать все позиции
               </button>
@@ -267,7 +267,7 @@ export function CatalogClient() {
 
         <Link
           href="/#zayavka"
-          className="mt-2 inline-flex items-center gap-2 rounded text-[15px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+          className="mt-2 inline-flex items-center gap-2 rounded text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
         >
           Не нашли нужную позицию — напишите нам
           <ArrowIcon className="h-4 w-4" />
@@ -282,7 +282,7 @@ export function CatalogClient() {
 function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-center gap-2 [&+&]:mt-3">
-      <span className="mr-1 w-[74px] shrink-0 text-[13px] font-medium">{label}</span>
+      <span className="mr-1 w-[74px] shrink-0 text-t1 font-medium">{label}</span>
       {children}
     </div>
   );
@@ -305,7 +305,7 @@ function Chip({
       data-chip={chip}
       onClick={onClick}
       aria-pressed={active}
-      className={`h-10 rounded-pill border px-3.5 text-[14px] transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+      className={`h-10 rounded-pill border px-3.5 text-t2 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
         active
           ? 'border-accent bg-accent text-white'
           : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'

@@ -20,11 +20,11 @@ export function SectionHead({
       <div className="max-w-[720px]">
         <h2
           id={id}
-          className="font-display text-[clamp(26px,4vw,40px)] uppercase leading-[1.05] tracking-[.005em]"
+          className="font-display text-t4 uppercase leading-[1.05] tracking-[.005em]"
         >
           {title}
         </h2>
-        {lead && <p className="mt-3 max-w-[58ch] text-[15px] leading-relaxed text-ink-2 md:text-base">{lead}</p>}
+        {lead && <p className="mt-3 max-w-[58ch] text-t2 leading-relaxed text-ink-2 md:text-base">{lead}</p>}
       </div>
       {aside && <div className="shrink-0">{aside}</div>}
     </div>

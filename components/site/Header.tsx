@@ -26,16 +26,16 @@ export function Header() {
         {/* Без aria-label: доступное имя должно совпадать с видимой надписью,
             иначе голосовое управление не найдёт ссылку по тому, что видит человек. */}
         <Link href="/" className="group -my-2 flex shrink-0 items-baseline gap-2 rounded py-2">
-          <span className="font-display text-[17px] font-bold uppercase leading-none tracking-[.12em] md:text-[19px]">
+          <span className="font-display text-t3 font-bold uppercase leading-none tracking-[.12em]">
             Элемент
           </span>
-          <span className="hidden text-[11px] leading-none text-ink-2 lg:inline">
+          <span className="hidden text-t1 leading-none text-ink-2 lg:inline">
             строительный дом
           </span>
         </Link>
 
         <nav aria-label="Основные разделы" className="hidden flex-1 md:block">
-          <ul className="flex items-center gap-6 text-[14px] text-ink-2">
+          <ul className="flex items-center gap-6 text-t2 text-ink-2">
             {NAV.map((n) => (
               <li key={n.href}>
                 <Link
@@ -52,7 +52,7 @@ export function Header() {
         <div className="ml-auto flex items-center gap-2 md:gap-4">
           <a
             href={`tel:${COMPANY.phone}`}
-            className="tnum -my-2 flex min-h-[44px] items-center gap-1.5 rounded py-2 text-[13px] font-semibold tracking-[-.01em] transition-colors hover:text-accent md:text-[16px]"
+            className="tnum -my-2 flex min-h-[44px] items-center gap-1.5 rounded py-2 text-t1 font-semibold tracking-[-.01em] transition-colors hover:text-accent md:text-t2"
           >
             <PhoneIcon className="h-4 w-4 text-accent md:h-[18px] md:w-[18px]" />
             <span className="whitespace-nowrap">{COMPANY.phoneLabel}</span>

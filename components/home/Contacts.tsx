@@ -8,19 +8,19 @@ export function Contacts() {
         <div className="h-full rounded-card border border-line bg-surface p-5 shadow-card md:p-6">
           <a
             href={`tel:${COMPANY.phone}`}
-            className="tnum flex items-center gap-2.5 rounded font-display text-[clamp(24px,4vw,32px)] font-semibold leading-none tracking-[-.02em] transition-colors hover:text-accent"
+            className="tnum flex items-center gap-2.5 rounded font-display text-t4 font-semibold leading-none tracking-[-.02em] transition-colors hover:text-accent"
           >
             <PhoneIcon className="h-6 w-6 shrink-0 text-accent" />
             {COMPANY.phoneLabel}
           </a>
           <a
             href={`mailto:${COMPANY.email}`}
-            className="mt-3 inline-block rounded text-[16px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+            className="mt-3 inline-block rounded text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
           >
             {COMPANY.email}
           </a>
 
-          <dl className="mt-6 space-y-4 border-t border-line pt-5 text-[14px]">
+          <dl className="mt-6 space-y-4 border-t border-line pt-5 text-t2">
             <Line term="Офис" value={COMPANY.officeAddress} />
             <Line term="Отгрузка" value={COMPANY.siteAddress} />
             <Line term="Часы работы" value={`${COMPANY.hoursOffice}. ${COMPANY.hoursShipping}`} />
@@ -31,15 +31,15 @@ export function Contacts() {
 
       <div className="lg:col-span-4">
         <div className="h-full rounded-card border border-line bg-surface p-5 shadow-card md:p-6">
-          <h3 className="text-[15px] font-bold uppercase tracking-[.07em]">
+          <h3 className="text-t2 font-bold uppercase tracking-[.07em]">
             Реквизиты
           </h3>
           {CONTACTS_ARE_PLACEHOLDER && (
-            <p className="mt-2 text-[12px] leading-snug text-ink-2">
+            <p className="mt-2 text-t1 leading-snug text-ink-2">
               Реквизиты и контакты приведены для примера и заменяются перед запуском.
             </p>
           )}
-          <dl className="mt-4 space-y-2.5 text-[13px]">
+          <dl className="mt-4 space-y-2.5 text-t1">
             <Line term="Наименование" value={COMPANY.legalName} tight />
             <Line term="ИНН / КПП" value={`${COMPANY.inn} / ${COMPANY.kpp}`} tight mono />
             <Line term="ОГРН" value={COMPANY.ogrn} tight mono />
@@ -77,11 +77,11 @@ export function Contacts() {
           />
           <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
             <span className="h-3 w-3 rounded-full bg-accent ring-4 ring-accent/20" aria-hidden="true" />
-            <span className="mt-2 rounded bg-surface px-2 py-1 text-[12px] font-medium shadow-card">
+            <span className="mt-2 rounded bg-surface px-2 py-1 text-t1 font-medium shadow-card">
               Площадка отгрузки
             </span>
           </div>
-          <p className="absolute inset-x-0 bottom-0 bg-surface/85 px-3 py-2 text-[12px] text-ink-2">
+          <p className="absolute inset-x-0 bottom-0 bg-surface/85 px-3 py-2 text-t1 text-ink-2">
             Интерактивная карта подключается при запуске
           </p>
         </div>
@@ -103,7 +103,7 @@ function Line({
 }) {
   return (
     <div className={tight ? 'flex flex-wrap gap-x-2' : ''}>
-      <dt className={`text-ink-2 ${tight ? 'min-w-[92px]' : 'text-[12px] uppercase tracking-[.08em]'}`}>
+      <dt className={`text-ink-2 ${tight ? 'min-w-[92px]' : 'text-t1 uppercase tracking-[.08em]'}`}>
         {term}
       </dt>
       <dd className={`${tight ? 'flex-1' : 'mt-1'} ${mono ? 'tnum' : ''}`}>{value}</dd>

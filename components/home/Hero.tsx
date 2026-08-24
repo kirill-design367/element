@@ -26,7 +26,7 @@ export function Hero() {
     <section className="relative border-b border-line pt-8 md:pt-14">
       <div className="shell grid gap-8 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-7">
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-2">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-t1 text-ink-2">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
               Поставка инертных материалов
@@ -40,14 +40,14 @@ export function Hero() {
           {/* Две строки заданы разметкой, а не переносом по ширине: у Peshka
               на разных экранах точка переноса уезжает, и «с доставкой» то и
               дело оставалось висеть в первой строке. */}
-          <h1 className="mt-4 font-display text-[clamp(36px,6.6vw,68px)] leading-[.95] tracking-[-.005em]">
+          <h1 className="mt-4 font-display text-t5 leading-[.95] tracking-[-.005em]">
             <span className="block">Щебень, песок и грунт</span>
             <span className="block">
               с доставкой <span className="text-accent">на объект</span>
             </span>
           </h1>
 
-          <p className="mt-5 max-w-[52ch] text-[16px] leading-relaxed text-ink-2 md:text-[18px]">
+          <p className="mt-5 max-w-[52ch] text-t2 leading-relaxed text-ink-2">
             Пять групп материалов, {POSITIONS_TOTAL}{' '}
             {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}, из них {POSITIONS_IN_STOCK} на
             площадке сегодня. Считаем стоимость с доставкой прямо на странице — до звонка. Подаём
@@ -69,10 +69,10 @@ export function Hero() {
         <div className="lg:col-span-5">
           <div className="rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
             <div className="flex items-baseline justify-between">
-              <h2 className="text-[13px] font-medium uppercase tracking-[.08em]">
+              <h2 className="text-t1 font-medium uppercase tracking-[.08em]">
                 Цены на площадке
               </h2>
-              <span className="text-[12px] text-ink-2">₽ за м³, с НДС</span>
+              <span className="text-t1 text-ink-2">₽ за м³, с НДС</span>
             </div>
             <ul className="mt-3 divide-y divide-line">
               {CATEGORIES.map((c) => (
@@ -81,15 +81,15 @@ export function Hero() {
                     href={`/catalog/?category=${c.id}`}
                     className="group flex items-baseline justify-between gap-3 py-2.5 transition-colors hover:text-accent"
                   >
-                    <span className="text-[15px]">{c.name}</span>
-                    <span className="tnum text-[16px] font-bold">
+                    <span className="text-t2">{c.name}</span>
+                    <span className="tnum text-t2 font-bold">
                       от {rub(priceFrom(c.id))}
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
-            <p className="mt-3 border-t border-line pt-3 text-[13px] leading-snug text-ink-2">
+            <p className="mt-3 border-t border-line pt-3 text-t1 leading-snug text-ink-2">
               Самовывоз с площадки. Доставка считается отдельно —{' '}
               <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
                 в калькуляторе ниже
@@ -121,8 +121,8 @@ export function Hero() {
           <dl className="grid grid-cols-1 divide-y divide-line bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {FACTS.map((f) => (
               <div key={f.label} className="px-4 py-3 md:px-5 md:py-4">
-                <dt className="text-[11px] uppercase tracking-[.09em] text-ink-2">{f.label}</dt>
-                <dd className="mt-1 text-[14px] font-medium leading-snug md:text-[15px]">
+                <dt className="text-t1 uppercase tracking-[.09em] text-ink-2">{f.label}</dt>
+                <dd className="mt-1 text-t2 font-medium leading-snug">
                   {f.value}
                 </dd>
               </div>

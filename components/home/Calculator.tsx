@@ -57,9 +57,9 @@ export function Calculator() {
   };
 
   const field =
-    'h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-[15px] text-ink ' +
+    'h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink ' +
     'transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
-  const label = 'mb-1.5 block text-[13px] font-medium text-ink';
+  const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   return (
     <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
@@ -109,7 +109,7 @@ export function Calculator() {
                 {(['m3', 't'] as Unit[]).map((u) => (
                   <label
                     key={u}
-                    className={`flex h-10 cursor-pointer items-center justify-center rounded px-3 text-[14px] font-medium transition-colors ${
+                    className={`flex h-10 cursor-pointer items-center justify-center rounded px-3 text-t2 font-medium transition-colors ${
                       unit === u ? 'bg-accent text-white' : 'text-ink-2 hover:text-ink'
                     }`}
                   >
@@ -126,7 +126,7 @@ export function Calculator() {
               </fieldset>
             </div>
             {!valid && (
-              <p id={`${uid}-amount-hint`} className="mt-1.5 text-[13px] text-warn">
+              <p id={`${uid}-amount-hint`} className="mt-1.5 text-t1 text-warn">
                 Укажите объём числом — например, 20
               </p>
             )}
@@ -139,7 +139,7 @@ export function Calculator() {
                     setAmountText(String(q));
                     setUnit('m3');
                   }}
-                  className="tnum inline-flex h-9 items-center rounded-pill border border-line px-3 text-[13px] text-ink-2 transition-colors hover:border-accent hover:text-accent"
+                  className="tnum inline-flex h-9 items-center rounded-pill border border-line px-3 text-t1 text-ink-2 transition-colors hover:border-accent hover:text-accent"
                 >
                   {q} м³
                 </button>
@@ -194,7 +194,7 @@ export function Calculator() {
               onChange={(e) => setAddress(e.target.value)}
               aria-describedby={`${uid}-address-hint`}
             />
-            <p id={`${uid}-address-hint`} className="mt-1.5 text-[13px] text-ink-2">
+            <p id={`${uid}-address-hint`} className="mt-1.5 text-t1 text-ink-2">
               Адрес уходит менеджеру вместе с заявкой. На расчёт влияет расстояние от МКАД —
               его можно поправить вручную.
             </p>
@@ -206,13 +206,13 @@ export function Calculator() {
       <div className="lg:col-span-5">
         <div className="rounded-card border border-line bg-surface p-5 shadow-card md:p-6 lg:sticky lg:top-24">
           <div className="flex items-baseline justify-between">
-            <h3 className="text-[15px] font-bold uppercase tracking-[.07em]">
+            <h3 className="text-t2 font-bold uppercase tracking-[.07em]">
               Расчёт
             </h3>
-            <span className="text-[12px] text-ink-2">цены с НДС</span>
+            <span className="text-t1 text-ink-2">цены с НДС</span>
           </div>
 
-          <div className="mt-4 space-y-3 text-[15px]" aria-live="polite">
+          <div className="mt-4 space-y-3 text-t2" aria-live="polite">
             <Row
               label="Объём"
               value={result ? `${volume(result.volumeM3)} · ${tons(result.massT)}` : '—'}
@@ -230,13 +230,13 @@ export function Calculator() {
 
             <div className="rule pt-3">
               <div className="flex items-end justify-between gap-3">
-                <span className="text-[13px] uppercase tracking-[.07em] text-ink-2">Итого</span>
-                <span className="tnum font-display text-[clamp(26px,5vw,34px)] font-semibold leading-none tracking-[-.02em]">
+                <span className="text-t1 uppercase tracking-[.07em] text-ink-2">Итого</span>
+                <span className="tnum font-display text-t5 font-semibold leading-none tracking-[-.02em]">
                   {result ? rub(result.total) : '—'}
                 </span>
               </div>
               {result && result.volumeM3 > 0 && (
-                <p className="tnum mt-2 text-right text-[13px] text-ink-2">
+                <p className="tnum mt-2 text-right text-t1 text-ink-2">
                   {rub(result.totalPerM3)} за м³ с доставкой на объект
                 </p>
               )}
@@ -244,12 +244,12 @@ export function Calculator() {
           </div>
 
           {result?.belowMinimum && (
-            <p className="mt-4 rounded border-l-2 border-warn bg-warn-soft px-3 py-2 text-[13px] leading-snug text-ink">
+            <p className="mt-4 rounded border-l-2 border-warn bg-warn-soft px-3 py-2 text-t1 leading-snug text-ink">
               Меньше {MIN_ORDER_M3} м³ не возим: машина оплачивается целиком независимо от загрузки.
             </p>
           )}
           {result?.beyondRange && (
-            <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-[13px] leading-snug text-ink">
+            <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
               Дальше {MAX_KM} км от МКАД возим по согласованию — цена в расчёте ориентировочная.
             </p>
           )}
@@ -265,7 +265,7 @@ export function Calculator() {
             <ArrowIcon className="h-4 w-4" />
           </Button>
 
-          <p className="mt-3 text-[12px] leading-snug text-ink-2">
+          <p className="mt-3 text-t1 leading-snug text-ink-2">
             Расчёт ориентировочный: не учитывает простой под разгрузкой, ночную подачу и
             подъезд, недоступный для самосвала. Менеджер подтвердит цену письмом.
           </p>
@@ -280,7 +280,7 @@ function Row({ label, value, note }: { label: string; value: string; note?: stri
     <div className="flex items-start justify-between gap-4">
       <div>
         <span className="text-ink-2">{label}</span>
-        {note && <p className="mt-0.5 text-[12px] leading-snug text-ink-2">{note}</p>}
+        {note && <p className="mt-0.5 text-t1 leading-snug text-ink-2">{note}</p>}
       </div>
       <span className="tnum shrink-0 font-medium">{value}</span>
     </div>

@@ -40,24 +40,24 @@ export function CategoryCard({ category }: { category: Category }) {
     >
       <div ref={plateRef} data-flip-plate={category.id} className="relative">
         <GrainPlate category={category} className="aspect-[16/10] w-full sm:aspect-[4/3]">
-          <span className="absolute left-3 top-3 rounded bg-white/85 px-2 py-1 text-[11px] font-medium tabular-nums text-ink-2">
+          <span className="absolute left-3 top-3 rounded bg-white/85 px-2 py-1 text-t1 font-medium tabular-nums text-ink-2">
             {count} {plural(count, 'позиция', 'позиции', 'позиций')}
           </span>
         </GrainPlate>
       </div>
 
       <div className="flex flex-1 flex-col p-4 md:p-5">
-        <h3 className="text-[19px] font-bold leading-tight tracking-[-.015em] md:text-[21px]">
+        <h3 className="text-t3 font-bold leading-tight tracking-[-.015em]">
           {category.name}
         </h3>
-        <p className="mt-1.5 text-[13px] leading-snug text-ink-2">{category.fractionsLine}</p>
+        <p className="mt-1.5 text-t1 leading-snug text-ink-2">{category.fractionsLine}</p>
 
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
           <div>
-            <div className="text-[11px] uppercase tracking-[.08em] text-ink-2">Цена</div>
-            <div className="tnum mt-0.5 text-[19px] font-bold leading-none">
+            <div className="text-t1 uppercase tracking-[.08em] text-ink-2">Цена</div>
+            <div className="tnum mt-0.5 text-t3 font-bold leading-none">
               от {rub(priceFrom(category.id))}
-              <span className="ml-1 text-[12px] font-normal text-ink-2">/ м³</span>
+              <span className="ml-1 text-t1 font-normal text-ink-2">/ м³</span>
             </div>
           </div>
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-accent transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-white">

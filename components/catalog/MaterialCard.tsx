@@ -25,10 +25,10 @@ export function MaterialCard({ material }: { material: Material }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-[17px] font-bold leading-snug tracking-[-.015em] md:text-[18px]">
+          <h3 className="text-t3 font-bold leading-snug tracking-[-.015em]">
             {material.name}
           </h3>
-          <p className="mt-1 text-[13px] text-ink-2">
+          <p className="mt-1 text-t1 text-ink-2">
             {material.fraction} · {material.gost}
           </p>
         </div>
@@ -38,34 +38,34 @@ export function MaterialCard({ material }: { material: Material }) {
       {/* Цены — крупно и в табличных цифрах, чтобы колонки не плясали. */}
       <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
         <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[.07em] text-ink-2">за м³</div>
-          <div className="tnum mt-0.5 text-[19px] font-bold leading-none">
+          <div className="text-t1 uppercase tracking-[.07em] text-ink-2">за м³</div>
+          <div className="tnum mt-0.5 text-t3 font-bold leading-none">
             {rub(material.pricePerM3)}
           </div>
         </div>
         <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-[11px] uppercase tracking-[.07em] text-ink-2">за тонну</div>
-          <div className="tnum mt-0.5 text-[19px] font-bold leading-none">
+          <div className="text-t1 uppercase tracking-[.07em] text-ink-2">за тонну</div>
+          <div className="tnum mt-0.5 text-t3 font-bold leading-none">
             {rub(pricePerTon(material))}
           </div>
         </div>
       </div>
 
-      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-ink-2">
+      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-t1 text-ink-2">
         {material.strength && <Spec term="Марка" value={material.strength} />}
         {material.frost && <Spec term="Морозостойкость" value={material.frost} />}
         <Spec term="Насыпная плотность" value={`${material.density} т/м³`} />
       </dl>
 
       {material.note && (
-        <p className="mt-3 text-[13px] leading-relaxed text-ink-2">{material.note}</p>
+        <p className="mt-3 text-t1 leading-relaxed text-ink-2">{material.note}</p>
       )}
 
       <ul className="mt-3 flex flex-wrap gap-1.5">
         {material.uses.map((u) => (
           <li
             key={u}
-            className="rounded-pill border border-line bg-surface-2 px-2 py-0.5 text-[12px] text-ink-2"
+            className="rounded-pill border border-line bg-surface-2 px-2 py-0.5 text-t1 text-ink-2"
           >
             {u}
           </li>
@@ -77,7 +77,7 @@ export function MaterialCard({ material }: { material: Material }) {
         onClick={() => (inList ? req.remove(material.id) : req.add(material.id))}
         disabled={out}
         aria-pressed={inList}
-        className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-card text-[15px] font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-card text-t2 font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
           out
             ? 'cursor-not-allowed border border-line bg-surface-2 text-ink-2'
             : inList
@@ -101,7 +101,7 @@ function Availability({ material }: { material: Material }) {
         : 'border-warn/30 bg-warn-soft text-warn';
   return (
     <span
-      className={`shrink-0 whitespace-nowrap rounded-pill border px-2.5 py-1 text-[12px] font-medium ${style}`}
+      className={`shrink-0 whitespace-nowrap rounded-pill border px-2.5 py-1 text-t1 font-medium ${style}`}
     >
       {label}
     </span>

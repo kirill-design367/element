@@ -7,17 +7,17 @@ export function Footer() {
       <div className="shell">
         <div className="flex flex-col gap-8 md:flex-row md:justify-between">
           <div className="max-w-[34ch]">
-            <div className="font-display text-[17px] font-bold uppercase tracking-[.12em]">
+            <div className="font-display text-t3 font-bold uppercase tracking-[.12em]">
               Элемент
             </div>
-            <p className="mt-2 text-[14px] leading-relaxed text-ink-2">
+            <p className="mt-2 text-t2 leading-relaxed text-ink-2">
               {COMPANY.legalName}. {COMPANY.tagline} для Москвы и области.
             </p>
           </div>
 
-          <div className="grid gap-6 text-[14px] sm:grid-cols-2 md:gap-14">
+          <div className="grid gap-6 text-t2 sm:grid-cols-2 md:gap-14">
             <div>
-              <div className="mb-2 text-[12px] uppercase tracking-[.08em] text-ink-2">Разделы</div>
+              <div className="mb-2 text-t1 uppercase tracking-[.08em] text-ink-2">Разделы</div>
               <ul className="-my-1 space-y-0.5">
                 <li><Link href="/catalog/" className="inline-block rounded py-1.5 hover:text-accent">Каталог материалов</Link></li>
                 <li><Link href="/#raschet" className="inline-block rounded py-1.5 hover:text-accent">Расчёт стоимости</Link></li>
@@ -25,7 +25,7 @@ export function Footer() {
               </ul>
             </div>
             <div>
-              <div className="mb-2 text-[12px] uppercase tracking-[.08em] text-ink-2">Связь</div>
+              <div className="mb-2 text-t1 uppercase tracking-[.08em] text-ink-2">Связь</div>
               <ul className="-my-1 space-y-0.5">
                 <li>
                   <a href={`tel:${COMPANY.phone}`} className="tnum rounded font-bold hover:text-accent">
@@ -39,7 +39,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-line pt-6 text-[12px] text-ink-2 sm:flex-row sm:justify-between">
+        <div className="mt-10 flex flex-col gap-2 border-t border-line pt-6 text-t1 text-ink-2 sm:flex-row sm:justify-between">
           <span>© {new Date().getFullYear()} {COMPANY.legalName}</span>
           <span>Цены на сайте не являются публичной офертой</span>
         </div>

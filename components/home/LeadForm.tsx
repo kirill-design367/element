@@ -119,9 +119,9 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   )}&body=${encodeURIComponent(summary)}`;
 
   const field =
-    'h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-[15px] text-ink ' +
+    'h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink ' +
     'transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
-  const label = 'mb-1.5 block text-[13px] font-medium text-ink';
+  const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   if (status === 'done') {
     return (
@@ -131,37 +131,37 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             <CheckIcon className="h-5 w-5" />
           </span>
           <div>
-            <h3 className="text-[21px] font-bold tracking-[-.015em]">
+            <h3 className="text-t3 font-bold tracking-[-.015em]">
               Заявка собрана
             </h3>
-            <p className="mt-1.5 max-w-[52ch] text-[14px] leading-relaxed text-ink-2">
+            <p className="mt-1.5 max-w-[52ch] text-t2 leading-relaxed text-ink-2">
               Приём заявок на сервере ещё не подключён — сайт выложен статикой. Чтобы заявка
               дошла сегодня, отправьте её письмом одной кнопкой или позвоните: текст уже готов.
             </p>
           </div>
         </div>
 
-        <pre className="mt-5 max-h-64 overflow-auto whitespace-pre-wrap rounded-card border border-line bg-surface-2 p-4 text-[13px] leading-relaxed text-ink">
+        <pre className="mt-5 max-h-64 overflow-auto whitespace-pre-wrap rounded-card border border-line bg-surface-2 p-4 text-t1 leading-relaxed text-ink">
           {summary}
         </pre>
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <a
             href={mailto}
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-card bg-accent px-5 text-[15px] font-medium text-white transition-colors hover:bg-accent-hover"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-card bg-accent px-5 text-t2 font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Отправить письмом
           </a>
           <a
             href={`tel:${COMPANY.phone}`}
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-card border border-line-strong bg-surface px-5 text-[15px] font-medium transition-colors hover:border-ink"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-card border border-line-strong bg-surface px-5 text-t2 font-medium transition-colors hover:border-ink"
           >
             Позвонить {COMPANY.phoneLabel}
           </a>
           <button
             type="button"
             onClick={copy}
-            className="inline-flex h-12 items-center justify-center rounded-card border border-line-strong bg-surface px-5 text-[15px] font-medium transition-colors hover:border-ink"
+            className="inline-flex h-12 items-center justify-center rounded-card border border-line-strong bg-surface px-5 text-t2 font-medium transition-colors hover:border-ink"
           >
             {copied ? 'Скопировано' : 'Скопировать'}
           </button>
@@ -170,7 +170,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         <button
           type="button"
           onClick={() => setStatus('idle')}
-          className="mt-4 rounded text-[14px] text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+          className="mt-4 rounded text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
         >
           Составить ещё одну заявку
         </button>
@@ -202,7 +202,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             aria-describedby={errors.name ? `${uid}-name-err` : undefined}
           />
           {errors.name && (
-            <p id={`${uid}-name-err`} className="mt-1.5 text-[13px] text-warn">
+            <p id={`${uid}-name-err`} className="mt-1.5 text-t1 text-warn">
               {errors.name}
             </p>
           )}
@@ -228,7 +228,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             aria-describedby={errors.phone ? `${uid}-phone-err` : undefined}
           />
           {errors.phone && (
-            <p id={`${uid}-phone-err`} className="mt-1.5 text-[13px] text-warn">
+            <p id={`${uid}-phone-err`} className="mt-1.5 text-t1 text-warn">
               {errors.phone}
             </p>
           )}
@@ -250,11 +250,11 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         {showItems ? (
           <div className="sm:col-span-2">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[13px] font-medium">Позиции заявки</span>
+              <span className="text-t1 font-medium">Позиции заявки</span>
               <button
                 type="button"
                 onClick={req.clear}
-                className="rounded text-[13px] text-ink-2 underline-offset-4 hover:text-warn hover:underline"
+                className="rounded text-t1 text-ink-2 underline-offset-4 hover:text-warn hover:underline"
               >
                 Очистить список
               </button>
@@ -263,12 +263,12 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
               {req.detailed.map(({ item, material }) => (
                 <li key={item.materialId} className="flex items-center gap-3 bg-surface-2 px-3 py-2.5">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-medium">{material.name}</p>
-                    <p className="text-[12px] text-ink-2">
+                    <p className="truncate text-t2 font-medium">{material.name}</p>
+                    <p className="text-t1 text-ink-2">
                       {material.fraction} · {material.gost}
                     </p>
                   </div>
-                  <span className="tnum shrink-0 text-[14px]">
+                  <span className="tnum shrink-0 text-t2">
                     {item.unit === 'm3' ? volume(item.amount) : tons(item.amount)}
                   </span>
                   <button
@@ -282,7 +282,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-[13px] text-ink-2">
+            <p className="mt-2 text-t1 text-ink-2">
               Объём по каждой позиции меняется в каталоге и в калькуляторе.
             </p>
           </div>
@@ -360,7 +360,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           <textarea
             id={`${uid}-comment`}
             rows={3}
-            className="w-full resize-y rounded-card border border-line-strong bg-surface px-3 py-2.5 text-[15px] transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+            className="w-full resize-y rounded-card border border-line-strong bg-surface px-3 py-2.5 text-t2 transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
             placeholder="Подъезд для полуприцепа, разгрузка до 17:00, нужен паспорт качества заранее"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -372,7 +372,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         <Button type="submit" size="lg" disabled={status === 'sending'} className="w-full sm:w-auto">
           {status === 'sending' ? 'Собираем заявку…' : 'Отправить заявку'}
         </Button>
-        <p className="text-[13px] leading-snug text-ink-2">
+        <p className="text-t1 leading-snug text-ink-2">
           Обязательны только имя и телефон. Остальное уточним при звонке.
         </p>
       </div>

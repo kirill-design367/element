@@ -43,21 +43,21 @@ export function Objects() {
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-[18px] font-bold leading-snug tracking-[-.015em]">
+              <h3 className="text-t2 font-bold leading-snug tracking-[-.015em]">
                 {o.name}
               </h3>
-              <p className="mt-1 text-[13px] text-ink-2">
+              <p className="mt-1 text-t1 text-ink-2">
                 {o.place} · {o.period}
               </p>
             </div>
             <div className="shrink-0 text-right">
-              <div className="tnum text-[20px] font-bold leading-none">
+              <div className="tnum text-t3 font-bold leading-none">
                 {volume(o.m3)}
               </div>
-              <div className="mt-1 text-[11px] uppercase tracking-[.08em] text-ink-2">поставлено</div>
+              <div className="mt-1 text-t1 uppercase tracking-[.08em] text-ink-2">поставлено</div>
             </div>
           </div>
-          <p className="mt-4 border-t border-line pt-3 text-[14px] leading-relaxed text-ink-2">
+          <p className="mt-4 border-t border-line pt-3 text-t2 leading-relaxed text-ink-2">
             {o.supplied}
           </p>
         </li>

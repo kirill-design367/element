@@ -35,10 +35,10 @@ export function Terms() {
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-accent">
             <CheckIcon className="h-4 w-4" />
           </span>
-          <h3 className="mt-4 text-[17px] font-bold leading-snug tracking-[-.01em]">
+          <h3 className="mt-4 text-t3 font-bold leading-snug tracking-[-.01em]">
             {t.title}
           </h3>
-          <p className="mt-2 text-[14px] leading-relaxed text-ink-2">{t.body}</p>
+          <p className="mt-2 text-t2 leading-relaxed text-ink-2">{t.body}</p>
         </li>
       ))}
     </ul>

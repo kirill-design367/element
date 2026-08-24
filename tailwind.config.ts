@@ -28,6 +28,13 @@ const config: Config = {
         sans: 'var(--font-text)',
         mono: 'var(--font-mono)',
       },
+      fontSize: {
+        t1: ['var(--t1)', { lineHeight: '1.3' }],
+        t2: ['var(--t2)', { lineHeight: '1.55' }],
+        t3: ['var(--t3)', { lineHeight: '1.25' }],
+        t4: ['var(--t4)', { lineHeight: '1.02' }],
+        t5: ['var(--t5)', { lineHeight: '.92' }],
+      },
       maxWidth: { shell: '1320px' },
       borderRadius: { card: '10px', pill: '999px' },
       boxShadow: {
