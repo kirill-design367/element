@@ -10,6 +10,8 @@ import { LeadForm } from '@/components/home/LeadForm';
 import { Contacts } from '@/components/home/Contacts';
 import { ButtonLink } from '@/components/ui/Button';
 import { MAX_KM } from '@/lib/pricing';
+import { POSITIONS_TOTAL } from '@/lib/catalog';
+import { plural } from '@/lib/format';
 
 export default function HomePage() {
   return (
@@ -29,7 +31,7 @@ export default function HomePage() {
       <Section id="materialy">
         <SectionHead
           title="Материалы"
-          lead="Пять групп, двадцать четыре позиции. Карточка открывает каталог с уже выставленным фильтром."
+          lead={`Пять групп, ${POSITIONS_TOTAL} ${plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}. Карточка открывает каталог с уже выставленным фильтром.`}
           aside={
             <ButtonLink href="/catalog/" variant="secondary">
               Весь каталог

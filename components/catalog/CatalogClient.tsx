@@ -8,6 +8,7 @@ import {
   FRACTION_FILTERS,
   GOST_FILTERS,
   MATERIALS,
+  POSITIONS_TOTAL,
   categoryById,
   type CategoryId,
 } from '@/lib/catalog';
@@ -153,7 +154,7 @@ export function CatalogClient() {
                 Каталог материалов
               </h1>
               <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-ink-2">
-                {MATERIALS.length} {plural(MATERIALS.length, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
+                {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
                 на условиях самовывоза. Стоимость доставки считается отдельно —{' '}
                 <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
                   в калькуляторе

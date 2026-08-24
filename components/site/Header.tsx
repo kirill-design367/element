@@ -17,7 +17,11 @@ const NAV = [
  */
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-bg/92 backdrop-blur-[6px]">
+    <header
+      // Фон непрозрачный, без альфы и размытия: полупрозрачная шапка
+      // превращала логотип и меню в нечитаемое пятно поверх содержимого.
+      className="sticky top-0 z-50 border-b border-line bg-bg"
+    >
       <div className="shell flex h-14 items-center gap-4 md:h-[68px] md:gap-8">
         {/* Без aria-label: доступное имя должно совпадать с видимой надписью,
             иначе голосовое управление не найдёт ссылку по тому, что видит человек. */}

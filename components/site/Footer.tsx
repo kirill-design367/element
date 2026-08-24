@@ -22,7 +22,6 @@ export function Footer() {
                 <li><Link href="/catalog/" className="inline-block rounded py-1.5 hover:text-accent">Каталог материалов</Link></li>
                 <li><Link href="/#raschet" className="inline-block rounded py-1.5 hover:text-accent">Расчёт стоимости</Link></li>
                 <li><Link href="/#usloviya" className="inline-block rounded py-1.5 hover:text-accent">Условия для юрлиц</Link></li>
-                <li><Link href="/fonts/" className="rounded text-ink-2 hover:text-accent">Типографика</Link></li>
               </ul>
             </div>
             <div>

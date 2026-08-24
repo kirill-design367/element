@@ -3,8 +3,8 @@ import localFont from 'next/font/local';
 import Link from 'next/link';
 import { geologica, onest } from '../type';
 import report from '@/lib/font-check.json';
-import { MATERIALS, pricePerTon } from '@/lib/catalog';
-import { rub } from '@/lib/format';
+import { MATERIALS, POSITIONS_TOTAL, pricePerTon } from '@/lib/catalog';
+import { plural, rub } from '@/lib/format';
 
 export const metadata: Metadata = {
   title: 'Типографика: три пары на выбор',
@@ -146,8 +146,9 @@ export default function FontsPage() {
                   className="mt-3 max-w-[58ch] text-[16px] leading-relaxed text-ink-2"
                   style={{ fontFamily: 'var(--b)' }}
                 >
-                  Пять групп материалов, 24 позиции в наличии. Считаем стоимость с доставкой
-                  на странице — до звонка.
+                  Пять групп материалов, {POSITIONS_TOTAL}{' '}
+                  {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в наличии. Считаем
+                  стоимость с доставкой на странице — до звонка.
                 </p>
 
                 <div className="mt-8 grid gap-6 lg:grid-cols-2">

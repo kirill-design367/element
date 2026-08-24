@@ -7,7 +7,7 @@ import { GrainPlate } from '@/components/ui/GrainPlate';
 import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
 import { priceFrom, materialsOf, type Category } from '@/lib/catalog';
-import { rub } from '@/lib/format';
+import { plural, rub } from '@/lib/format';
 import { ArrowIcon } from '@/components/site/Icons';
 
 /**
@@ -41,7 +41,7 @@ export function CategoryCard({ category }: { category: Category }) {
       <div ref={plateRef} data-flip-plate={category.id} className="relative">
         <GrainPlate category={category} className="aspect-[16/10] w-full sm:aspect-[4/3]">
           <span className="absolute left-3 top-3 rounded bg-white/85 px-2 py-1 text-[11px] font-medium tabular-nums text-ink-2">
-            {count} позиц{count === 1 ? 'ия' : count < 5 ? 'ии' : 'ий'}
+            {count} {plural(count, 'позиция', 'позиции', 'позиций')}
           </span>
         </GrainPlate>
       </div>

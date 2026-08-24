@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/Button';
 
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
-import { CATEGORIES, MATERIALS, priceFrom } from '@/lib/catalog';
+import { CATEGORIES, POSITIONS_IN_STOCK, POSITIONS_TOTAL, priceFrom } from '@/lib/catalog';
 import { plural, rub } from '@/lib/format';
 
 const FACTS = [
@@ -22,8 +22,6 @@ const FACTS = [
  * H1 отрисован на сервере и не участвует ни в одной анимации — это LCP.
  */
 export function Hero() {
-  const positions = MATERIALS.filter((m) => m.availability !== 'out').length;
-
   return (
     <section className="relative border-b border-line pt-8 md:pt-14">
       <div className="shell grid gap-8 lg:grid-cols-12 lg:gap-10">
@@ -44,10 +42,10 @@ export function Hero() {
           </h1>
 
           <p className="mt-5 max-w-[52ch] text-[16px] leading-relaxed text-ink-2 md:text-[18px]">
-            Пять групп материалов, {positions}{' '}
-            {plural(positions, 'позиция', 'позиции', 'позиций')} в наличии на площадке. Считаем
-            стоимость с доставкой прямо на странице — до звонка. Подаём машину под график работ,
-            а не под свой.
+            Пять групп материалов, {POSITIONS_TOTAL}{' '}
+            {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}, из них {POSITIONS_IN_STOCK} на
+            площадке сегодня. Считаем стоимость с доставкой прямо на странице — до звонка. Подаём
+            машину под график работ, а не под свой.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

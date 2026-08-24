@@ -469,6 +469,15 @@ export const MATERIALS: Material[] = [
 
 // ── Производные и помощники ─────────────────────────────────────────────────
 
+/**
+ * Счётчики позиций. Выведены из данных, а не записаны словами: в hero и в
+ * превью каталога однажды разъехались «23 позиции» и «двадцать четыре»,
+ * потому что одно число считалось, а другое было набрано руками.
+ */
+export const POSITIONS_TOTAL = MATERIALS.length;
+export const POSITIONS_IN_STOCK = MATERIALS.filter((m) => m.availability === 'in-stock').length;
+export const POSITIONS_ON_ORDER = MATERIALS.filter((m) => m.availability === 'on-order').length;
+
 /** Цена за тонну выводится из цены за куб и насыпной плотности. */
 export function pricePerTon(m: Material): number {
   return Math.round(m.pricePerM3 / m.density / 10) * 10;
