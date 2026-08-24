@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { EASE, prefersReducedMotion } from '@/lib/motion';
+import { DUR, EASE, prefersReducedMotion } from '@/lib/motion';
 
 /**
  * Появление секций при скролле.
@@ -14,6 +14,11 @@ import { EASE, prefersReducedMotion } from '@/lib/motion';
  *
  * Один сканер на всё приложение вместо обёртки вокруг каждого блока:
  * меньше клиентских компонентов — меньше гидратации.
+ *
+ * Группы движения: [data-reveal] — карточки и строки, [data-hero] — первый
+ * экран, [data-fact] — полоса фактов, [data-rail-item] — лента материалов,
+ * [data-fleet] и [data-total] — крупные числа, [data-parallax] — фоновые
+ * слоты. Линейных переходов нет нигде: только power3.out из lib/motion.
  */
 export function Reveal() {
   useEffect(() => {
@@ -40,13 +45,78 @@ export function Reveal() {
         onEnter: (batch) =>
           gsap.from(batch, {
             opacity: 0,
-            y: 14,
-            duration: 0.5,
+            y: 18,
+            duration: DUR.slow,
             ease: EASE,
-            stagger: 0.05,
+            stagger: 0.06,
             overwrite: 'auto',
             clearProps: 'opacity,transform',
           }),
+      });
+
+      /** Один и тот же приём для всех именованных групп: сдвиг и проявление. */
+      const enter = (
+        selector: string,
+        vars: Record<string, unknown>,
+        opts: { start?: string; stagger?: number } = {},
+      ) => {
+        const els = Array.from(document.querySelectorAll<HTMLElement>(selector));
+        if (!els.length) return;
+        const visible = els.filter((el) => el.getBoundingClientRect().top < window.innerHeight * 0.92);
+        const later = els.filter((el) => !visible.includes(el));
+        // Уже в кадре — играем сразу, иначе ждём входа.
+        if (visible.length) {
+          gsap.from(visible, {
+            ...vars,
+            stagger: opts.stagger ?? 0.07,
+            overwrite: 'auto',
+            clearProps: 'opacity,transform',
+          });
+        }
+        later.forEach((el) => {
+          triggers.push(
+            ScrollTrigger.create({
+              trigger: el,
+              start: opts.start ?? 'top 88%',
+              once: true,
+              onEnter: () =>
+                gsap.from(el, { ...vars, overwrite: 'auto', clearProps: 'opacity,transform' }),
+            }),
+          );
+        });
+      };
+
+      // Первый экран: заголовок, лид и кнопки набираются по очереди.
+      enter('[data-hero]', { opacity: 0, y: 22, duration: DUR.slow, ease: EASE }, { stagger: 0.08 });
+
+      // Полоса фактов: три факта с небольшим сдвигом друг за другом.
+      enter('[data-fact]', { opacity: 0, y: 14, duration: DUR.base, ease: EASE }, { stagger: 0.07 });
+
+      // Лента материалов слегка доезжает при входе в кадр.
+      enter('[data-rail-item]', { opacity: 0, x: 36, duration: DUR.slow, ease: EASE }, { stagger: 0.06 });
+
+      // Крупные числа набираются со сдвигом снизу — заметнее, чем у текста.
+      enter('[data-fleet="lead"], [data-total]', { opacity: 0, y: 40, duration: 0.7, ease: EASE });
+      enter('[data-fleet="rest"], [data-fleet="label"]', { opacity: 0, y: 16, duration: DUR.slow, ease: EASE }, { stagger: 0.06 });
+
+      /**
+       * Параллакс на фоновых слотах. Амплитуда 20 пикселей, двигается только
+       * transform. Включится, когда появятся фотографии: пустое поле двигать
+       * нечем и незачем, а лишний ScrollTrigger стоит кадров.
+       */
+      const parallax = Array.from(document.querySelectorAll<HTMLElement>('[data-parallax]'));
+      parallax.forEach((el) => {
+        triggers.push(
+          ScrollTrigger.create({
+            trigger: el.parentElement ?? el,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+            onUpdate: (self) => {
+              gsap.set(el, { y: (self.progress - 0.5) * 40 });
+            },
+          }),
+        );
       });
     };
 
