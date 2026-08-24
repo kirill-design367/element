@@ -1,5 +1,6 @@
 import { Section, SectionHead } from '@/components/ui/Section';
 import { Hero } from '@/components/home/Hero';
+import { FactsStrip } from '@/components/home/FactsStrip';
 import { Calculator } from '@/components/home/Calculator';
 import { CatalogPreview } from '@/components/home/CatalogPreview';
 import { Terms } from '@/components/home/Terms';
@@ -17,6 +18,10 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+
+      <Section pad="tight" width="edge">
+        <FactsStrip />
+      </Section>
 
       {/* Калькулятор идёт вторым: это главный инструмент сайта, а не финальный
           аккорд. Путь «зашёл — увидел цену» должен быть коротким. */}
