@@ -231,7 +231,7 @@ export function Calculator() {
             <div className="rule pt-3">
               <div className="flex items-end justify-between gap-3">
                 <span className="text-t1 uppercase tracking-[.07em] text-ink-2">Итого</span>
-                <span className="tnum font-display text-t5 font-semibold leading-none tracking-[-.02em]">
+                <span className="font-display text-t5 font-semibold leading-none tracking-[-.02em]">
                   {result ? rub(result.total) : '—'}
                 </span>
               </div>

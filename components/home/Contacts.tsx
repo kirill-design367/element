@@ -8,7 +8,7 @@ export function Contacts() {
         <div className="h-full rounded-card border border-line bg-surface p-5 shadow-card md:p-6">
           <a
             href={`tel:${COMPANY.phone}`}
-            className="tnum flex items-center gap-2.5 rounded font-display text-t4 font-semibold leading-none tracking-[-.02em] transition-colors hover:text-accent"
+            className="flex items-center gap-2.5 rounded font-display text-t4 font-semibold leading-none tracking-[-.02em] transition-colors hover:text-accent"
           >
             <PhoneIcon className="h-6 w-6 shrink-0 text-accent" />
             {COMPANY.phoneLabel}

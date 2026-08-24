@@ -3,7 +3,7 @@ import { ButtonLink } from '@/components/ui/Button';
 
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
 import { CATEGORIES, POSITIONS_IN_STOCK, POSITIONS_TOTAL, priceFrom } from '@/lib/catalog';
-import { plural, rub } from '@/lib/format';
+import { num, plural } from '@/lib/format';
 
 const FACTS = [
   { label: 'География', value: `Москва и область, до ${MAX_KM} км от МКАД` },
@@ -40,7 +40,7 @@ export function Hero() {
           {/* Две строки заданы разметкой, а не переносом по ширине: у Peshka
               на разных экранах точка переноса уезжает, и «с доставкой» то и
               дело оставалось висеть в первой строке. */}
-          <h1 className="mt-4 font-display text-t5 leading-[.95] tracking-[-.005em]">
+          <h1 className="mt-4 font-display text-t4 leading-[.95] tracking-[-.005em]">
             <span className="block">Щебень, песок и грунт</span>
             <span className="block">
               с доставкой <span className="text-accent">на объект</span>
@@ -65,33 +65,50 @@ export function Hero() {
         </div>
 
         {/* Цены сразу, без прокрутки: снабженец сверяет порядок величин
-            за три секунды и только потом решает, читать ли дальше. */}
+            за три секунды и только потом решает, читать ли дальше.
+
+            Карточка инвертирована — это самый плотный объект первого экрана
+            после заголовка. Инверсия здесь не приём, а вес: белая карточка
+            на почти белом фоне читалась четвёртой, после кнопок и лида, хотя
+            несёт главное. Одна карточка на светлой секции — не тёмный блок
+            встык, отклонённый заказчиком: секция вокруг остаётся светлой. */}
         <div className="lg:col-span-5">
-          <div className="rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-t1 font-medium uppercase tracking-[.08em]">
-                Цены на площадке
-              </h2>
-              <span className="text-t1 text-ink-2">₽ за м³, с НДС</span>
+          <div className="inv rounded-card p-5 shadow-lift md:p-6">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="mark text-t1 text-ink-2">Цены на площадке</h2>
+              <span className="mark text-t1 text-ink-2">₽ / м³, с НДС</span>
             </div>
-            <ul className="mt-3 divide-y divide-line">
+
+            <ul className="mt-4 divide-y divide-line">
               {CATEGORIES.map((c) => (
                 <li key={c.id}>
                   <Link
                     href={`/catalog/?category=${c.id}`}
-                    className="group flex items-baseline justify-between gap-3 py-2.5 transition-colors hover:text-accent"
+                    className="group flex items-baseline justify-between gap-4 py-3 transition-colors"
                   >
-                    <span className="text-t2">{c.name}</span>
-                    <span className="tnum text-t2 font-bold">
-                      от {rub(priceFrom(c.id))}
+                    <span className="text-t1 text-ink-2 transition-colors group-hover:text-ink">
+                      {c.name}
+                    </span>
+                    <span className="flex shrink-0 items-baseline gap-1.5">
+                      <span className="mark text-t1 text-ink-2">от</span>
+                      {/* Цена — крупная ступень, название — мелкая. Разрыв
+                          между ними и есть сообщение: смотреть надо на цифру. */}
+                      <span className="font-display text-t4 leading-[.9]">
+                        {num(priceFrom(c.id))}
+                      </span>
+                      <span className="mark text-t1 text-ink-2">₽</span>
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
-            <p className="mt-3 border-t border-line pt-3 text-t1 leading-snug text-ink-2">
+
+            <p className="mt-4 border-t border-line pt-4 text-t1 leading-snug text-ink-2">
               Самовывоз с площадки. Доставка считается отдельно —{' '}
-              <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
+              <Link
+                href="/#raschet"
+                className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+              >
                 в калькуляторе ниже
               </Link>
               .
