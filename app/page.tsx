@@ -36,7 +36,9 @@ export default function HomePage() {
         <Calculator />
       </Section>
 
-      <Section id="materialy">
+      {/* Заголовок и кнопка стоят в контейнере, лента уходит навылет. */}
+      <Section id="materialy" width="edge" pad="normal">
+        <div className="shell">
         <SectionHead
           title="Материалы"
           lead={`Пять групп, ${POSITIONS_TOTAL} ${plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}. Карточка открывает каталог с уже выставленным фильтром.`}
@@ -46,6 +48,7 @@ export default function HomePage() {
             </ButtonLink>
           }
         />
+        </div>
         <CatalogPreview />
       </Section>
 

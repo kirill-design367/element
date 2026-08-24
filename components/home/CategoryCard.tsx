@@ -18,7 +18,7 @@ import { ArrowIcon } from '@/components/site/Icons';
  * Ссылка остаётся настоящей ссылкой: работает средний клик, «открыть в новой
  * вкладке» и клавиатура. Анимация — надстройка над обычной навигацией.
  */
-export function CategoryCard({ category }: { category: Category }) {
+export function CategoryCard({ category, tall }: { category: Category; tall?: boolean }) {
   const router = useRouter();
   const plateRef = useRef<HTMLDivElement>(null);
   const href = `/catalog/?category=${category.id}`;
@@ -43,7 +43,7 @@ export function CategoryCard({ category }: { category: Category }) {
         <PhotoSlot
           category={category}
           slot={categorySlot(category.id)}
-          className="aspect-[16/10] w-full sm:aspect-[4/3]"
+          className={`w-full ${tall ? "aspect-[3/4]" : "aspect-[4/3]"}`}
         >
           <span className="absolute left-3 top-3 rounded bg-white/85 px-2 py-1 text-t1 font-medium tabular-nums text-ink-2">
             {count} {plural(count, 'позиция', 'позиции', 'позиций')}

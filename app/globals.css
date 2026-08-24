@@ -208,6 +208,20 @@ body {
    hidden создаёт контекст прокрутки и ломает position: sticky у шапки. */
 html { overflow-x: clip; }
 
+/* Полоса прокрутки у ленты материалов скрыта: лента и так сообщает о себе
+   тем, что уходит за край экрана, а системная полоса рвала бы нижний край
+   карточек. Прокрутка колесом, свайпом и клавиатурой остаётся. */
+.hide-rail-bar { scrollbar-width: none; }
+.hide-rail-bar::-webkit-scrollbar { display: none; }
+
+/* Левая отбивка ленты: совпадает с левой линией контейнера. Проценты
+   считаются от ширины самой ленты, поэтому vw не нужен. */
+.rail-gutter { width: max(var(--shell-x), calc((100% - var(--shell-max)) / 2)); }
+
+/* Снап целится в левую линию контейнера, а не в край ленты: без этого
+   Chromium при загрузке подтягивал первую карточку к нулю и съедал отбивку. */
+.rail { scroll-padding-left: max(var(--shell-x), calc((100% - var(--shell-max)) / 2)); }
+
 .tnum { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum' 1; }
 
 /* ── Инверсия ────────────────────────────────────────────────
