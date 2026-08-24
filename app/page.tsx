@@ -19,9 +19,7 @@ export default function HomePage() {
     <>
       <Hero />
 
-      <Section pad="tight" width="edge">
-        <FactsStrip />
-      </Section>
+      <FactsStrip />
 
       {/* Калькулятор идёт вторым: это главный инструмент сайта, а не финальный
           аккорд. Путь «зашёл — увидел цену» должен быть коротким. */}

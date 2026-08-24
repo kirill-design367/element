@@ -1,18 +1,22 @@
 import { FACTS } from './Hero';
 
 /**
- * Три факта о поставке. Выделены из первого экрана: там они были нижней
- * частью карточки и делили с ней внимание, а по смыслу это перебивка
- * между экранами.
+ * Перебивка между экранами: три факта о поставке во всю ширину экрана.
+ *
+ * Не блок и не карточка — полоса. Инвертированная, без рамок и без
+ * разделителей, невысокая: её задача — разорвать светлую ленту и дать глазу
+ * отбивку перед калькулятором, а не сообщить что-то новое. Интервалы между
+ * фактами большие, границ между ними нет: три отдельные вещи, стоящие рядом,
+ * а не таблица из трёх ячеек.
  */
 export function FactsStrip() {
   return (
-    <div className="shell">
-      <dl className="grid grid-cols-1 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+    <div className="inv">
+      <dl className="shell flex flex-col gap-6 py-8 md:flex-row md:items-baseline md:justify-between md:gap-16 md:py-10">
         {FACTS.map((f) => (
-          <div key={f.label} className="px-4 py-4 md:px-6 md:py-5">
+          <div key={f.label} data-fact className="md:max-w-[30ch]">
             <dt className="text-t1 text-ink-2">{f.label}</dt>
-            <dd className="mt-2 text-t2 font-medium leading-snug">{f.value}</dd>
+            <dd className="mt-1.5 text-t2 font-medium leading-snug">{f.value}</dd>
           </div>
         ))}
       </dl>
