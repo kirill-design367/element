@@ -252,8 +252,8 @@ export function Calculator() {
               экрана и обрезается им, как вордмарк: цифра не помещается в
               карточку целиком, и это читается как масштаб, а не как ошибка. */}
           <div className="-mx-5 mt-5 overflow-hidden border-t border-line-strong bg-surface-2 px-5 pb-5 pt-4 md:-mx-6 md:px-6">
-            <dt className="text-t1 font-medium text-ink-2">Итого</dt>
             <dl>
+              <dt className="text-t1 font-medium text-ink-2">Итого</dt>
               <dd
                 data-total
                 className={`-mr-6 mt-1 whitespace-nowrap text-right font-black text-t5 leading-[.85] tracking-[-.04em] md:-mr-10 ${flash[2] ? 'recalc' : ''}`}

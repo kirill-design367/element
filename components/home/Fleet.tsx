@@ -52,14 +52,16 @@ export function Fleet() {
           <span className="mt-3 block text-t2 font-medium text-ink-2">{LEAD.label}</span>
         </p>
 
+        {/* dt стоит перед dd — этого требует разметка списка определений;
+            визуальный порядок задаёт order у колонок. */}
         <dl className="grid shrink-0 gap-5 sm:grid-cols-3 md:max-w-[38ch] md:grid-cols-1 md:gap-4">
           {REST.map((n) => (
             <div key={n.label} data-fleet="rest" className="flex items-baseline gap-3">
-              <dd className="tnum shrink-0 font-black text-t3 leading-none">
+              <dt className="order-2 text-t1 leading-snug text-ink-2">{n.label}</dt>
+              <dd className="tnum order-1 shrink-0 font-black text-t3 leading-none">
                 <Counter value={n.value} />
                 {n.unit && <span className="ml-1 text-t1 font-medium text-ink-2">{n.unit}</span>}
               </dd>
-              <dt className="text-t1 leading-snug text-ink-2">{n.label}</dt>
             </div>
           ))}
         </dl>
