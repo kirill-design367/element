@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { geologica, onest } from './type';
+import { cofoPeshka, cofoSans, cofoMono } from './type';
 import './globals.css';
 import { Header } from '@/components/site/Header';
 import { MobileBar } from '@/components/site/MobileBar';
@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`${geologica.variable} ${onest.variable}`}>
+    <html lang="ru" className={`${cofoPeshka.variable} ${cofoSans.variable} ${cofoMono.variable}`}>
       <body className="min-h-screen antialiased">
         <a
           href="#main"

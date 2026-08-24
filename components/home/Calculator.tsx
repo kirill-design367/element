@@ -206,7 +206,7 @@ export function Calculator() {
       <div className="lg:col-span-5">
         <div className="rounded-card border border-line bg-surface p-5 shadow-card md:p-6 lg:sticky lg:top-24">
           <div className="flex items-baseline justify-between">
-            <h3 className="font-display text-[15px] font-semibold uppercase tracking-[.07em]">
+            <h3 className="text-[15px] font-bold uppercase tracking-[.07em]">
               Расчёт
             </h3>
             <span className="text-[12px] text-ink-2">цены с НДС</span>
@@ -282,7 +282,7 @@ function Row({ label, value, note }: { label: string; value: string; note?: stri
         <span className="text-ink-2">{label}</span>
         {note && <p className="mt-0.5 text-[12px] leading-snug text-ink-2">{note}</p>}
       </div>
-      <span className="tnum shrink-0 font-display font-medium">{value}</span>
+      <span className="tnum shrink-0 font-medium">{value}</span>
     </div>
   );
 }

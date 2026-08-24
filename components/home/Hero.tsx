@@ -63,7 +63,7 @@ export function Hero() {
         <div className="lg:col-span-5">
           <div className="rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
             <div className="flex items-baseline justify-between">
-              <h2 className="font-display text-[13px] font-semibold uppercase tracking-[.08em]">
+              <h2 className="text-[13px] font-medium uppercase tracking-[.08em]">
                 Цены на площадке
               </h2>
               <span className="text-[12px] text-ink-2">₽ за м³, с НДС</span>
@@ -76,7 +76,7 @@ export function Hero() {
                     className="group flex items-baseline justify-between gap-3 py-2.5 transition-colors hover:text-accent"
                   >
                     <span className="text-[15px]">{c.name}</span>
-                    <span className="tnum font-display text-[16px] font-semibold">
+                    <span className="tnum text-[16px] font-bold">
                       от {rub(priceFrom(c.id))}
                     </span>
                   </Link>
@@ -116,7 +116,7 @@ export function Hero() {
             {FACTS.map((f) => (
               <div key={f.label} className="px-4 py-3 md:px-5 md:py-4">
                 <dt className="text-[11px] uppercase tracking-[.09em] text-ink-2">{f.label}</dt>
-                <dd className="mt-1 font-display text-[14px] font-medium leading-snug md:text-[15px]">
+                <dd className="mt-1 text-[14px] font-medium leading-snug md:text-[15px]">
                   {f.value}
                 </dd>
               </div>

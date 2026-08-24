@@ -76,7 +76,7 @@ export function RequestPanel() {
           />
           <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-[14px] border-t border-line bg-bg md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[560px] md:rounded-none md:border-l md:border-t-0">
             <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur md:px-6">
-              <h2 className="font-display text-[17px] font-semibold">
+              <h2 className="text-[17px] font-bold">
                 Заявка · {req.count}{' '}
                 {req.count === 1 ? 'позиция' : req.count < 5 ? 'позиции' : 'позиций'}
               </h2>
@@ -171,7 +171,7 @@ export function RequestPanel() {
 
               <p className="mt-3 flex items-baseline justify-between border-t border-line pt-3 text-[14px]">
                 <span className="text-ink-2">Ориентировочно с доставкой</span>
-                <span className="tnum font-display text-[20px] font-semibold">{rub(estimate)}</span>
+                <span className="tnum text-[20px] font-bold">{rub(estimate)}</span>
               </p>
               <p className="mt-1 text-[12px] leading-snug text-ink-2">
                 Доставка посчитана на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.

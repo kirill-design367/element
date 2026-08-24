@@ -47,7 +47,7 @@ export function CategoryCard({ category }: { category: Category }) {
       </div>
 
       <div className="flex flex-1 flex-col p-4 md:p-5">
-        <h3 className="font-display text-[19px] font-semibold leading-tight tracking-[-.015em] md:text-[21px]">
+        <h3 className="text-[19px] font-bold leading-tight tracking-[-.015em] md:text-[21px]">
           {category.name}
         </h3>
         <p className="mt-1.5 text-[13px] leading-snug text-ink-2">{category.fractionsLine}</p>
@@ -55,7 +55,7 @@ export function CategoryCard({ category }: { category: Category }) {
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
           <div>
             <div className="text-[11px] uppercase tracking-[.08em] text-ink-2">Цена</div>
-            <div className="tnum mt-0.5 font-display text-[19px] font-semibold leading-none">
+            <div className="tnum mt-0.5 text-[19px] font-bold leading-none">
               от {rub(priceFrom(category.id))}
               <span className="ml-1 text-[12px] font-normal text-ink-2">/ м³</span>
             </div>

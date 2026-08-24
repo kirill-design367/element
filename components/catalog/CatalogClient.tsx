@@ -246,7 +246,7 @@ export function CatalogClient() {
             </div>
           ) : (
             <div className="rounded-card border border-line bg-surface p-8 text-center">
-              <p className="font-display text-[19px] font-semibold">Под такой набор фильтров ничего нет</p>
+              <p className="text-[19px] font-bold">Под такой набор фильтров ничего нет</p>
               <p className="mx-auto mt-2 max-w-[48ch] text-[15px] text-ink-2">
                 Снимите фракцию или ГОСТ — либо позвоните: часть позиций возим под заказ
                 и в каталог они не попадают.

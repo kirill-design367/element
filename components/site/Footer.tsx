@@ -28,7 +28,7 @@ export function Footer() {
               <div className="mb-2 text-[12px] uppercase tracking-[.08em] text-ink-2">Связь</div>
               <ul className="-my-1 space-y-0.5">
                 <li>
-                  <a href={`tel:${COMPANY.phone}`} className="tnum rounded font-display font-semibold hover:text-accent">
+                  <a href={`tel:${COMPANY.phone}`} className="tnum rounded font-bold hover:text-accent">
                     {COMPANY.phoneLabel}
                   </a>
                 </li>

@@ -27,19 +27,25 @@ KEEP_AXES = {"wght", "wdth"}
 
 SOURCES = [
     # (файл, имя на выходе, {ось: значение или диапазон})
-    # Боевая пара — стоит на лендинге и в каталоге.
-    ("Geologica.ttf",   "Geologica", {"wght": (200, 800)}),
-    ("Onest.ttf",       "Onest",     {"wght": (300, 800)}),
-    # Кандидаты для страницы сравнения. На боевые страницы не подключаются:
-    # их грузит только маршрут /fonts, с preload: false.
+    #
+    # Боевые гарнитуры — CoFo от Contrast Foundry, статические OTF.
+    # Исходники лежат рядом, в assets/fonts: словолитня отдаёт пробные файлы
+    # архивом, распаковка руками, оси у них нет.
+    ("CoFoPeshka75-75Black-Trial.otf",  "CoFoPeshka-Black",     {}),
+    ("CoFoSans-Light-Trial.otf",        "CoFoSans-Light",       {}),
+    ("CoFoSans-Regular-Trial.otf",      "CoFoSans-Regular",     {}),
+    ("CoFoSans-Medium-Trial.otf",       "CoFoSans-Medium",      {}),
+    ("CoFoSans-Bold-Trial.otf",         "CoFoSans-Bold",        {}),
+    ("CoFoSans-Black-Trial.otf",        "CoFoSans-Black",       {}),
+    ("CoFoSansMono-Regular-Trial.otf",  "CoFoSansMono-Regular", {}),
+    #
+    # Кандидаты для страницы сравнения /fonts. Их variable-исходники в
+    # репозитории не лежат — качаются из google/fonts, папка передаётся
+    # первым аргументом. Если исходника нет, строка молча пропускается,
+    # а собранный ранее woff2 остаётся на месте.
     ("GolosText.ttf",   "GolosText", {"wght": (400, 900)}),
     ("Unbounded.ttf",   "Unbounded", {"wght": (200, 900)}),
-    # Ось ширины оставлена живой: длинный русский H1 поджимается по ширине,
-    # а не уезжает в третью строку.
     ("Tektur.ttf",      "Tektur",    {"wght": (400, 900), "wdth": (75, 100)}),
-    # Подмена для платной CoFo Sans: тот же класс рационального гротеска,
-    # цифры одной ширины по умолчанию. На странице подписана как подмена.
-    ("IBMPlexSans.ttf", "IBMPlexSans", {"wght": (400, 700), "wdth": 100}),
 ]
 
 

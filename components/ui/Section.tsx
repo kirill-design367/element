@@ -20,7 +20,7 @@ export function SectionHead({
       <div className="max-w-[720px]">
         <h2
           id={id}
-          className="font-display text-[clamp(26px,4vw,40px)] font-semibold leading-[1.08] tracking-[-.02em]"
+          className="font-display text-[clamp(26px,4vw,40px)] uppercase leading-[1.05] tracking-[.005em]"
         >
           {title}
         </h2>

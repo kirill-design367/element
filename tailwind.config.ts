@@ -26,6 +26,7 @@ const config: Config = {
       fontFamily: {
         display: 'var(--font-display)',
         sans: 'var(--font-text)',
+        mono: 'var(--font-mono)',
       },
       maxWidth: { shell: '1320px' },
       borderRadius: { card: '10px', pill: '999px' },

@@ -43,7 +43,7 @@ export function Objects() {
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="font-display text-[18px] font-semibold leading-snug tracking-[-.015em]">
+              <h3 className="text-[18px] font-bold leading-snug tracking-[-.015em]">
                 {o.name}
               </h3>
               <p className="mt-1 text-[13px] text-ink-2">
@@ -51,7 +51,7 @@ export function Objects() {
               </p>
             </div>
             <div className="shrink-0 text-right">
-              <div className="tnum font-display text-[20px] font-semibold leading-none">
+              <div className="tnum text-[20px] font-bold leading-none">
                 {volume(o.m3)}
               </div>
               <div className="mt-1 text-[11px] uppercase tracking-[.08em] text-ink-2">поставлено</div>

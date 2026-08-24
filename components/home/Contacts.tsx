@@ -31,7 +31,7 @@ export function Contacts() {
 
       <div className="lg:col-span-4">
         <div className="h-full rounded-card border border-line bg-surface p-5 shadow-card md:p-6">
-          <h3 className="font-display text-[15px] font-semibold uppercase tracking-[.07em]">
+          <h3 className="text-[15px] font-bold uppercase tracking-[.07em]">
             Реквизиты
           </h3>
           {CONTACTS_ARE_PLACEHOLDER && (

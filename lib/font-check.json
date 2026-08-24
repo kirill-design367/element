@@ -1,5 +1,192 @@
 [
   {
+    "file": "CoFoPeshka75-75Black-Trial.otf",
+    "family": "CoFo Peshka 75 Trial",
+    "glyphs": 663,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      294,
+      295,
+      297,
+      301,
+      306,
+      333,
+      337,
+      338,
+      343
+    ],
+    "numericFeatures": [
+      "pnum",
+      "ss01",
+      "tnum",
+      "zero"
+    ],
+    "axes": [],
+    "verdict": true
+  },
+  {
+    "file": "CoFoSans-Regular-Trial.otf",
+    "family": "CoFo Sans Trial",
+    "glyphs": 641,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      510,
+      560,
+      624,
+      625,
+      638,
+      641,
+      649,
+      650,
+      660,
+      670
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "ss01",
+      "tnum",
+      "zero"
+    ],
+    "axes": [],
+    "verdict": true
+  },
+  {
+    "file": "CoFoSansMono-Regular-Trial.otf",
+    "family": "CoFo Sans Mono Trial",
+    "glyphs": 633,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": true,
+    "digitWidths": [
+      600
+    ],
+    "numericFeatures": [
+      "case",
+      "ss01",
+      "zero"
+    ],
+    "axes": [],
+    "verdict": true
+  },
+  {
+    "file": "Unbounded.ttf",
+    "family": "Unbounded",
+    "glyphs": 1138,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      471,
+      704,
+      775,
+      789,
+      803,
+      804,
+      825,
+      854,
+      893
+    ],
+    "numericFeatures": [
+      "case",
+      "pnum",
+      "ss01",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 200.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "GolosText.ttf",
+    "family": "Golos Text",
+    "glyphs": 566,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      485,
+      530,
+      580,
+      585,
+      605,
+      610,
+      620
+    ],
+    "numericFeatures": [
+      "case",
+      "lnum",
+      "onum",
+      "pnum",
+      "tnum"
+    ],
+    "axes": [
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
+    "file": "Tektur.ttf",
+    "family": "Tektur",
+    "glyphs": 962,
+    "cyrillicUpper": true,
+    "cyrillicLower": true,
+    "digits": true,
+    "missingService": [],
+    "uniformDigitWidths": false,
+    "digitWidths": [
+      430,
+      610,
+      620,
+      640,
+      650,
+      660,
+      670
+    ],
+    "numericFeatures": [
+      "pnum",
+      "ss01",
+      "tnum",
+      "zero"
+    ],
+    "axes": [
+      {
+        "tag": "wdth",
+        "min": 75.0,
+        "max": 100.0
+      },
+      {
+        "tag": "wght",
+        "min": 400.0,
+        "max": 900.0
+      }
+    ],
+    "verdict": true
+  },
+  {
     "file": "Geologica.ttf",
     "family": "Geologica",
     "glyphs": 836,
@@ -86,113 +273,6 @@
     "verdict": true
   },
   {
-    "file": "GolosText.ttf",
-    "family": "Golos Text",
-    "glyphs": 566,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      485,
-      530,
-      580,
-      585,
-      605,
-      610,
-      620
-    ],
-    "numericFeatures": [
-      "case",
-      "lnum",
-      "onum",
-      "pnum",
-      "tnum"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 400.0,
-        "max": 900.0
-      }
-    ],
-    "verdict": true
-  },
-  {
-    "file": "Unbounded.ttf",
-    "family": "Unbounded",
-    "glyphs": 1138,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      471,
-      704,
-      775,
-      789,
-      803,
-      804,
-      825,
-      854,
-      893
-    ],
-    "numericFeatures": [
-      "case",
-      "pnum",
-      "ss01",
-      "tnum"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 200.0,
-        "max": 900.0
-      }
-    ],
-    "verdict": true
-  },
-  {
-    "file": "Tektur.ttf",
-    "family": "Tektur",
-    "glyphs": 962,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      430,
-      610,
-      620,
-      640,
-      650,
-      660,
-      670
-    ],
-    "numericFeatures": [
-      "pnum",
-      "ss01",
-      "tnum",
-      "zero"
-    ],
-    "axes": [
-      {
-        "tag": "wdth",
-        "min": 75.0,
-        "max": 100.0
-      },
-      {
-        "tag": "wght",
-        "min": 400.0,
-        "max": 900.0
-      }
-    ],
-    "verdict": true
-  },
-  {
     "file": "IBMPlexSans.ttf",
     "family": "IBM Plex Sans",
     "glyphs": 891,
@@ -220,81 +300,6 @@
         "tag": "wdth",
         "min": 75.0,
         "max": 100.0
-      }
-    ],
-    "verdict": true
-  },
-  {
-    "file": "Rubik.ttf",
-    "family": "Rubik",
-    "glyphs": 885,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [
-      "→"
-    ],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      398,
-      487,
-      560,
-      572,
-      576,
-      582,
-      595,
-      616,
-      618
-    ],
-    "numericFeatures": [
-      "case",
-      "pnum",
-      "tnum",
-      "zero"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 300.0,
-        "max": 900.0
-      }
-    ],
-    "verdict": true
-  },
-  {
-    "file": "Exo2.ttf",
-    "family": "Exo 2",
-    "glyphs": 911,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [
-      "→"
-    ],
-    "uniformDigitWidths": false,
-    "digitWidths": [
-      398,
-      512,
-      536,
-      556,
-      562,
-      572,
-      603,
-      607,
-      615
-    ],
-    "numericFeatures": [
-      "case",
-      "lnum",
-      "onum",
-      "pnum",
-      "tnum"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 100.0,
-        "max": 900.0
       }
     ],
     "verdict": true
@@ -347,49 +352,6 @@
       }
     ],
     "verdict": false
-  },
-  {
-    "file": "NunitoSans.ttf",
-    "family": "Nunito Sans",
-    "glyphs": 939,
-    "cyrillicUpper": true,
-    "cyrillicLower": true,
-    "digits": true,
-    "missingService": [
-      "→"
-    ],
-    "uniformDigitWidths": true,
-    "digitWidths": [
-      600
-    ],
-    "numericFeatures": [
-      "case",
-      "onum",
-      "ss01"
-    ],
-    "axes": [
-      {
-        "tag": "wght",
-        "min": 200.0,
-        "max": 1000.0
-      },
-      {
-        "tag": "wdth",
-        "min": 75.0,
-        "max": 125.0
-      },
-      {
-        "tag": "opsz",
-        "min": 6.0,
-        "max": 12.0
-      },
-      {
-        "tag": "YTLC",
-        "min": 440.0,
-        "max": 540.0
-      }
-    ],
-    "verdict": true
   },
   {
     "file": "Ruda.ttf",

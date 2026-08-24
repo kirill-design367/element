@@ -131,7 +131,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             <CheckIcon className="h-5 w-5" />
           </span>
           <div>
-            <h3 className="font-display text-[21px] font-semibold tracking-[-.015em]">
+            <h3 className="text-[21px] font-bold tracking-[-.015em]">
               Заявка собрана
             </h3>
             <p className="mt-1.5 max-w-[52ch] text-[14px] leading-relaxed text-ink-2">

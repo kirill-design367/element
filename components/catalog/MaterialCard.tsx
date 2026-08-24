@@ -25,7 +25,7 @@ export function MaterialCard({ material }: { material: Material }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-display text-[17px] font-semibold leading-snug tracking-[-.015em] md:text-[18px]">
+          <h3 className="text-[17px] font-bold leading-snug tracking-[-.015em] md:text-[18px]">
             {material.name}
           </h3>
           <p className="mt-1 text-[13px] text-ink-2">
@@ -39,13 +39,13 @@ export function MaterialCard({ material }: { material: Material }) {
       <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
         <div className="bg-surface-2 px-3 py-2.5">
           <div className="text-[11px] uppercase tracking-[.07em] text-ink-2">за м³</div>
-          <div className="tnum mt-0.5 font-display text-[19px] font-semibold leading-none">
+          <div className="tnum mt-0.5 text-[19px] font-bold leading-none">
             {rub(material.pricePerM3)}
           </div>
         </div>
         <div className="bg-surface-2 px-3 py-2.5">
           <div className="text-[11px] uppercase tracking-[.07em] text-ink-2">за тонну</div>
-          <div className="tnum mt-0.5 font-display text-[19px] font-semibold leading-none">
+          <div className="tnum mt-0.5 text-[19px] font-bold leading-none">
             {rub(pricePerTon(material))}
           </div>
         </div>
