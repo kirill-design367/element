@@ -1,12 +1,13 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CATEGORIES, MATERIALS, materialsOf } from '@/lib/catalog';
 import { DESTINATIONS, MAX_KM, MIN_ORDER_M3, calculate, type Unit } from '@/lib/pricing';
 import { rides, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { ArrowIcon } from '@/components/site/Icons';
+import { prefersReducedMotion } from '@/lib/motion';
 
 const QUICK = [10, 20, 30, 60];
 
@@ -34,6 +35,14 @@ export function Calculator() {
     () => (valid ? calculate({ materialId, amount, unit, km }) : null),
     [materialId, amount, unit, km, valid],
   );
+
+  /**
+   * Подсвет пересчитанной строки. Обратная связь, а не украшение: 0,2 с —
+   * ровно столько, чтобы глаз заметил, какая цифра поехала, и не больше.
+   * Первый расчёт не подсвечивается: подсвечивать нечего, строка только
+   * появилась. В режиме покоя подсвет не запускается вовсе.
+   */
+  const flash = useRecalcFlash([result?.materialCost, result?.deliveryCost, result?.total]);
 
   const onDestination = (id: string) => {
     setDestinationId(id);
@@ -212,35 +221,45 @@ export function Calculator() {
             <span className="text-t1 text-ink-2">цены с НДС</span>
           </div>
 
-          <div className="mt-4 space-y-3 text-t2" aria-live="polite">
+          {/* Разбивка как в счёте: строка — статья — сумма. Итог отделён
+              от строк и от полей ввода: он не продолжение формы, а ответ. */}
+          <dl className="mt-5 space-y-3 text-t2" aria-live="polite">
             <Row
               label="Объём"
               value={result ? `${volume(result.volumeM3)} · ${tons(result.massT)}` : '—'}
             />
-            <Row label="Материал" value={result ? rub(result.materialCost) : '—'} />
+            <Row
+              label="Материал"
+              value={result ? rub(result.materialCost) : '—'}
+              flash={flash[0]}
+            />
             <Row
               label="Доставка"
               value={result ? rub(result.deliveryCost) : '—'}
+              flash={flash[1]}
               note={
                 result
                   ? `${rides(result.rides)} · ${result.truck.name} · до ${volume(result.perRideM3)} за рейс`
                   : undefined
               }
             />
+          </dl>
 
-            <div className="rule pt-3">
-              <div className="flex items-end justify-between gap-3">
-                <span className="text-t1 uppercase tracking-[.07em] text-ink-2">Итого</span>
-                <span className="font-display text-t5 font-semibold leading-none tracking-[-.02em]">
-                  {result ? rub(result.total) : '—'}
-                </span>
-              </div>
-              {result && result.volumeM3 > 0 && (
-                <p className="tnum mt-2 text-right text-t1 text-ink-2">
-                  {rub(result.totalPerM3)} за м³ с доставкой на объект
-                </p>
-              )}
-            </div>
+          <div className="-mx-5 mt-5 border-t border-line-strong bg-surface-2 px-5 pb-5 pt-4 md:-mx-6 md:px-6">
+            <dl className="flex items-end justify-between gap-3">
+              <dt className="mark text-t1 pb-1 text-ink-2">Итого</dt>
+              <dd
+                className={`font-display text-t5 leading-[.85] ${flash[2] ? 'recalc' : ''}`}
+                key={result ? result.total : 'empty'}
+              >
+                {result ? rub(result.total) : '—'}
+              </dd>
+            </dl>
+            {result && result.volumeM3 > 0 && (
+              <p className="tnum mt-2 text-right text-t1 text-ink-2">
+                {rub(result.totalPerM3)} за м³ с доставкой на объект
+              </p>
+            )}
           </div>
 
           {result?.belowMinimum && (
@@ -275,14 +294,52 @@ export function Calculator() {
   );
 }
 
-function Row({ label, value, note }: { label: string; value: string; note?: string }) {
+function Row({
+  label,
+  value,
+  note,
+  flash,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  flash?: boolean;
+}) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <span className="text-ink-2">{label}</span>
-        {note && <p className="mt-0.5 text-t1 leading-snug text-ink-2">{note}</p>}
+        <dt className="text-ink-2">{label}</dt>
+        {note && <dd className="mt-0.5 text-t1 leading-snug text-ink-2">{note}</dd>}
       </div>
-      <span className="tnum shrink-0 font-medium">{value}</span>
+      <dd className={`tnum shrink-0 font-medium ${flash ? 'recalc' : ''}`}>{value}</dd>
     </div>
   );
+}
+
+/**
+ * Возвращает по флагу на каждое переданное значение: true в тот кадр, когда
+ * значение изменилось. Флаг снимается таймером — иначе класс остаётся висеть
+ * и следующая анимация не запускается.
+ */
+function useRecalcFlash(values: (number | undefined)[]) {
+  const prev = useRef<(number | undefined)[]>(values);
+  const [on, setOn] = useState<boolean[]>(() => values.map(() => false));
+  const key = values.join('|');
+
+  useEffect(() => {
+    if (prefersReducedMotion()) {
+      prev.current = values;
+      return;
+    }
+    const changed = values.map((v, i) => prev.current[i] !== undefined && v !== prev.current[i]);
+    prev.current = values;
+    if (!changed.some(Boolean)) return;
+    setOn(changed);
+    const t = setTimeout(() => setOn(values.map(() => false)), 220);
+    return () => clearTimeout(t);
+    // values пересобирается каждый рендер — сравниваем по строковому ключу
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  return on;
 }

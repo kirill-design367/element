@@ -198,6 +198,23 @@ body {
 
 .rule { border-top: 1px solid var(--line); }
 
+/* ── Подсвет пересчитанной цифры ─────────────────────────────
+   Обратная связь, а не украшение: 0,2 с — ровно столько, чтобы глаз
+   заметил, какая строка поехала. Анимируется только фон, вёрстка не
+   пересчитывается. В режиме покоя класс не навешивается вовсе — см.
+   useRecalcFlash в Calculator.tsx, — а медиазапрос ниже гасит анимацию
+   и в том случае, если класс всё же попал в разметку.
+   ──────────────────────────────────────────────────────────── */
+@keyframes recalc {
+  from { background-color: var(--accent-soft); }
+  to   { background-color: transparent; }
+}
+.recalc {
+  animation: recalc .2s linear;
+  border-radius: 3px;
+  box-decoration-break: clone;
+}
+
 /* Появление блоков ведёт GSAP. До его инициализации элемент уже виден —
    если скрипт не выполнится, контент не пропадёт. */
 .will-reveal { will-change: transform, opacity; }
