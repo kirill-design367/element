@@ -324,9 +324,11 @@ function Specimen({ pair }: { pair: Pair }) {
         <Composition n="3" title="Карточка материала в каталоге">
           <div className="rounded-card border border-line bg-surface p-4">
             <div className="flex items-baseline justify-between gap-3">
-              <h4 style={head} className="text-[17px] font-semibold leading-snug">
+              {/* Не заголовок документа, а образец набора: <h4> здесь ломал бы
+                  порядок заголовков — до него на странице нет ни одного <h3>. */}
+              <p style={head} className="text-[17px] font-semibold leading-snug">
                 {SAMPLE.name}
-              </h4>
+              </p>
               <span
                 style={body}
                 className="shrink-0 rounded-pill border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-[12px] font-medium text-accent"
