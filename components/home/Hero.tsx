@@ -37,8 +37,14 @@ export function Hero() {
             <span>Москва и Московская область</span>
           </p>
 
-          <h1 className="mt-4 font-display text-[clamp(34px,6.4vw,64px)] font-semibold leading-[1.02] tracking-[-.035em]">
-            Щебень, песок и грунт&nbsp;— <span className="text-accent">на объект</span>, а не на склад
+          {/* Две строки заданы разметкой, а не переносом по ширине: у Peshka
+              на разных экранах точка переноса уезжает, и «с доставкой» то и
+              дело оставалось висеть в первой строке. */}
+          <h1 className="mt-4 font-display text-[clamp(36px,6.6vw,68px)] leading-[.95] tracking-[-.005em]">
+            <span className="block">Щебень, песок и грунт</span>
+            <span className="block">
+              с доставкой <span className="text-accent">на объект</span>
+            </span>
           </h1>
 
           <p className="mt-5 max-w-[52ch] text-[16px] leading-relaxed text-ink-2 md:text-[18px]">
