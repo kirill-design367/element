@@ -66,7 +66,7 @@ export function Objects() {
               <div className="tnum text-t3 font-bold leading-none">
                 {volume(o.m3)}
               </div>
-              <div className="mt-1 text-t1 uppercase tracking-[.08em] text-ink-2">поставлено</div>
+              <div className="mt-1 text-t1 text-ink-2">поставлено</div>
             </div>
           </div>
           <p className="mt-4 border-t border-line pt-3 text-t2 leading-relaxed text-ink-2">

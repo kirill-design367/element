@@ -7,7 +7,7 @@ export function Footer() {
       <div className="shell">
         <div className="flex flex-col gap-8 md:flex-row md:justify-between">
           <div className="max-w-[34ch]">
-            <div className="font-black text-t3 font-bold uppercase tracking-[.12em]">
+            <div className="text-t3 font-black">
               Элемент
             </div>
             <p className="mt-2 text-t2 leading-relaxed text-ink-2">
@@ -17,7 +17,7 @@ export function Footer() {
 
           <div className="grid gap-6 text-t2 sm:grid-cols-2 md:gap-14">
             <div>
-              <div className="mb-2 text-t1 uppercase tracking-[.08em] text-ink-2">Разделы</div>
+              <div className="mb-2 text-t1 font-medium text-ink-2">Разделы</div>
               <ul className="-my-1 space-y-0.5">
                 <li><Link href="/catalog/" className="inline-block rounded py-1.5 hover:text-accent">Каталог материалов</Link></li>
                 <li><Link href="/#raschet" className="inline-block rounded py-1.5 hover:text-accent">Расчёт стоимости</Link></li>
@@ -25,7 +25,7 @@ export function Footer() {
               </ul>
             </div>
             <div>
-              <div className="mb-2 text-t1 uppercase tracking-[.08em] text-ink-2">Связь</div>
+              <div className="mb-2 text-t1 font-medium text-ink-2">Связь</div>
               <ul className="-my-1 space-y-0.5">
                 <li>
                   <a href={`tel:${COMPANY.phone}`} className="tnum rounded font-bold hover:text-accent">

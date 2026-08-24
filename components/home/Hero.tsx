@@ -76,8 +76,8 @@ export function Hero() {
         <div className="lg:col-span-5">
           <div className="inv rounded-card p-5 shadow-lift md:p-6">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="mark text-t1 text-ink-2">Цены на площадке</h2>
-              <span className="mark text-t1 text-ink-2">₽ / м³, с НДС</span>
+              <h2 className="text-t1 font-medium text-ink-2">Цены на площадке</h2>
+              <span className="text-t1 text-ink-2">₽ / м³, с НДС</span>
             </div>
 
             <ul className="mt-4 divide-y divide-line">
@@ -91,13 +91,13 @@ export function Hero() {
                       {c.name}
                     </span>
                     <span className="flex shrink-0 items-baseline gap-1.5">
-                      <span className="mark text-t1 text-ink-2">от</span>
+                      <span className="text-t1 text-ink-2">от</span>
                       {/* Цена — крупная ступень, название — мелкая. Разрыв
                           между ними и есть сообщение: смотреть надо на цифру. */}
                       <span className="font-black text-t4 leading-[.9]">
                         {num(priceFrom(c.id))}
                       </span>
-                      <span className="mark text-t1 text-ink-2">₽</span>
+                      <span className="text-t1 text-ink-2">₽</span>
                     </span>
                   </Link>
                 </li>
@@ -136,7 +136,7 @@ export function Hero() {
           <dl className="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {FACTS.map((f) => (
               <div key={f.label} className="px-4 py-4 md:px-6 md:py-5">
-                <dt className="mark text-t1 text-ink-2">{f.label}</dt>
+                <dt className="text-t1 text-ink-2">{f.label}</dt>
                 <dd className="mt-2 text-t2 font-medium leading-snug">{f.value}</dd>
               </div>
             ))}

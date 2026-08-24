@@ -26,7 +26,7 @@ export function Header() {
         {/* Без aria-label: доступное имя должно совпадать с видимой надписью,
             иначе голосовое управление не найдёт ссылку по тому, что видит человек. */}
         <Link href="/" className="group -my-2 flex shrink-0 items-baseline gap-2 rounded py-2">
-          <span className="font-black text-t3 font-bold uppercase leading-none tracking-[.12em]">
+          <span className="text-t3 font-black leading-none tracking-[-.02em]">
             Элемент
           </span>
           <span className="hidden text-t1 leading-none text-ink-2 lg:inline">

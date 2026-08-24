@@ -31,7 +31,7 @@ export function Contacts() {
 
       <div className="lg:col-span-4">
         <div className="h-full rounded-card border border-line bg-surface p-5 shadow-card md:p-6">
-          <h3 className="text-t2 font-bold uppercase tracking-[.07em]">
+          <h3 className="text-t2 font-black">
             Реквизиты
           </h3>
           {CONTACTS_ARE_PLACEHOLDER && (
@@ -103,7 +103,7 @@ function Line({
 }) {
   return (
     <div className={tight ? 'flex flex-wrap gap-x-2' : ''}>
-      <dt className={`text-ink-2 ${tight ? 'min-w-[92px]' : 'text-t1 uppercase tracking-[.08em]'}`}>
+      <dt className={`text-ink-2 ${tight ? 'min-w-[92px]' : 'text-t1'}`}>
         {term}
       </dt>
       <dd className={`${tight ? 'flex-1' : 'mt-1'} ${mono ? 'tnum' : ''}`}>{value}</dd>

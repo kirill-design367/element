@@ -59,7 +59,7 @@ export function CategoryCard({ category }: { category: Category }) {
 
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
           <div>
-            <div className="text-t1 uppercase tracking-[.08em] text-ink-2">Цена</div>
+            <div className="text-t1 text-ink-2">Цена</div>
             <div className="tnum mt-0.5 text-t3 font-bold leading-none">
               от {rub(priceFrom(category.id))}
               <span className="ml-1 text-t1 font-normal text-ink-2">/ м³</span>

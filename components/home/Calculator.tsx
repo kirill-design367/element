@@ -215,7 +215,7 @@ export function Calculator() {
       <div className="lg:col-span-5">
         <div className="rounded-card border border-line bg-surface p-5 shadow-card md:p-6 lg:sticky lg:top-24">
           <div className="flex items-baseline justify-between">
-            <h3 className="text-t2 font-bold uppercase tracking-[.07em]">
+            <h3 className="text-t2 font-black">
               Расчёт
             </h3>
             <span className="text-t1 text-ink-2">цены с НДС</span>
@@ -247,7 +247,7 @@ export function Calculator() {
 
           <div className="-mx-5 mt-5 border-t border-line-strong bg-surface-2 px-5 pb-5 pt-4 md:-mx-6 md:px-6">
             <dl className="flex items-end justify-between gap-3">
-              <dt className="mark text-t1 pb-1 text-ink-2">Итого</dt>
+              <dt className="text-t1 pb-1 font-medium text-ink-2">Итого</dt>
               <dd
                 className={`font-black text-t5 leading-[.85] ${flash[2] ? 'recalc' : ''}`}
                 key={result ? result.total : 'empty'}

@@ -28,7 +28,8 @@ export function MaterialCard({ material }: { material: Material }) {
           <h3 className="text-t3 font-bold leading-snug tracking-[-.015em]">
             {material.name}
           </h3>
-          <p className="mt-1 text-t1 text-ink-2">
+          {/* Маркировка партии — единственное место моноширинного. */}
+          <p className="mark mt-1.5 text-t1 text-ink-2">
             {material.fraction} · {material.gost}
           </p>
         </div>
@@ -38,13 +39,13 @@ export function MaterialCard({ material }: { material: Material }) {
       {/* Цены — крупно и в табличных цифрах, чтобы колонки не плясали. */}
       <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
         <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-t1 uppercase tracking-[.07em] text-ink-2">за м³</div>
+          <div className="text-t1 text-ink-2">За м³</div>
           <div className="tnum mt-0.5 text-t3 font-bold leading-none">
             {rub(material.pricePerM3)}
           </div>
         </div>
         <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-t1 uppercase tracking-[.07em] text-ink-2">за тонну</div>
+          <div className="text-t1 text-ink-2">За тонну</div>
           <div className="tnum mt-0.5 text-t3 font-bold leading-none">
             {rub(pricePerTon(material))}
           </div>
