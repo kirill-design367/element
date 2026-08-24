@@ -68,11 +68,10 @@ export default function HomePage() {
         <Process />
       </Section>
 
-      <Section id="park" tone="muted">
-        <SectionHead
-          title="Парк и объёмы"
-          lead={`Своя техника и партнёрские перевозчики на пиковых объёмах. Возим в пределах ${MAX_KM} км от МКАД.`}
-        />
+      {/* Полноэкранный блок: одно число и фон, больше ничего. Заголовок
+          секции снят намеренно — на этом экране он был бы четвёртым
+          элементом там, где должно быть два. */}
+      <Section id="park" width="edge" pad="none">
         <Fleet />
       </Section>
 
