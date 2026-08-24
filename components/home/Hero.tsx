@@ -4,6 +4,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
 import { CATEGORIES, POSITIONS_IN_STOCK, POSITIONS_TOTAL, priceFrom } from '@/lib/catalog';
 import { num, plural } from '@/lib/format';
+import { PHOTO, asset } from '@/lib/assets';
 
 const FACTS = [
   { label: 'География', value: `Москва и область, до ${MAX_KM} км от МКАД` },
@@ -15,9 +16,9 @@ const FACTS = [
  * Первый экран. Слева — заявление, справа — цены: на этом сайте главный
  * аргумент это цифра, и она должна попасть в кадр без прокрутки.
  *
- * Фотографии нет, поэтому под будущий кадр отведена полоса с фактурой.
- * Когда PHOTO.hero получит путь, снимок встанет ровно сюда, а строка фактов
- * останется поверх него.
+ * Фотографии нет. Заглушку не рисуем: пустой прямоугольник с узором честно
+ * сообщал, что здесь ничего нет, и отодвигал вниз всё остальное. Когда
+ * PHOTO.hero получит путь, снимок встанет над строкой фактов сам.
  *
  * H1 отрисован на сервере и не участвует ни в одной анимации — это LCP.
  */
@@ -117,31 +118,26 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Место под кадр с карьера или разгрузки. Бриф — в lib/assets.ts.
-          Пропорция кадра описана там же; здесь задана высота, чтобы полоса
-          держала ширину колонки и не сжималась под соотношение сторон. */}
+      {/* Слот под кадр с карьера или разгрузки. Спецификация — PHOTO.hero
+          в lib/assets.ts. Пока снимка нет, слот НЕ рисует заглушку: точечный
+          узор читался как «здесь ничего нет» и тянул первый экран вниз.
+          Место держит строка фактов — она типографическая и работает сама
+          по себе, а когда придёт кадр, встанет над ней без правки вёрстки. */}
       <div className="shell mt-10 md:mt-14">
-        <div className="overflow-hidden rounded-card border border-line">
-          <div
-            className="grain h-[168px] border-b border-line md:h-[260px]"
-            style={
-              {
-                '--grain-bg': '#dedbd6',
-                '--grain-tint': '#978e86',
-                '--grain-tint-2': '#b5aca3',
-                '--grain-dot': '4.5px',
-                '--grain-step': '16px',
-                '--grain-rot': '-6deg',
-              } as React.CSSProperties
-            }
-          />
-          <dl className="grid grid-cols-1 divide-y divide-line bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
+          {PHOTO.hero.src && (
+            <img
+              src={asset(PHOTO.hero.src)}
+              alt={PHOTO.hero.brief}
+              className="w-full border-b border-line object-cover"
+              style={{ aspectRatio: PHOTO.hero.ratio }}
+            />
+          )}
+          <dl className="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {FACTS.map((f) => (
-              <div key={f.label} className="px-4 py-3 md:px-5 md:py-4">
-                <dt className="text-t1 uppercase tracking-[.09em] text-ink-2">{f.label}</dt>
-                <dd className="mt-1 text-t2 font-medium leading-snug">
-                  {f.value}
-                </dd>
+              <div key={f.label} className="px-4 py-4 md:px-6 md:py-5">
+                <dt className="mark text-t1 text-ink-2">{f.label}</dt>
+                <dd className="mt-2 text-t2 font-medium leading-snug">{f.value}</dd>
               </div>
             ))}
           </dl>
