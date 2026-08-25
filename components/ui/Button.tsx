@@ -13,10 +13,11 @@ const base =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 
 const variants: Record<Variant, string> = {
-  /* Внутри .inv акцент поднят по светлоте, и белым по нему писать нельзя:
-     контраст падает до 2:1. Там текст кнопки берёт тёмный --surface. */
+  /* На тёмных подложках акцент поднят по светлоте, и белым по нему писать
+     нельзя: контраст падает до 2:1. Там текст кнопки берёт тёмный --surface.
+     Подложек две — .inv (парк, панель расчёта) и .lead-band (блок заявки). */
   primary:
-    'bg-accent text-white [.inv_&]:text-surface hover:bg-accent-hover shadow-[0_1px_0_rgba(0,0,0,.04)]',
+    'bg-accent text-white [.inv_&]:text-surface [.lead-band_&]:text-surface hover:bg-accent-hover shadow-[0_1px_0_rgba(0,0,0,.04)]',
   secondary: 'bg-surface text-ink border border-line-strong hover:border-ink hover:bg-white',
   ghost: 'text-accent hover:bg-accent-soft',
 };

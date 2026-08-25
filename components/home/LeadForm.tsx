@@ -119,12 +119,12 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   )}&body=${encodeURIComponent(summary)}`;
 
   const field =
-    'field h-12 w-full rounded-card px-3 text-t2';
-  const label = 'mb-1.5 block text-t1 font-medium text-ink';
+    'field h-11 w-full rounded-card px-3 text-t2';
+  const label = 'mb-1 block text-t1 font-medium text-ink';
 
   if (status === 'done') {
     return (
-      <div className="rounded-panel border border-line bg-surface-2 p-6 md:p-8">
+      <div className="rounded-panel bg-surface-2 p-5 md:p-7">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-bg">
             <CheckIcon className="h-5 w-5" />
@@ -181,9 +181,12 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="rounded-panel border border-line bg-surface-2 p-5 md:p-7"
+      className="rounded-panel bg-surface-2 p-4 md:p-5"
     >
-      <div className="grid gap-5 sm:grid-cols-2">
+      {/* На широком экране поля идут в три колонки: то же количество
+          полей помещается в три ряда вместо пяти, и блок перестаёт быть
+          плитой во весь экран. Ниже 1024 — прежние две колонки. */}
+      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <label className={label} htmlFor={`${uid}-name`}>
             Имя <span aria-hidden="true" className="text-ink-2">*</span>
@@ -233,7 +236,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           )}
         </div>
 
-        <div className="sm:col-span-2">
+        <div className="lg:col-span-1">
           <label className={label} htmlFor={`${uid}-company`}>
             Компания <span className="font-normal text-ink-2">— необязательно</span>
           </label>
@@ -247,7 +250,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         </div>
 
         {showItems ? (
-          <div className="sm:col-span-2">
+          <div className="sm:col-span-2 lg:col-span-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-t1 font-medium">Позиции заявки</span>
               <button
@@ -352,13 +355,13 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           />
         </div>
 
-        <div className="sm:col-span-2">
+        <div className="sm:col-span-2 lg:col-span-3">
           <label className={label} htmlFor={`${uid}-comment`}>
             Комментарий <span className="font-normal text-ink-2">— необязательно</span>
           </label>
           <textarea
             id={`${uid}-comment`}
-            rows={3}
+            rows={2}
             className="field w-full resize-y rounded-card px-3 py-2.5 text-t2"
             placeholder="Подъезд для полуприцепа, разгрузка до 17:00, нужен паспорт качества заранее"
             value={comment}
@@ -367,7 +370,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3">
+      <div className="mt-5 flex flex-col gap-2.5">
         {/* Кнопка во всю ширину колонки: это последнее действие на
             странице, сужать его незачем. */}
         <Button type="submit" size="lg" disabled={status === 'sending'} className="w-full">

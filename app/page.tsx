@@ -83,26 +83,23 @@ export default function HomePage() {
         <Objects />
       </Section>
 
-      {/* Финальный аккорд: широкий блок с контрастным фоном во всю ширину
-          экрана. Верхние углы скруглены крупно — следующая секция наезжает
-          на предыдущую, а не встаёт с ней встык. */}
-      <Section id="zayavka" width="edge" pad="none">
-        <div className="inv rounded-t-panel py-16 md:py-24">
-          <div className="shell grid gap-10 lg:grid-cols-12 lg:gap-8">
+      {/* Финальный аккорд, но не плита во весь экран: карточка внутри
+          страницы — поля от краёв, скругление со всех четырёх сторон, фон
+          тёмно-серый с синим оттенком, а не чёрный. */}
+      <Section id="zayavka" width="shell" pad="tight">
+        <div className="lead-band rounded-panel px-5 py-8 md:px-10 md:py-12">
+          <div className="grid gap-8 lg:grid-cols-12 lg:gap-8">
             <div className="lg:col-span-4">
-              <h2
-                data-lines
-                className="font-black text-t4 leading-[1.04] tracking-[-.02em]"
-              >
+              <h2 data-lines className="font-black text-t4 leading-[1.02] tracking-[-.02em]">
                 Заявка на просчёт
               </h2>
-              <p className="mt-4 max-w-[34ch] text-t2 leading-relaxed text-ink-2">
+              <p className="mt-3 max-w-[32ch] text-t2 leading-relaxed text-ink-2">
                 Ответим ценой на материал и доставку в течение рабочего часа. Держим цену
                 пять дней.
               </p>
               <a
                 href={`tel:${COMPANY.phone}`}
-                className="tnum mt-8 inline-flex items-center gap-2 rounded font-black text-t3 leading-none transition-colors duration-300 hover:text-accent"
+                className="tnum mt-6 inline-flex items-center gap-2 rounded font-black text-t3 leading-none transition-colors duration-300 hover:text-accent"
               >
                 {nbsp(COMPANY.phoneLabel)}
               </a>
