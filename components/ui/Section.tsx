@@ -28,7 +28,7 @@ export function SectionHead({
       }
     >
       <div className="max-w-[720px]">
-        <h2 id={id} className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
+        <h2 id={id} data-lines className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
           {typo(title)}
         </h2>
         {lead && (

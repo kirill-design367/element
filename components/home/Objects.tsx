@@ -45,7 +45,7 @@ export function Objects() {
   return (
     <div className="grid items-stretch gap-10 lg:grid-cols-12 lg:gap-0">
       <div className="narrow narrow-left lg:col-span-6 lg:max-w-none lg:pr-10">
-        <h2 className="font-black text-t4 leading-[1.04] tracking-[-.02em]">Объекты</h2>
+        <h2 data-lines className="font-black text-t4 leading-[1.04] tracking-[-.02em]">Объекты</h2>
         <p className="mt-3 max-w-[42ch] text-t2 leading-relaxed text-ink-2">
           {typo('Что и в каком объёме поставляли за последний год.')}
         </p>

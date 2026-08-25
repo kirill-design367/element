@@ -31,13 +31,14 @@ export function Motion() {
     let cleanup: (() => void) | undefined;
 
     const start = async () => {
-      const [{ gsap }, { ScrollTrigger }, { default: Lenis }] = await Promise.all([
+      const [{ gsap }, { ScrollTrigger }, { SplitText }, { default: Lenis }] = await Promise.all([
         import('gsap'),
         import('gsap/ScrollTrigger'),
+        import('gsap/SplitText'),
         import('lenis'),
       ]);
       if (cancelled) return;
-      gsap.registerPlugin(ScrollTrigger);
+      gsap.registerPlugin(ScrollTrigger, SplitText);
 
       /* ── 1. Прокрутка ───────────────────────────────────────────────────
          Затухание экспоненциальное: разгон мгновенный, остановка мягкая, без
@@ -87,6 +88,11 @@ export function Motion() {
           ScrollTrigger.batch(below, {
             start: 'top 85%',
             once: true,
+            // Строки и карточки, входящие в кадр вместе, играют одной
+            // группой: интервал сборки 0,08 с, не больше шести в пачке —
+            // иначе длинная сетка каталога уезжает одной простынёй.
+            interval: 0.08,
+            batchMax: 6,
             onEnter: (batch) =>
               gsap.from(batch, {
                 opacity: 0,
@@ -149,6 +155,31 @@ export function Motion() {
           { stagger: 0.07 },
         );
 
+        /* Заголовки секций проявляются строками из-под маски: строка
+           выезжает снизу, следующая идёт через 0,07 с. SplitText режет уже
+           после загрузки шрифта — иначе строки посчитаются по подменному
+           начертанию и разъедутся, когда придёт CoFo. Прятать заранее
+           по-прежнему нельзя: маска и сдвиг ставятся в момент входа в кадр,
+           а не при разборе страницы. */
+        const splitHeads = () => {
+          document.querySelectorAll<HTMLElement>('[data-lines]').forEach((head) => {
+            const play = () => {
+              const split = SplitText.create(head, { type: 'lines', mask: 'lines', aria: 'auto' });
+              gsap.from(split.lines, {
+                yPercent: 108,
+                duration: DUR.reveal,
+                ease: EASE,
+                stagger: 0.07,
+                onComplete: () => split.revert(),
+              });
+            };
+            if (head.getBoundingClientRect().top < window.innerHeight * 0.86) play();
+            else ScrollTrigger.create({ trigger: head, start: 'top 85%', once: true, onEnter: play });
+          });
+        };
+        if (document.fonts?.status === 'loaded') splitHeads();
+        else void document.fonts?.ready.then(() => !cancelled && splitHeads());
+
         /* ── 3. Параллакс ─────────────────────────────────────────────────
            Возит только transform. Триггером берётся ближайший предок с
            высотой, а не родитель напрямую: у кадра первого экрана родитель —
@@ -179,7 +210,9 @@ export function Motion() {
                 trigger: box,
                 start: atTop ? 'top top' : 'top bottom',
                 end: 'bottom top',
-                scrub: true,
+                // 0,4 — короткая догонка: под инерцией Lenis жёсткий scrub
+                // отыгрывает каждый микрошаг колеса и кадр мелко трясётся.
+                scrub: 0.4,
                 invalidateOnRefresh: true,
                 // will-change висит только пока кадр в работе: постоянный
                 // слой композитора на трёх фотографиях — это лишняя память
