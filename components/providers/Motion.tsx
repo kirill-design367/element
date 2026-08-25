@@ -462,31 +462,39 @@ export function Motion() {
         });
 
         chunks.push(() => {
-        /* ── Объекты: список ведёт кадр ─────────────────────────────────
-           Наведение на строку меняет кроп и масштаб кадра справа. Своего
-           снимка у каждого объекта пока нет, поэтому приём читается сменой
-           кадрирования одного кадра — механика при этом настоящая: придут
-           отдельные файлы, поменяется источник, а не логика.
+        /* ── Объекты: кадр едет внутри рамки ────────────────────────────
+           Увеличения при наведении больше нет. Оно дёргало кадр рывком на
+           каждое движение мыши по списку и к содержанию строки отношения не
+           имело: снимок один на все объекты, менялся только кроп.
 
-           Возит transform, поверх параллакса: у параллакса свой tween на y,
-           здесь — scale и x, они не конфликтуют. */
+           Вместо этого кадр медленно едет внутри неподвижной рамки по мере
+           прокрутки: ±5% собственной высоты, то есть 10% за весь проход
+           блока. Изображение крупнее рамки на 16% и сдвинуто вверх на 8,
+           поэтому пустые края не открываются ни в одном положении.
+
+           Наведение на строку осталось, но трогает только строку — подсветку
+           делает CSS, скрипт в этом не участвует. */
         const objPhoto = document.querySelector<HTMLElement>('[data-object-photo] img');
-        const rows = gsap.utils.toArray<HTMLElement>('[data-object]');
-        if (objPhoto && rows.length) {
-          const frame = (i: number) =>
-            gsap.to(objPhoto, {
-              scale: 1 + i * 0.035,
-              x: i * -14,
-              duration: 0.4,
-              ease: EASE,
-              overwrite: 'auto',
-            });
-          rows.forEach((row, i) => {
-            row.addEventListener('pointerenter', () => frame(i));
-            row.addEventListener('focus', () => frame(i));
-          });
-          const list = rows[0].parentElement;
-          list?.addEventListener('pointerleave', () => frame(0));
+        const objBox = document.querySelector<HTMLElement>('[data-object-photo]');
+        if (objPhoto && objBox) {
+          gsap.fromTo(
+            objPhoto,
+            { yPercent: -5 },
+            {
+              yPercent: 5,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: objBox,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.5,
+                invalidateOnRefresh: true,
+                onToggle: (self) => {
+                  objPhoto.style.willChange = self.isActive ? 'transform' : '';
+                },
+              },
+            },
+          );
         }
 
         });

@@ -89,14 +89,18 @@ export function Objects() {
           data-object-photo
           className="relative h-full min-h-[280px] overflow-hidden rounded-l-panel bg-surface-2 [contain:paint] [transform:translateZ(0)] lg:min-h-full"
         >
+          {/* Кадр крупнее рамки на 16% и сдвинут вверх на 8: он едет внутри
+              рамки по вертикали на ±5% своей высоты, и при любом положении
+              пустых краёв не открывается. Запас считается в процентах от
+              высоты рамки, а не в пикселях, — высота меняется от экрана к
+              экрану, а доля остаётся той же. */}
           {PHOTO.objects.file && (
             <Photo
               file={PHOTO.objects.file}
               alt={PHOTO.objects.brief}
               sizes="(min-width: 1024px) 50vw, 100vw"
-              parallax="objects"
               className="absolute inset-0"
-              imgClassName="absolute inset-x-0 -top-6 h-[calc(100%+48px)]"
+              imgClassName="absolute inset-x-0 -top-[8%] h-[116%]"
             />
           )}
         </div>
