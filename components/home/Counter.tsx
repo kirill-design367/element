@@ -1,16 +1,28 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { num } from '@/lib/format';
-import { prefersReducedMotion } from '@/lib/motion';
+import { DUR, prefersReducedMotion } from '@/lib/motion';
 
 /**
- * Цифра набегает при появлении в кадре. Значение сразу отрисовано на сервере:
- * без JS и в режиме покоя посетитель видит итоговое число, а не ноль.
+ * Цифра набегает при появлении в кадре.
+ *
+ * Набор идёт прямой записью в текстовый узел, а не через состояние React.
+ * Прошлая версия дёргала setState каждый кадр: на один экран с четырьмя
+ * счётчиками это давало 86 пересчётов вёрстки и 98 пересчётов стилей за
+ * полторы секунды на неподвижной странице — реконсиляция, смена текста,
+ * пересчёт ширины, и так шестьдесят раз в секунду.
+ *
+ * Ширина зафиксирована: под цифрой лежит невидимый двойник с конечным
+ * значением, он и держит ячейку. Цифры табличные, поэтому «1 778» и «1 000»
+ * одной ширины, и во время набора ничего не прыгает. `contain: layout size`
+ * не даёт пересчёту выйти за пределы ячейки.
+ *
+ * Значение сразу отрисовано на сервере: без JS и в режиме покоя посетитель
+ * видит итоговое число, а не ноль.
  */
 export function Counter({ value, digits = 0 }: { value: number; digits?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [shown, setShown] = useState(value);
 
   useEffect(() => {
     const el = ref.current;
@@ -21,11 +33,13 @@ export function Counter({ value, digits = 0 }: { value: number; digits?: number 
         if (!entry.isIntersecting) return;
         io.disconnect();
         const start = performance.now();
-        const dur = 900;
+        const dur = DUR.count * 1000;
         const tick = (t: number) => {
           const p = Math.min(1, (t - start) / dur);
+          // power3.out — тот же easing, что у появления блоков: цифра
+          // разгоняется сразу и мягко останавливается, без линейного хода.
           const eased = 1 - Math.pow(1 - p, 3);
-          setShown(value * eased);
+          el.textContent = num(value * eased, digits);
           if (p < 1) raf = requestAnimationFrame(tick);
         };
         raf = requestAnimationFrame(tick);
@@ -37,11 +51,17 @@ export function Counter({ value, digits = 0 }: { value: number; digits?: number 
       io.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [value]);
+  }, [value, digits]);
 
   return (
-    <span ref={ref} className="tnum">
-      {num(shown, digits)}
+    <span className="counter tnum">
+      {/* Двойник держит ширину ячейки: конечное значение самое широкое. */}
+      <span aria-hidden="true" className="counter-ghost">
+        {num(value, digits)}
+      </span>
+      <span ref={ref} className="counter-live">
+        {num(value, digits)}
+      </span>
     </span>
   );
 }

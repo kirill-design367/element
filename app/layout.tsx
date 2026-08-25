@@ -5,8 +5,7 @@ import { Header } from '@/components/site/Header';
 import { MobileBar } from '@/components/site/MobileBar';
 import { Footer } from '@/components/site/Footer';
 import { RequestProvider } from '@/components/providers/RequestProvider';
-import { SmoothScroll } from '@/components/providers/SmoothScroll';
-import { Reveal } from '@/components/providers/Reveal';
+import { Motion } from '@/components/providers/Motion';
 import { COMPANY } from '@/lib/company';
 
 export const metadata: Metadata = {
@@ -47,8 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <MobileBar />
         </RequestProvider>
-        <SmoothScroll />
-        <Reveal />
+        <Motion />
       </body>
     </html>
   );

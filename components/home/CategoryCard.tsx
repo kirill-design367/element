@@ -37,7 +37,7 @@ export function CategoryCard({ category, tall }: { category: Category; tall?: bo
       href={href}
       onClick={onClick}
       data-reveal
-      className="group flex flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-[box-shadow,border-color,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-line-strong hover:shadow-lift focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="group flex flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div ref={plateRef} data-flip-plate={category.id} className="relative">
         <PhotoSlot

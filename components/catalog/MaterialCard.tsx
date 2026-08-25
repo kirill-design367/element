@@ -21,7 +21,7 @@ export function MaterialCard({ material }: { material: Material }) {
       data-cat={material.categoryId}
       data-fr={fractionIds(material)}
       data-gost={material.gost}
-      className="flex flex-col rounded-card border border-line bg-surface p-4 shadow-card transition-[border-color,box-shadow] duration-200 hover:border-line-strong hover:shadow-lift md:p-5"
+      className="flex flex-col rounded-card border border-line bg-surface p-4 shadow-card transition-transform duration-300 ease-out will-change-transform hover:-translate-y-1 md:p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
