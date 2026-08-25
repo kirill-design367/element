@@ -454,38 +454,145 @@ select.field option { color: #17191c; background: #fff; }
   .object-row { transition: none; }
 }
 
-/* ── Как работаем: залипающая последовательность ─────────────
-   По умолчанию — обычный список в потоке: без скрипта и в режиме покоя пять
-   шагов просто читаются сверху вниз. Класс is-pinned ставит Motion, и тогда
-   шаги встают друг на друга и сменяются по прокрутке.
+/* ── Как работаем: шаг на всю ширину ─────────────────────────
+   Номер слева, текст справа, между ними воздух. По умолчанию — обычный
+   список в потоке: без скрипта и в режиме покоя пять шагов читаются сверху
+   вниз. Класс is-pinned ставит Motion, и тогда шаги встают друг на друга.
    ──────────────────────────────────────────────────────────── */
-.process-step { display: flex; gap: 20px; padding-block: 24px; }
+/* Номер прижат к левой линии контейнера, текст начинает вторую треть —
+   между ними воздух во всю оставшуюся ширину. */
+.process-step {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 64px);
+  padding-block: 28px;
+}
+@media (max-width: 767px) {
+  .process-step { grid-template-columns: auto 1fr; gap: 20px; }
+}
 .process-step + .process-step { border-top: 1px solid var(--line); }
-@media (min-width: 768px) { .process-step { gap: 40px; } }
+.process-num { font-size: var(--t5); }
 
-.process-steps.is-pinned { position: relative; height: 260px; }
+.process-steps.is-pinned { position: relative; height: 300px; }
 .process-steps.is-pinned .process-step {
   position: absolute;
   inset: 0;
-  align-items: flex-start;
   padding-block: 0;
   border-top: 0;
 }
 @media (min-width: 768px) {
-  .process-steps.is-pinned { height: 220px; }
+  .process-steps.is-pinned { height: 240px; }
 }
 
-.process-dot {
-  width: 22px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--line-strong);
-  transition: background-color .35s var(--ease-out), width .35s var(--ease-out);
+/* Линия прогресса по низу секции. */
+.process-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
 }
-.process-dot.is-on { width: 44px; background: var(--ink); }
+.process-line > span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* ── Объекты: строка списка и кадр ───────────────────────────
+   Наведение на строку меняет кроп кадра справа. Здесь только цвет строки —
+   сам кадр возит Motion трансформом.
+   ──────────────────────────────────────────────────────────── */
+.object-row { transition: color .3s var(--ease-out); }
+.object-row:hover, .object-row:focus-visible { color: var(--ink); }
+.object-row:hover .text-ink-2, .object-row:focus-visible .text-ink-2 { color: var(--ink-2); }
+
+/* Крупное скругление слева — у кадра «Объектов» и у панели заявки. */
+.rounded-l-panel { border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
+
+/* ── Реквизиты: раскрывающийся блок ──────────────────────────
+   Плюс/минус собран из двух линеек, чтобы не тянуть иконку ради 40 байт.
+   ──────────────────────────────────────────────────────────── */
+.requisites summary::-webkit-details-marker { display: none; }
+.requisites-mark {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.requisites-mark::before,
+.requisites-mark::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1.5px;
+  background: var(--ink);
+  transform: translateY(-50%);
+  transition: transform .3s var(--ease-out), opacity .3s var(--ease-out);
+}
+.requisites-mark::after { transform: translateY(-50%) rotate(90deg); }
+.requisites[open] .requisites-mark::after { transform: translateY(-50%) rotate(0deg); opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .process-dot { transition: none; }
+  .requisites-mark::before, .requisites-mark::after { transition: none; }
+  .object-row { transition: none; }
 }
+
+/* ── Как работаем: шаг на всю ширину ─────────────────────────
+   Номер слева, текст справа, между ними воздух. По умолчанию — обычный
+   список в потоке: без скрипта и в режиме покоя пять шагов читаются сверху
+   вниз. Класс is-pinned ставит Motion, и тогда шаги встают друг на друга.
+   ──────────────────────────────────────────────────────────── */
+/* Номер прижат к левой линии контейнера, текст начинает вторую треть —
+   между ними воздух во всю оставшуюся ширину. */
+.process-step {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 64px);
+  padding-block: 28px;
+}
+@media (max-width: 767px) {
+  .process-step { grid-template-columns: auto 1fr; gap: 20px; }
+}
+.process-step + .process-step { border-top: 1px solid var(--line); }
+.process-num { font-size: var(--t5); }
+
+.process-steps.is-pinned { position: relative; height: 300px; }
+.process-steps.is-pinned .process-step {
+  position: absolute;
+  inset: 0;
+  padding-block: 0;
+  border-top: 0;
+}
+@media (min-width: 768px) {
+  .process-steps.is-pinned { height: 240px; }
+}
+
+/* Линия прогресса по низу секции. */
+.process-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.process-line > span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+
 
 /* ── Условия: закреплённая секция ────────────────────────────
    По умолчанию — обычный список в потоке. Класс is-pinned ставит Motion,
