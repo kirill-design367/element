@@ -272,6 +272,19 @@ html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
   .narrow-left { margin-inline: 0; margin-right: auto; padding-left: max(var(--shell-x), (100% - var(--shell-max)) / 2); }
 }
 
+/* ── Условия: активный пункт ─────────────────────────────────
+   Приглушение — сменой цвета, а не прозрачностью: полупрозрачный тёмный
+   текст на светлом фоне даёт 3:1 и проваливает контраст, вторичный цвет —
+   5,4:1. Класс вешает Motion по мере прокрутки; без скрипта все пункты
+   одинаковые и читаемые.
+   ──────────────────────────────────────────────────────────── */
+.term-num, .term-title { transition: color .45s var(--ease-out); }
+[data-term].is-active .term-num,
+[data-term].is-active .term-title { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) {
+  .term-num, .term-title { transition: none; }
+}
+
 /* ── Полоса прогресса ленты ──────────────────────────────────
    Единственный указатель на то, сколько ленты осталось. Бегунок двигается
    transform: scaleX плюс translateX, а не шириной, — вёрстка не трогается.

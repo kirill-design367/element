@@ -52,11 +52,9 @@ export default function HomePage() {
         <CatalogPreview />
       </Section>
 
-      <Section id="usloviya" tone="muted" width="narrow" pad="loose">
-        <SectionHead
-          title="Условия для юридических лиц"
-          lead="То, ради чего снабженец меняет поставщика: документы вовремя, отсрочка и один ответственный человек."
-        />
+      {/* Заголовок живёт внутри Terms: он стоит в левой липкой колонке
+          рядом с пунктами, а не над блоком во всю ширину. */}
+      <Section id="usloviya" tone="muted" width="shell" pad="loose">
         <Terms />
       </Section>
 

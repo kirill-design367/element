@@ -279,6 +279,19 @@ export function Motion() {
         if (document.fonts?.status === 'loaded') splitHeads();
         else void document.fonts?.ready.then(() => !cancelled && splitHeads());
 
+        /* ── Условия: активный пункт ────────────────────────────────────
+           Пункт считается активным, пока его верх выше середины экрана, а низ
+           ещё не ушёл выше шапки. Класс переключается по toggleClass — стилями
+           занимается CSS, JS в цикле прокрутки ничего не считает. */
+        document.querySelectorAll<HTMLElement>('[data-term]').forEach((item) => {
+          ScrollTrigger.create({
+            trigger: item,
+            start: 'top 62%',
+            end: 'bottom 38%',
+            toggleClass: { targets: item, className: 'is-active' },
+          });
+        });
+
         /* ── 3. Параллакс ─────────────────────────────────────────────────
            Возит только transform. Триггером берётся ближайший предок с
            высотой, а не родитель напрямую: у кадра первого экрана родитель —

@@ -1,4 +1,3 @@
-import { CheckIcon } from '@/components/site/Icons';
 import { typo } from '@/lib/format';
 
 const TERMS = [
@@ -28,20 +27,62 @@ const TERMS = [
   },
 ];
 
+/**
+ * Два столбца: слева заголовок секции, он липкий и стоит на месте, справа
+ * прокручиваются пункты. Сетка из шести одинаковых карточек, которая была
+ * здесь раньше, композиции не имела вовсе — шесть прямоугольников в три
+ * колонки читались как таблица.
+ *
+ * Пункты разделены воздухом, а не рамками: рамок здесь нет ни одной.
+ * Активный пункт подсвечивается по мере прокрутки — Motion вешает на него
+ * класс is-active, остальные приглушены. Приглушение сделано сменой цвета,
+ * а не прозрачностью: полупрозрачный тёмный текст на светлом фоне даёт
+ * 3:1 и проваливает контраст, а вторичный цвет — 5,4:1.
+ *
+ * Тексты и состав условий не менялись.
+ */
 export function Terms() {
   return (
-    <ul className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
-      {TERMS.map((t) => (
-        <li key={t.title} data-reveal className="bg-surface p-5 md:p-6">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-line-strong text-ink">
-            <CheckIcon className="h-4 w-4" />
-          </span>
-          <h3 className="mt-4 text-t3 font-bold leading-snug tracking-[-.01em]">
-            {typo(t.title)}
-          </h3>
-          <p className="mt-2 text-t2 leading-relaxed text-ink-2">{typo(t.body)}</p>
-        </li>
-      ))}
-    </ul>
+    <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
+      <div className="lg:col-span-4">
+        <div className="lg:sticky lg:top-32">
+          <h2
+            id="usloviya-title"
+            data-lines
+            className="font-black text-t4 leading-[1.04] tracking-[-.02em]"
+          >
+            {typo('Условия для юридических лиц')}
+          </h2>
+          <p className="mt-4 max-w-[38ch] text-t2 leading-relaxed text-ink-2">
+            {typo(
+              'То, ради чего снабженец меняет поставщика: документы вовремя, отсрочка и один ответственный человек.',
+            )}
+          </p>
+        </div>
+      </div>
+
+      <ol className="lg:col-span-7 lg:col-start-6">
+        {TERMS.map((t, i) => (
+          <li
+            key={t.title}
+            data-term
+            className="flex gap-5 border-t border-line py-8 first:border-t-0 first:pt-0 md:gap-8 md:py-10"
+          >
+            <span
+              aria-hidden="true"
+              className="term-num tnum shrink-0 font-black text-t3 leading-none text-ink-2"
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div className="min-w-0">
+              <h3 className="term-title text-t3 font-bold leading-snug tracking-[-.01em] text-ink-2">
+                {typo(t.title)}
+              </h3>
+              <p className="mt-2 max-w-[52ch] text-t2 leading-relaxed text-ink-2">{typo(t.body)}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
