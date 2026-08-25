@@ -80,6 +80,9 @@ export function Motion() {
          переключает состояние — никаких стилей в цикле прокрутки. */
       const root = document.documentElement;
       let stopTimer = 0;
+      // Ссылка на применение стекла: обработчик прокрутки объявлен раньше
+      // самого стекла, а вызывать надо уже готовую функцию.
+      let applyGlassRef: (() => void) | undefined;
       const onScroll = ({ scroll }: { scroll: number }) => {
         const on = scroll > 40;
         if (on !== root.hasAttribute('data-scrolled')) {
@@ -91,7 +94,10 @@ export function Motion() {
         // каждый кадр. Возвращаем через 160 мс после остановки.
         root.setAttribute('data-scrolling', '');
         window.clearTimeout(stopTimer);
-        stopTimer = window.setTimeout(() => root.removeAttribute('data-scrolling'), 160);
+        stopTimer = window.setTimeout(() => {
+          root.removeAttribute('data-scrolling');
+          applyGlassRef?.();
+        }, 160);
       };
       lenis.on('scroll', onScroll);
       onScroll({ scroll: window.scrollY });
@@ -167,6 +173,63 @@ export function Motion() {
         railNative.addEventListener('scroll', paint, { passive: true });
         paint();
         cleanupRail = () => railNative.removeEventListener('scroll', paint);
+      }
+
+      /* ── Стекло в движении ──────────────────────────────────────────
+         Панели живут: чем ниже по первому экрану, тем толще стекло — радиус
+         растёт с 32 до 48 px, заливка чуть светлеет. Сами панели идут вверх
+         с небольшим параллаксом, пока кадр за ними едет вниз: подложка
+         заметно движется за стеклом.
+
+         Ключевое: радиус НЕ пишется каждый кадр. Замер — 49 кадров дольше
+         33 мс за восемь щелчков колеса: смена переменной размытия
+         заставляет композитор пересчитывать блюр всей панели заново, и на
+         движении это дороже всего остального вместе взятого. Поэтому во
+         время движения CSS держит радиус на 18 px, цель считается в
+         onUpdate дёшево (только число), а применяется один раз — когда
+         страница остановилась. Переход 0,35 с описан в CSS. */
+      let blurTarget = 32;
+      let glassTarget = 0.5;
+      const applyGlass = () => {
+        root.style.setProperty('--glass-blur', `${Math.round(blurTarget)}px`);
+        root.style.setProperty('--glass', `rgba(247,247,244,${glassTarget.toFixed(3)})`);
+      };
+      const heroSection = document.querySelector<HTMLElement>('section');
+      const panels = gsap.utils.toArray<HTMLElement>('[data-glass-parallax]');
+      if (heroSection) {
+        ScrollTrigger.create({
+          trigger: heroSection,
+          start: 'top top',
+          end: 'bottom top',
+          onUpdate: (self) => {
+            blurTarget = 32 + self.progress * 16;
+            glassTarget = 0.5 - self.progress * 0.06;
+          },
+        });
+        if (panels.length) {
+          gsap.fromTo(
+            panels,
+            { y: 0 },
+            {
+              y: -34,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: heroSection,
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 0.5,
+                onToggle: (self) => {
+                  // Слой композитора и will-change — только на время работы.
+                  panels.forEach((el) => {
+                    el.style.willChange = self.isActive ? 'transform' : '';
+                  });
+                },
+              },
+            },
+          );
+        }
+        applyGlassRef = applyGlass;
+        applyGlass();
       }
 
       /* ── 2. Появления ───────────────────────────────────────────────────

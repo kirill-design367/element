@@ -3,11 +3,12 @@ import type { ComponentProps, ReactNode } from 'react';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
 type Size = 'md' | 'lg';
+type Shape = 'card' | 'pill';
 
 /* Переходы и увеличение на наведении описаны классом .btn в globals.css:
    там же они выключаются в режиме покоя. */
 const base =
-  'btn inline-flex items-center justify-center gap-2 rounded-card font-medium ' +
+  'btn inline-flex items-center justify-center gap-2 font-medium ' +
   'select-none disabled:opacity-50 disabled:pointer-events-none ' +
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 
@@ -26,19 +27,27 @@ const sizes: Record<Size, string> = {
   lg: 'h-[52px] px-6 text-base',
 };
 
-export function buttonClass(variant: Variant = 'primary', size: Size = 'md', extra = '') {
-  return `${base} ${variants[variant]} ${sizes[size]} ${extra}`;
+const shapes: Record<Shape, string> = { card: 'rounded-card', pill: 'rounded-pill' };
+
+export function buttonClass(
+  variant: Variant = 'primary',
+  size: Size = 'md',
+  extra = '',
+  shape: Shape = 'card',
+) {
+  return `${base} ${variants[variant]} ${sizes[size]} ${shapes[shape]} ${extra}`;
 }
 
 export function Button({
   variant = 'primary',
   size = 'md',
+  shape = 'card',
   className = '',
   children,
   ...rest
-}: { variant?: Variant; size?: Size; children: ReactNode } & ComponentProps<'button'>) {
+}: { variant?: Variant; size?: Size; shape?: Shape; children: ReactNode } & ComponentProps<'button'>) {
   return (
-    <button className={buttonClass(variant, size, className)} {...rest}>
+    <button className={buttonClass(variant, size, className, shape)} {...rest}>
       {children}
     </button>
   );
@@ -47,12 +56,15 @@ export function Button({
 export function ButtonLink({
   variant = 'primary',
   size = 'md',
+  shape = 'card',
   className = '',
   children,
   ...rest
-}: { variant?: Variant; size?: Size; children: ReactNode } & ComponentProps<typeof Link>) {
+}: { variant?: Variant; size?: Size; shape?: Shape; children: ReactNode } & ComponentProps<
+  typeof Link
+>) {
   return (
-    <Link className={buttonClass(variant, size, className)} {...rest}>
+    <Link className={buttonClass(variant, size, className, shape)} {...rest}>
       {children}
     </Link>
   );

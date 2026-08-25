@@ -65,7 +65,9 @@ export function Header() {
             <PhoneIcon className="h-4 w-4 text-ink-3 md:h-[18px] md:w-[18px]" />
             <span className="whitespace-nowrap">{nbsp(COMPANY.phoneLabel)}</span>
           </a>
-          <ButtonLink href="/#zayavka" size="md" className="hidden shrink-0 md:inline-flex">
+          {/* Полная пилюля, как сама шапка: прямоугольник со скруглением
+              внутри пилюли выбивался из формы панели. */}
+          <ButtonLink href="/#zayavka" size="md" shape="pill" className="hidden shrink-0 md:inline-flex">
             Запросить прайс
           </ButtonLink>
         </div>
