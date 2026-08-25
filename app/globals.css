@@ -272,6 +272,35 @@ html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
   .narrow-left { margin-inline: 0; margin-right: auto; padding-left: max(var(--shell-x), (100% - var(--shell-max)) / 2); }
 }
 
+/* ── Бегущая строка фактов ───────────────────────────────────
+   Две одинаковые копии в ряд, лента едет влево на половину своей ширины —
+   стык не виден. Двигается только transform. Вторая копия появляется
+   только при живом скрипте: без него и в режиме покоя остаётся один
+   неподвижный ряд из трёх фактов.
+   ──────────────────────────────────────────────────────────── */
+.marquee-strip { overflow: hidden; padding-block: 22px; }
+.marquee-track { display: flex; width: max-content; }
+.marquee-copy { display: flex; align-items: center; }
+.marquee-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-inline: clamp(18px, 2.4vw, 34px);
+  white-space: nowrap;
+}
+.marquee-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ink-3);
+  margin-left: clamp(14px, 2vw, 30px);
+}
+[data-marquee-clone] { display: none; }
+html.js [data-marquee-clone] { display: flex; }
+@media (prefers-reduced-motion: reduce) {
+  html.js [data-marquee-clone] { display: none; }
+}
+
 /* ── Лента материалов ────────────────────────────────────────
    Единственное место с горизонтальной прокруткой.
    ──────────────────────────────────────────────────────────── */

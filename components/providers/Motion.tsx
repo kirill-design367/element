@@ -169,6 +169,37 @@ export function Motion() {
           { stagger: 0.07 },
         );
 
+        /* ── Бегущая строка фактов ───────────────────────────────────────
+           Лента с двумя копиями едет влево на половину ширины и повторяется
+           без стыка. Длительность считается от ширины копии, а не задаётся
+           числом: на 390 px и на 2560 px скорость должна быть одна и та же —
+           70 пикселей в секунду. При наведении лента не встаёт, а сбавляет
+           ход вчетверо за 0,5 с; менять длительность CSS-анимации на лету
+           нельзя, она перескакивает, поэтому это tween с timeScale. */
+        const track = document.querySelector<HTMLElement>('[data-marquee-track]');
+        const strip = document.querySelector<HTMLElement>('[data-marquee]');
+        if (track && strip && track.children.length > 1) {
+          const copyWidth = (track.children[0] as HTMLElement).offsetWidth;
+          const run = gsap.to(track, {
+            x: -copyWidth,
+            ease: 'none',
+            duration: copyWidth / 70,
+            repeat: -1,
+          });
+          strip.addEventListener('pointerenter', () => gsap.to(run, { timeScale: 0.25, duration: 0.5 }));
+          strip.addEventListener('pointerleave', () => gsap.to(run, { timeScale: 1, duration: 0.5 }));
+          // Копия меряется по факту, а не по проценту: шрифт может ещё не
+          // приехать в момент замера, и тогда ширина будет чужая.
+          void document.fonts?.ready.then(() => {
+            const w = (track.children[0] as HTMLElement).offsetWidth;
+            if (Math.abs(w - copyWidth) > 2) {
+              run.vars.x = -w;
+              run.duration(w / 70);
+              run.invalidate().restart();
+            }
+          });
+        }
+
         /* Заголовки секций проявляются строками из-под маски: строка
            выезжает снизу, следующая идёт через 0,07 с. SplitText режет уже
            после загрузки шрифта — иначе строки посчитаются по подменному
