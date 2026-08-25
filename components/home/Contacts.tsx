@@ -5,11 +5,10 @@ import { PhoneIcon } from '@/components/site/Icons';
 /**
  * Три равные карточки разбиты.
  *
- * Телефон — главное на этом экране, поэтому он вынесен отдельно и набран
- * самой крупной ступенью, какая тут уместна: снабженец приходит сюда, чтобы
- * позвонить, а не чтобы прочитать ОГРН. Реквизиты убраны в раскрывающийся
- * блок — они нужны бухгалтерии раз в жизни и не должны занимать треть
- * экрана. Карта расширена до края экрана.
+ * Телефон и почта — первыми и крупно: сюда приходят позвонить или написать,
+ * а не читать ОГРН. Адреса идут компактным блоком следом, реквизиты убраны в
+ * раскрывающийся блок и по умолчанию свёрнуты. Карта — невысокая полоса во
+ * всю ширину экрана под контактами.
  */
 export function Contacts() {
   return (
@@ -24,7 +23,7 @@ export function Contacts() {
 
             <a
               href={`tel:${COMPANY.phone}`}
-              className="group mt-8 flex items-center gap-4 rounded transition-colors duration-300 hover:text-accent"
+              className="group mt-6 flex items-center gap-4 rounded transition-colors duration-300 hover:text-accent"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line-strong">
                 <PhoneIcon className="h-5 w-5 text-ink-3" />
@@ -34,18 +33,16 @@ export function Contacts() {
               </span>
             </a>
 
-            <p className="mt-4 text-t2 text-ink-2">
-              <a
-                href={`mailto:${COMPANY.email}`}
-                className="link-underline rounded text-accent"
-              >
+            <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-t2 text-ink-2">
+              <a href={`mailto:${COMPANY.email}`} className="link-underline rounded text-t3 font-medium text-ink">
                 {COMPANY.email}
               </a>
-              {' · '}
-              {COMPANY.hoursOffice}
+              <span>{COMPANY.hoursOffice}</span>
             </p>
 
-            <dl className="mt-10 grid gap-6 border-t border-line pt-8 sm:grid-cols-2">
+            {/* Адреса компактным блоком рядом с телефоном, а не таблицей на
+                четыре строки: их читают один раз перед выездом. */}
+            <dl className="mt-8 grid gap-x-8 gap-y-4 border-t border-line pt-6 sm:grid-cols-2">
               <Line term="Офис" value={COMPANY.officeAddress} />
               <Line term="Отгрузка" value={COMPANY.siteAddress} />
               <Line term="Часы отгрузки" value={COMPANY.hoursShipping} />
@@ -84,7 +81,7 @@ export function Contacts() {
           Схема, а не карта: чужих тайлов и стоковой картинки здесь нет.
           Слот PHOTO.map остаётся пустым до решения по Яндекс.Картам. */}
       <div
-        className="relative mt-14 h-[280px] overflow-hidden border-y border-line bg-surface-2 md:mt-20 md:h-[380px]"
+        className="relative mt-12 h-[200px] overflow-hidden border-y border-line bg-surface-2 md:mt-16 md:h-[240px]"
         role="img"
         aria-label="Схема расположения площадки отгрузки. Интерактивная карта подключается при запуске."
       >

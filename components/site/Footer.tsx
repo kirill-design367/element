@@ -1,49 +1,36 @@
-import Link from 'next/link';
 import { nbsp } from '@/lib/format';
 import { COMPANY } from '@/lib/company';
 
+/**
+ * Одна строка и минимум высоты.
+ *
+ * Меню в три колонки отсюда убрано: те же разделы стоят в шапке, которая
+ * висит на экране всегда, и дублировать их внизу незачем — подвал от этого
+ * был выше первого экрана телефона.
+ *
+ * Остались три вещи, которые в подвале действительно ищут: кто это, как
+ * позвонить и оговорка про оферту.
+ */
 export function Footer() {
   return (
-    <footer className="border-t border-line bg-surface-2 py-10 md:py-14">
-      <div className="shell">
-        <div className="flex flex-col gap-8 md:flex-row md:justify-between">
-          <div className="max-w-[34ch]">
-            <div className="text-t3 font-black">
-              Элемент
-            </div>
-            <p className="mt-2 text-t2 leading-relaxed text-ink-2">
-              {COMPANY.legalName}. {COMPANY.tagline} для Москвы и области.
-            </p>
-          </div>
+    <footer className="border-t border-line bg-surface-2 py-6">
+      <div className="shell flex flex-col gap-3 text-t1 text-ink-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="text-t2 font-black text-ink">Элемент</span>
+          <span>
+            © {new Date().getFullYear()} {COMPANY.legalName}
+          </span>
+        </p>
 
-          <div className="grid gap-6 text-t2 sm:grid-cols-2 md:gap-14">
-            <div>
-              <div className="mb-2 text-t1 font-medium text-ink-2">Разделы</div>
-              <ul className="-my-1 space-y-0.5">
-                <li><Link href="/catalog/" className="inline-block rounded py-1.5 hover:text-accent">Каталог материалов</Link></li>
-                <li><Link href="/#raschet" className="inline-block rounded py-1.5 hover:text-accent">Расчёт стоимости</Link></li>
-                <li><Link href="/#usloviya" className="inline-block rounded py-1.5 hover:text-accent">Условия для юрлиц</Link></li>
-              </ul>
-            </div>
-            <div>
-              <div className="mb-2 text-t1 font-medium text-ink-2">Связь</div>
-              <ul className="-my-1 space-y-0.5">
-                <li>
-                  <a href={`tel:${COMPANY.phone}`} className="tnum rounded font-bold hover:text-accent">
-                    {nbsp(COMPANY.phoneLabel)}
-                  </a>
-                </li>
-                <li><a href={`mailto:${COMPANY.email}`} className="inline-block rounded py-1.5 hover:text-accent">{COMPANY.email}</a></li>
-                <li className="text-ink-2">{COMPANY.hoursOffice}</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-col gap-2 border-t border-line pt-6 text-t1 text-ink-2 sm:flex-row sm:justify-between">
-          <span>© {new Date().getFullYear()} {COMPANY.legalName}</span>
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <a href={`tel:${COMPANY.phone}`} className="tnum link-underline rounded font-semibold text-ink">
+            {nbsp(COMPANY.phoneLabel)}
+          </a>
+          <a href={`mailto:${COMPANY.email}`} className="link-underline rounded">
+            {COMPANY.email}
+          </a>
           <span>Цены на сайте не являются публичной офертой</span>
-        </div>
+        </p>
       </div>
     </footer>
   );
