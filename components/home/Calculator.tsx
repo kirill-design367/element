@@ -62,13 +62,13 @@ export function Calculator() {
   const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   return (
-    /* Поля и результат стоят рядом внутри контейнера: вылет за правый край
-       убран. Обрезанное краем экрана число читалось как ошибка вёрстки, а не
-       как приём, — теперь итог целиком в кадре и с воздухом вокруг. */
-    <div className="shell grid items-start gap-8 lg:grid-cols-12 lg:gap-10">
+    /* Поля и результат стоят рядом, верхние кромки на одной высоте: ответ
+       читается на уровне глаз, опускать взгляд не нужно. Вылет за правый край
+       убран — обрезанное краем экрана число читалось как ошибка вёрстки. */
+    <div className="grid items-start gap-6 lg:grid-cols-12 lg:gap-8">
       {/* ── Поля ─────────────────────────────────────────────────────────── */}
       <div className="lg:col-span-6">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className={label} htmlFor={`${uid}-material`}>
               Материал
@@ -209,7 +209,7 @@ export function Calculator() {
           Самый заметный предмет блока: тёмная панель с крупным скруглением,
           воздухом внутри и подъёмом тенью. Не обрезается ничем. */}
       <div className="lg:col-span-6">
-        <div className="inv rounded-panel p-6 shadow-lift md:p-8 lg:sticky lg:top-28">
+        <div className="inv rounded-panel p-6 shadow-lift md:p-7">
           <div className="flex items-baseline justify-between gap-3">
             <h3 className="text-t2 font-black">Расчёт</h3>
             <span className="text-t1 text-ink-2">цены с НДС</span>
@@ -217,7 +217,7 @@ export function Calculator() {
 
           {/* Разбивка как в счёте: строка — статья — сумма. Она стоит над
               итогом: сначала из чего сложилось, потом сколько всего. */}
-          <div className="mt-6 space-y-3 text-t2" aria-live="polite">
+          <div className="mt-5 space-y-3 text-t2" aria-live="polite">
             <Row
               label="Объём"
               value={result ? nbsp(`${volume(result.volumeM3)} · ${tons(result.massT)}`) : '—'}
@@ -238,7 +238,7 @@ export function Calculator() {
               добегает до нового значения за 0,6 с — видно, в какую сторону
               поехала цифра. Ширина ячейки при этом не скачет, её держит
               невидимый двойник внутри Counter. */}
-          <div className="mt-6 border-t border-line pt-5">
+          <div className="mt-5 border-t border-line pt-4">
             <dl>
               <dt className="text-t1 font-medium text-ink-2">Итого</dt>
               <dd data-total className="mt-2 flex items-baseline gap-2 font-black text-t5 leading-[.85] tracking-[-.04em]">
@@ -275,7 +275,7 @@ export function Calculator() {
           <Button
             type="button"
             size="lg"
-            className="mt-6 w-full"
+            className="mt-5 w-full"
             onClick={toRequest}
             disabled={!result}
           >
