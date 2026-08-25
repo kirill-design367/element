@@ -29,6 +29,15 @@
   --warn: #b3261e;
   --warn-soft: #fbeceb;
 
+  /* ── Поля ввода ──
+     Ни у одного поля на сайте нет тёмной обводки: тёмный контур в светлой
+     сетке читается как ошибка или как запрет. Поле отделяется от фона
+     светлотой заливки, рамка едва заметна и нужна только чтобы граница не
+     растворилась на белой карточке. */
+  --field-bg: rgba(23, 25, 28, .045);
+  --field-bg-hover: rgba(23, 25, 28, .07);
+  --field-line: rgba(23, 25, 28, .09);
+
   /* ── Шкала кеглей. Пять ступеней на весь сайт, шестой нет.
      Разрыв между крайними: 10,7x на десктопе, 5,3x на телефоне. Этот разрыв
      и есть главный инструмент иерархии — не цвет и не рамка. ── */
@@ -92,6 +101,9 @@
   --accent-soft: rgba(157, 180, 242, .16);
   --warn: #f0938a;
   --warn-soft: rgba(240, 147, 138, .16);
+  --field-bg: rgba(244, 243, 239, .07);
+  --field-bg-hover: rgba(244, 243, 239, .11);
+  --field-line: rgba(244, 243, 239, .12);
   background: var(--surface);
   color: var(--ink);
 }
@@ -361,17 +373,42 @@ html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
 .link-underline:hover::after,
 .link-underline:focus-visible::after { transform: scaleX(1); }
 
-/* Поле ввода: обводка нарастает, а не включается щелчком. */
+/* Поле ввода. Заливка вместо обводки; в фокусе вокруг поля нарастает мягкое
+   кольцо за 0,2 с и заливка чуть светлеет. Жёстких тёмных контуров нет
+   нигде — ни у полей, ни у селектов, ни у списков. */
 .field {
-  transition: border-color .3s var(--ease-out), box-shadow .3s var(--ease-out);
-  box-shadow: 0 0 0 0 var(--accent-soft);
+  background: var(--field-bg);
+  border: 1px solid var(--field-line);
+  color: var(--ink);
+  transition: background-color .2s var(--ease-out), box-shadow .2s var(--ease-out),
+    border-color .2s var(--ease-out);
+  box-shadow: 0 0 0 0 rgba(23, 63, 166, 0);
 }
-.field:hover { border-color: var(--ink-3); }
-.field:focus {
-  border-color: var(--accent);
+.field:hover { background: var(--field-bg-hover); }
+.field:focus,
+.field:focus-visible {
+  background: var(--field-bg-hover);
+  border-color: rgba(23, 63, 166, .35);
   box-shadow: 0 0 0 4px var(--accent-soft);
   outline: none;
 }
+.field::placeholder { color: var(--ink-2); }
+.field[aria-invalid='true'], .field.is-error { border-color: var(--warn); }
+
+/* Своя стрелка у селекта вместо системной: системная рисуется по-разному в
+   каждом браузере и в тёмной панели остаётся чёрной. */
+select.field {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 38px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5l5-5' stroke='%235a5f66' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.inv select.field {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5l5-5' stroke='%23a8afb7' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+select.field option { color: #17191c; background: #fff; }
 
 @media (prefers-reduced-motion: reduce) {
   .btn, .btn .arrow-slide, .link-underline::after, .field { transition: none; }

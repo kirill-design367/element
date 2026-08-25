@@ -212,7 +212,7 @@ export function CatalogClient() {
               id="gost"
               value={gost}
               onChange={(e) => setParam('gost', e.target.value)}
-              className="h-10 rounded-card border border-line-strong bg-surface px-2.5 text-t2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+              className="field h-10 rounded-card px-2.5 text-t2"
             >
               <option value={ALL}>Любой</option>
               {GOST_FILTERS.map((g) => (
@@ -311,7 +311,7 @@ function Chip({
       className={`h-10 rounded-pill border px-3.5 text-t2 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
         active
           ? 'border-accent bg-accent text-white'
-          : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'
+          : 'border-transparent bg-[color:var(--field-bg)] text-ink-2 hover:bg-[color:var(--field-bg-hover)] hover:text-ink'
       }`}
     >
       {children}

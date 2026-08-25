@@ -119,7 +119,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   )}&body=${encodeURIComponent(summary)}`;
 
   const field =
-    'field h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink';
+    'field h-12 w-full rounded-card px-3 text-t2';
   const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   if (status === 'done') {
@@ -153,14 +153,14 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           </a>
           <a
             href={`tel:${COMPANY.phone}`}
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-card border border-line-strong bg-surface px-5 text-t2 font-medium transition-colors hover:border-ink"
+            className="btn inline-flex h-12 flex-1 items-center justify-center rounded-card border border-line bg-surface px-5 text-t2 font-medium"
           >
             Позвонить {COMPANY.phoneLabel}
           </a>
           <button
             type="button"
             onClick={copy}
-            className="inline-flex h-12 items-center justify-center rounded-card border border-line-strong bg-surface px-5 text-t2 font-medium transition-colors hover:border-ink"
+            className="btn inline-flex h-12 items-center justify-center rounded-card border border-line bg-surface px-5 text-t2 font-medium"
           >
             {copied ? 'Скопировано' : 'Скопировать'}
           </button>
@@ -190,7 +190,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           </label>
           <input
             id={`${uid}-name`}
-            className={`${field} ${errors.name ? 'border-warn' : ''}`}
+            className={`${field} ${errors.name ? 'is-error' : ''}`}
             value={name}
             autoComplete="name"
             onChange={(e) => {
@@ -217,7 +217,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             inputMode="tel"
             autoComplete="tel"
             placeholder="+7 (___) ___-__-__"
-            className={`${field} tnum ${errors.phone ? 'border-warn' : ''}`}
+            className={`${field} tnum ${errors.phone ? 'is-error' : ''}`}
             value={phone}
             onChange={(e) => {
               setPhone(e.target.value);
@@ -359,7 +359,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           <textarea
             id={`${uid}-comment`}
             rows={3}
-            className="w-full resize-y rounded-card border border-line-strong bg-surface px-3 py-2.5 text-t2 transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+            className="field w-full resize-y rounded-card px-3 py-2.5 text-t2"
             placeholder="Подъезд для полуприцепа, разгрузка до 17:00, нужен паспорт качества заранее"
             value={comment}
             onChange={(e) => setComment(e.target.value)}

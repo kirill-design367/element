@@ -58,7 +58,7 @@ export function Calculator() {
   };
 
   const field =
-    'field h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink';
+    'field h-12 w-full rounded-card px-3 text-t2';
   const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   return (
@@ -107,7 +107,7 @@ export function Calculator() {
                 onChange={(e) => setAmountText(e.target.value)}
                 aria-describedby={valid ? undefined : `${uid}-amount-hint`}
               />
-              <fieldset className="flex shrink-0 rounded-card border border-line-strong bg-surface p-1">
+              <fieldset className="field flex shrink-0 rounded-card p-1">
                 <legend className="sr-only">Единица измерения</legend>
                 {(['m3', 't'] as Unit[]).map((u) => (
                   <label

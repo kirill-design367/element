@@ -136,9 +136,9 @@ export function RequestPanel() {
                           onChange={(e) =>
                             req.setAmount(item.materialId, Math.max(0, Number(e.target.value) || 0))
                           }
-                          className="tnum h-10 w-24 rounded-card border border-line-strong bg-surface px-2.5 text-t2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+                          className="field tnum h-10 w-24 rounded-card px-2.5 text-t2"
                         />
-                        <div className="flex rounded-card border border-line-strong bg-surface p-0.5">
+                        <div className="field flex rounded-card p-0.5">
                           {(['m3', 't'] as Unit[]).map((u) => (
                             <button
                               key={u}
