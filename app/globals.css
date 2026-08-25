@@ -64,9 +64,10 @@
      Плотность заливки выше 0,55 не поднимать ни при каких обстоятельствах. */
   --glass: rgba(247, 247, 244, .5);
   --glass-panel: rgba(247, 247, 244, .5);
-  /* Радиус в покое; на время движения подменяется на --glass-blur-move. */
+  /* На кадре первого экрана радиус едет по прокрутке 32 -> 48 px. Гасить
+     его на время движения бессмысленно: замерено, дорога вычитка подложки,
+     а не радиус. Полностью размытие снимается только у шапки. */
   --glass-blur: 40px;
-  --glass-blur-move: 18px;
   --glass-sat: 1.4;
   /* Толщина стекла: светлая грань сверху-слева, тёмная снизу-справа. */
   --glass-edge-light: rgba(255, 255, 255, .55);
@@ -181,15 +182,21 @@ body {
   pointer-events: none;
 }
 
-/* Панели первого экрана держат полное размытие всегда, в том числе на
-   движении: замер показал, что их радиус почти ничего не стоит — 18, 24 и
-   40 px дают 18, 21 и 19 кадров дольше 33 мс на одном и том же прогоне.
+/* Панели первого экрана и парка держат полное размытие всегда, в том числе
+   на движении: без него приёма не видно вовсе. Замеры (кадров дольше 33 мс
+   за полный проход лендинга на 1920×1080, из ~250):
 
-   Дорого стоит другое — шапка. Она fixed, её подложка это вся страница, и
-   она меняется каждый кадр целиком. Одна пилюля даёт 38 кадров дольше 33 мс
-   из 93; без неё, но с полным стеклом у панелей — 18 из 103. Поэтому на
-   время движения размытие снимается только у шапки и заменяется плотной
-   заливкой 0,62, а через 160 мс после остановки стекло возвращается. */
+     радиус панелей 8 / 18 / 24 / 40 px      18 / 18 / 21 / 19
+     гасить радиус панелей на движении       30-35 против 25-28 базовых
+     панели на своём слое композитора        26-30
+     стекло выключено на движении целиком    16-17
+
+   То есть дорог не радиус и не площадь, а сама вычитка подложки. Хуже всего
+   она у шапки: та fixed, её подложка это вся страница, и меняется каждый
+   кадр целиком. Одна пилюля даёт 38 кадров дольше 33 мс из 93; без неё, но
+   с полным стеклом у панелей — 18 из 103. Поэтому на время движения
+   размытие снимается только у шапки и заменяется плотной заливкой 0,62, а
+   через 160 мс после остановки стекло возвращается. */
 html[data-scrolling] .site-pill {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -445,130 +452,6 @@ select.field option { color: #17191c; background: #fff; }
   .btn, .btn .arrow-slide, .link-underline::after, .field { transition: none; }
   .btn:hover, .btn:active { transform: none; }
   .btn:hover .arrow-slide { transform: none; }
-}
-
-/* ── Блок заявки ─────────────────────────────────────────────
-   Тёмная карточка внутри страницы, а не плита во весь экран: поля от краёв,
-   скругление со всех сторон. Фон тёмно-серый с синим оттенком — чёрный
-   спорил со страницей вместо того, чтобы в неё вписаться.
-   ──────────────────────────────────────────────────────────── */
-.lead-band {
-  --surface: #1d2127;
-  --surface-2: #252a31;
-  --ink: #f4f3ef;
-  --ink-2: #a8afb7;
-  --ink-3: #767d85;
-  --line: rgba(244, 243, 239, .14);
-  --line-strong: rgba(244, 243, 239, .3);
-  --accent: #9db4f2;
-  --accent-hover: #c2d0f7;
-  --accent-soft: rgba(157, 180, 242, .16);
-  --warn: #f0938a;
-  --warn-soft: rgba(240, 147, 138, .16);
-  --field-bg: rgba(244, 243, 239, .07);
-  --field-bg-hover: rgba(244, 243, 239, .11);
-  --field-line: rgba(244, 243, 239, .12);
-  background: var(--surface);
-  color: var(--ink);
-}
-
-/* ── Стык «парк → объекты» ───────────────────────────────────
-   Светлота меняется фоном самой секции, а не слоем поверх содержимого.
-   Прошлая версия клала градиент от цвета парка сверху на «Объекты» — он
-   ложился прямо на заголовок и читался как поломка. Оба цвета светлые,
-   поэтому тексту это ничем не грозит.
-   ──────────────────────────────────────────────────────────── */
-#obyekty { background: linear-gradient(to bottom, var(--surface-2) 0, var(--bg) 340px); }
-
-/* ── Объекты: строка списка и кадр ───────────────────────────
-   Наведение на строку меняет кроп кадра справа. Здесь только цвет строки —
-   сам кадр возит Motion трансформом.
-   ──────────────────────────────────────────────────────────── */
-.object-row { transition: color .4s var(--ease-out), background-color .4s var(--ease-out); }
-.object-row:hover, .object-row:focus-visible {
-  color: var(--ink);
-  background: var(--field-bg);
-}
-.object-row:hover .text-ink-2, .object-row:focus-visible .text-ink-2 { color: var(--ink-2); }
-
-/* Крупное скругление слева — у кадра «Объектов» и у панели заявки. */
-.rounded-l-panel { border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
-
-/* ── Реквизиты: раскрывающийся блок ──────────────────────────
-   Плюс/минус собран из двух линеек, чтобы не тянуть иконку ради 40 байт.
-   ──────────────────────────────────────────────────────────── */
-.requisites summary::-webkit-details-marker { display: none; }
-.requisites-mark {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  flex: none;
-}
-.requisites-mark::before,
-.requisites-mark::after {
-  content: '';
-  position: absolute;
-  inset: 50% 0 auto 0;
-  height: 1.5px;
-  background: var(--ink);
-  transform: translateY(-50%);
-  transition: transform .3s var(--ease-out), opacity .3s var(--ease-out);
-}
-.requisites-mark::after { transform: translateY(-50%) rotate(90deg); }
-.requisites[open] .requisites-mark::after { transform: translateY(-50%) rotate(0deg); opacity: 0; }
-@media (prefers-reduced-motion: reduce) {
-  .requisites-mark::before, .requisites-mark::after { transition: none; }
-  .object-row { transition: none; }
-}
-
-/* ── Как работаем: шаг на всю ширину ─────────────────────────
-   Номер слева, текст справа, между ними воздух. По умолчанию — обычный
-   список в потоке: без скрипта и в режиме покоя пять шагов читаются сверху
-   вниз. Класс is-pinned ставит Motion, и тогда шаги встают друг на друга.
-   ──────────────────────────────────────────────────────────── */
-/* Номер прижат к левой линии контейнера, текст начинает вторую треть —
-   между ними воздух во всю оставшуюся ширину. */
-.process-step {
-  display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
-  align-items: center;
-  gap: clamp(20px, 4vw, 64px);
-  padding-block: 28px;
-}
-@media (max-width: 767px) {
-  .process-step { grid-template-columns: auto 1fr; gap: 20px; }
-}
-.process-step + .process-step { border-top: 1px solid var(--line); }
-.process-num { font-size: var(--t5); }
-
-.process-steps.is-pinned { position: relative; height: 300px; }
-.process-steps.is-pinned .process-step {
-  position: absolute;
-  inset: 0;
-  padding-block: 0;
-  border-top: 0;
-}
-@media (min-width: 768px) {
-  .process-steps.is-pinned { height: 240px; }
-}
-
-/* Линия прогресса по низу секции. */
-.process-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: var(--line);
-  overflow: hidden;
-}
-.process-line > span {
-  display: block;
-  height: 100%;
-  background: var(--ink);
-  transform: scaleX(0);
-  transform-origin: left center;
-  will-change: transform;
 }
 
 /* ── Блок заявки ─────────────────────────────────────────────
