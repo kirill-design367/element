@@ -68,7 +68,7 @@ export function CatalogPreview() {
 
       {/* Полоса прогресса. Ширина бегунка — доля видимой части ленты,
           положение — доля прокрутки. Двигается transform, не width. */}
-      <div className="shell mt-5">
+      <div className="shell relative z-10 mt-5 pb-2">
         <div className="rail-progress" aria-hidden="true">
           <span data-rail-bar />
         </div>

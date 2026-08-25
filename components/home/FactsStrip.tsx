@@ -38,7 +38,10 @@ export function FactsStrip() {
   );
 
   return (
-    <div className="inv marquee-strip" data-marquee>
+    /* Полоса наезжает на первый экран верхним краем со скруглением: секции
+       не встают встык, а перетекают. Отрицательный отступ съедает нижнюю
+       кромку кадра, скругление отделяет полосу от фотографии. */
+    <div className="inv marquee-strip relative z-10 -mt-10 rounded-t-panel md:-mt-14" data-marquee>
       <div className="marquee-track" data-marquee-track>
         {copy(false)}
         {copy(true)}

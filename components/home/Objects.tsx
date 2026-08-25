@@ -47,7 +47,18 @@ const OBJECTS = [
  */
 export function Objects() {
   return (
-    <div className="grid items-stretch gap-10 lg:grid-cols-12 lg:gap-0">
+    <div className="relative grid items-stretch gap-10 lg:grid-cols-12 lg:gap-0">
+      {/* Третий тип перехода: светлота фона меняется по прокрутке. Сверху
+          лежит полоса цвета парка, её прозрачность скрабится к нулю — то
+          есть светлая секция как будто проявляется из тёмной. Анимируется
+          opacity, не background-color: цвет перекрашивал бы всю секцию
+          каждый кадр. */}
+      <div
+        aria-hidden="true"
+        data-tone-shift
+        className="pointer-events-none absolute inset-x-0 -top-px -z-[1] h-[240px]"
+        style={{ background: 'linear-gradient(to bottom, #14161a 0%, rgba(20,22,26,0) 100%)' }}
+      />
       <div className="narrow narrow-left lg:col-span-6 lg:max-w-none lg:pr-10">
         <h2 data-lines className="font-black text-t4 leading-[1.04] tracking-[-.02em]">Объекты</h2>
         <p className="mt-3 max-w-[42ch] text-t2 leading-relaxed text-ink-2">

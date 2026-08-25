@@ -37,8 +37,10 @@ export default function HomePage() {
         <Calculator />
       </Section>
 
-      {/* Заголовок и кнопка стоят в контейнере, лента уходит навылет. */}
-      <Section id="materialy" width="edge" pad="normal">
+      {/* Заголовок и кнопка стоят в контейнере, лента уходит навылет.
+          Нижний отступ отрицательный: карточки ленты заходят на следующую
+          секцию — второй тип перехода, без скруглений и без смены фона. */}
+      <Section id="materialy" width="edge" pad="normal" className="relative z-10 -mb-20 pb-0 md:-mb-28 md:pb-0">
         <div className="shell">
         <SectionHead
           title="Материалы"
@@ -55,7 +57,7 @@ export default function HomePage() {
 
       {/* Заголовок живёт внутри Terms: он стоит в левой липкой колонке
           рядом с пунктами, а не над блоком во всю ширину. */}
-      <Section id="usloviya" tone="muted" width="shell" pad="loose">
+      <Section id="usloviya" tone="muted" width="shell" pad="loose" className="pt-24 md:pt-36">
         <Terms />
       </Section>
 
