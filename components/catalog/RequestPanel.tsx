@@ -58,8 +58,8 @@ export function RequestPanel() {
               Заявка · {req.count}{' '}
               {req.count === 1 ? 'позиция' : req.count < 5 ? 'позиции' : 'позиций'}
             </span>
-            <span className="tnum hidden text-t2 text-white/75 sm:inline">
-              ≈ {rub(estimate)}
+            <span className="hidden text-t2 text-white/75 sm:inline">
+              ≈ <span className="tnum">{rub(estimate)}</span>
             </span>
             <span className="rounded bg-white/15 px-3 py-1 text-t2">Открыть</span>
           </button>
@@ -153,11 +153,15 @@ export function RequestPanel() {
                             </button>
                           ))}
                         </div>
-                        <span className="tnum ml-auto text-right text-t2 text-ink-2">
+                        <span className="ml-auto text-right text-t2 text-ink-2">
                           {calc ? (
                             <>
-                              {item.unit === 'm3' ? tons(calc.massT) : volume(calc.volumeM3)}
-                              <span className="ml-2 font-medium text-ink">≈ {rub(calc.total)}</span>
+                              <span className="tnum">
+                                {item.unit === 'm3' ? tons(calc.massT) : volume(calc.volumeM3)}
+                              </span>
+                              <span className="ml-2 font-medium text-ink">
+                                ≈ <span className="tnum">{rub(calc.total)}</span>
+                              </span>
                             </>
                           ) : (
                             '—'

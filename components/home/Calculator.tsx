@@ -3,7 +3,7 @@
 import { useId, useMemo, useState } from 'react';
 import { CATEGORIES, MATERIALS, materialsOf } from '@/lib/catalog';
 import { DESTINATIONS, MAX_KM, MIN_ORDER_M3, calculate, type Unit } from '@/lib/pricing';
-import { num, rides, rub, tons, volume, typo } from '@/lib/format';
+import { nbsp, num, rides, rub, tons, volume, typo } from '@/lib/format';
 import { Counter } from './Counter';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
@@ -145,7 +145,7 @@ export function Calculator() {
                   }}
                   className="tnum inline-flex h-9 items-center rounded-pill border border-line px-3 text-t1 text-ink-2 transition-colors hover:border-accent hover:text-accent"
                 >
-                  {q} м³
+                  {`${q}\u00A0м³`}
                 </button>
               ))}
             </div>
@@ -221,7 +221,7 @@ export function Calculator() {
           <div className="mt-6 space-y-3 text-t2" aria-live="polite">
             <Row
               label="Объём"
-              value={result ? `${volume(result.volumeM3)} · ${tons(result.massT)}` : '—'}
+              value={result ? nbsp(`${volume(result.volumeM3)} · ${tons(result.massT)}`) : '—'}
             />
             <Row label="Материал" value={result ? rub(result.materialCost) : '—'} />
             <Row

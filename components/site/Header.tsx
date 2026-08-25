@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { COMPANY } from '@/lib/company';
+import { nbsp } from '@/lib/format';
 import { ButtonLink } from '@/components/ui/Button';
 import { PhoneIcon } from './Icons';
 
@@ -62,7 +63,7 @@ export function Header() {
             className="tnum flex min-h-[44px] items-center gap-1.5 rounded-pill px-1 text-t1 font-semibold tracking-[-.01em] transition-colors duration-300 hover:text-accent md:text-t2"
           >
             <PhoneIcon className="h-4 w-4 text-ink-3 md:h-[18px] md:w-[18px]" />
-            <span className="whitespace-nowrap">{COMPANY.phoneLabel}</span>
+            <span className="whitespace-nowrap">{nbsp(COMPANY.phoneLabel)}</span>
           </a>
           <ButtonLink href="/#zayavka" size="md" className="hidden shrink-0 md:inline-flex">
             Запросить прайс

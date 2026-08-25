@@ -222,8 +222,8 @@ export function CatalogClient() {
               ))}
             </select>
 
-            <p data-found className="tnum ml-auto text-t2 text-ink-2" aria-live="polite">
-              Найдено: <span className="font-medium text-ink">{items.length}</span>
+            <p data-found className="ml-auto text-t2 text-ink-2" aria-live="polite">
+              Найдено: <span className="tnum font-medium text-ink">{items.length}</span>
             </p>
             {active && (
               <button

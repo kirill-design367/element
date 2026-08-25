@@ -1,4 +1,5 @@
 import { COMPANY, CONTACTS_ARE_PLACEHOLDER } from '@/lib/company';
+import { nbsp } from '@/lib/format';
 import { PhoneIcon } from '@/components/site/Icons';
 
 export function Contacts() {
@@ -41,7 +42,7 @@ export function Contacts() {
           )}
           <dl className="mt-4 space-y-2.5 text-t1">
             <Line term="Наименование" value={COMPANY.legalName} tight />
-            <Line term="ИНН / КПП" value={`${COMPANY.inn} / ${COMPANY.kpp}`} tight mono />
+            <Line term="ИНН / КПП" value={nbsp(`${COMPANY.inn} / ${COMPANY.kpp}`)} tight mono />
             <Line term="ОГРН" value={COMPANY.ogrn} tight mono />
             <Line term="Банк" value={COMPANY.bank} tight />
             <Line term="Р/с" value={COMPANY.account} tight mono />

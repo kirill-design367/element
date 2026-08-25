@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { nbsp } from '@/lib/format';
 import { COMPANY } from '@/lib/company';
 
 export function Footer() {
@@ -29,7 +30,7 @@ export function Footer() {
               <ul className="-my-1 space-y-0.5">
                 <li>
                   <a href={`tel:${COMPANY.phone}`} className="tnum rounded font-bold hover:text-accent">
-                    {COMPANY.phoneLabel}
+                    {nbsp(COMPANY.phoneLabel)}
                   </a>
                 </li>
                 <li><a href={`mailto:${COMPANY.email}`} className="inline-block rounded py-1.5 hover:text-accent">{COMPANY.email}</a></li>
