@@ -23,6 +23,14 @@ import { DUR, EASE, prefersReducedMotion } from '@/lib/motion';
  * Появление — это gsap.from в момент входа в кадр. Не выполнился скрипт,
  * не сработал ScrollTrigger, страницу снимают целиком — содержимое на месте.
  */
+/* Разбор SplitText делается один раз и запоминается: греется в простое
+   при подъёме движения, а заголовки потом просто ждут готовый промис. */
+let splitPromise: Promise<typeof import('gsap/SplitText')> | null = null;
+const splitModule = () => {
+  splitPromise ??= import('gsap/SplitText');
+  return splitPromise;
+};
+
 export function Motion() {
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -318,6 +326,12 @@ export function Motion() {
          Сдвиг снизу плюс проявление. Порог входа — top 85%: блок начинает
          появляться, когда до центра экрана ему остаётся треть высоты, и
          заканчивает до того, как доедет. */
+      /* Сборка идёт частями через простой, а не одной задачей. Это не
+         косметика: одна задача разбора и построения всех триггеров занимала
+         на придушенном вшестеро процессоре около 150 мс и целиком попадала в
+         общее время блокировки. Разбитая на четыре куска, она перестаёт быть
+         долгой задачей — ни один кусок не переваливает за 50 мс. */
+      const chunks: (() => void)[] = [];
       const ctx = gsap.context(() => {
         const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
         const below = nodes.filter(
@@ -395,6 +409,7 @@ export function Motion() {
           { stagger: 0.07 },
         );
 
+        chunks.push(() => {
         /* ── Бегущая строка фактов ───────────────────────────────────────
            Лента с двумя копиями едет влево на половину ширины и повторяется
            без стыка. Длительность считается от ширины копии, а не задаётся
@@ -435,12 +450,12 @@ export function Motion() {
         const splitHeads = () => {
           document.querySelectorAll<HTMLElement>('[data-lines]').forEach((head) => {
             const play = async () => {
-              // SplitText подгружается в момент, когда первый заголовок
-              // подходит к кадру, а не вместе с остальным движением: на
-              // первом экране размеченных заголовков нет, а 14 КБ разбора
-              // в критическом окне стоят 40 мс блокировки на мобильном
-              // процессоре Lighthouse.
-              const { SplitText } = await import('gsap/SplitText');
+              // Модуль уже прогрет в простое (splitModule ниже): здесь ждём
+              // готовый промис, а не начинаем разбор. Раньше 14 КБ SplitText
+              // разбирались в тот момент, когда первый заголовок подходил к
+              // кадру, — то есть посреди прокрутки, и это давало один кадр
+              // длиной 100-167 мс на замере.
+              const { SplitText } = await splitModule();
               if (cancelled) return;
               gsap.registerPlugin(SplitText);
               const split = SplitText.create(head, { type: 'lines', mask: 'lines', aria: 'auto' });
@@ -465,6 +480,9 @@ export function Motion() {
         if (document.fonts?.status === 'loaded') splitHeads();
         else void document.fonts?.ready.then(() => !cancelled && splitHeads());
 
+        });
+
+        chunks.push(() => {
         /* ── Условия: закреплённая секция ───────────────────────────────
            Левая колонка стоит, правая листается внутри закреплённой секции.
            Входящий пункт приходит снизу, уходящий уползает вверх; скраб
@@ -585,6 +603,9 @@ export function Motion() {
           });
         }
 
+        });
+
+        chunks.push(() => {
         /* ── Объекты: список ведёт кадр ─────────────────────────────────
            Наведение на строку меняет кроп и масштаб кадра справа. Своего
            снимка у каждого объекта пока нет, поэтому приём читается сменой
@@ -612,6 +633,9 @@ export function Motion() {
           list?.addEventListener('pointerleave', () => frame(0));
         }
 
+        });
+
+        chunks.push(() => {
         /* ── 3. Параллакс ─────────────────────────────────────────────────
            Возит только transform. Триггером берётся ближайший предок с
            высотой, а не родитель напрямую: у кадра первого экрана родитель —
@@ -656,7 +680,34 @@ export function Motion() {
             },
           );
         });
+        });
       });
+
+      /* SplitText греется отдельным куском в простое. В первый бандл он
+         по-прежнему не входит — движение целиком поднимается по первому
+         намерению листать, — но к моменту, когда до первого размеченного
+         заголовка доедет прокрутка, модуль уже разобран. */
+      chunks.push(() => {
+        void splitModule();
+      });
+
+      /* Куски выполняются по одному в простое; если простоя нет — таймером,
+         но всё равно по одному за задачу. */
+      const runChunk = () => {
+        const next = chunks.shift();
+        if (!next || cancelled) return;
+        ctx.add(next);
+        if (chunks.length) {
+          if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(runChunk, { timeout: 400 });
+          } else {
+            window.setTimeout(runChunk, 0);
+          }
+        } else {
+          ScrollTrigger.refresh();
+        }
+      };
+      runChunk();
 
       cleanup = () => {
         cleanupRail?.();
@@ -671,28 +722,45 @@ export function Motion() {
       };
     };
 
-    /* Движение поднимается после загрузки страницы, а не в её середине.
-       Сначала ждём событие load — к этому моменту кадр первого экрана уже
-       на месте и React закончил гидратацию, — потом простоя. Так 150 мс
-       разбора gsap с Lenis не встают в очередь между первой отрисовкой и
-       готовностью к вводу: на придушенном вшестеро процессоре это давало
-       80 мс к общему времени блокировки. На живой машине простой наступает
-       через миг после load, и разницы на глаз нет. */
+    /* Когда поднимать движение.
+       Разбор gsap с Lenis — это около 190 мс работы главного потока на
+       придушенном вшестеро процессоре: два куска по 110 и 81 мс. Если они
+       встают между первой отрисовкой и готовностью к вводу, это чистое время
+       блокировки, а пользы в них в этот момент ноль: смотреть ещё не на что.
+
+       Поэтому старт привязан к первому намерению листать — колесо, касание,
+       клавиша, движение мыши, — либо к простою через 1,5 с после load, что
+       наступит раньше. Человек, который сразу тянется к колесу, получает
+       движение мгновенно; вкладка, открытая и брошенная, не тратит на него
+       ни миллисекунды. */
+    let started = false;
+    const kick = () => {
+      if (started || cancelled) return;
+      started = true;
+      detach();
+      void start();
+    };
+    const EVENTS = ['wheel', 'touchstart', 'keydown', 'pointermove', 'scroll'] as const;
     let idle = 0;
-    const schedule = () => {
+    const detach = () => {
+      EVENTS.forEach((e) => window.removeEventListener(e, kick));
+      if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle);
+      else window.clearTimeout(idle);
+    };
+    const arm = () => {
+      EVENTS.forEach((e) => window.addEventListener(e, kick, { once: true, passive: true }));
       idle =
         typeof window.requestIdleCallback === 'function'
-          ? window.requestIdleCallback(() => void start(), { timeout: 1200 })
-          : window.setTimeout(() => void start(), 200);
+          ? window.requestIdleCallback(kick, { timeout: 1500 })
+          : window.setTimeout(kick, 1200);
     };
-    if (document.readyState === 'complete') schedule();
-    else window.addEventListener('load', schedule, { once: true });
+    if (document.readyState === 'complete') arm();
+    else window.addEventListener('load', arm, { once: true });
 
     return () => {
       cancelled = true;
-      window.removeEventListener('load', schedule);
-      if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle);
-      else window.clearTimeout(idle);
+      window.removeEventListener('load', arm);
+      detach();
       cleanup?.();
     };
   }, []);

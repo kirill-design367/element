@@ -40,7 +40,9 @@ for (const path of PATHS) {
     await cdp.send('Performance.enable');
 
     await page.goto(BASE + path, { waitUntil: 'networkidle' });
-    // Lenis грузится после интерактива по requestIdleCallback — ждём его.
+    // Движение поднимается по первому намерению листать или по простою.
+    // Толкаем его мышью и ждём, иначе разбор gsap попадёт в замер.
+    await page.mouse.move(width / 2, height / 2);
     await page.waitForFunction(() => document.documentElement.classList.contains('lenis'), {
       timeout: 8000,
     }).catch(() => {});
