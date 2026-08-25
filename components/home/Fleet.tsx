@@ -1,6 +1,7 @@
 import { Counter } from './Counter';
 import { PHOTO } from '@/lib/assets';
 import { Photo } from '@/components/ui/Photo';
+import { typo } from '@/lib/format';
 
 /**
  * Заглушки. Порядок величин правдоподобный для поставщика такого размера.
@@ -14,24 +15,30 @@ export const FLEET_NUMBERS = [
   { value: 11, unit: '', label: 'лет на рынке', note: 'с 2015 года, более 900 объектов' },
 ];
 
-/** Главное число блока — пиковая отгрузка. Остальные идут мелко в столбик. */
+/** Главное число блока — пиковая отгрузка. Остальные идут сеткой справа. */
 const LEAD = FLEET_NUMBERS.find((n) => n.unit === 'м³')!;
 const REST = FLEET_NUMBERS.filter((n) => n !== LEAD);
 
 /**
- * Полноэкранный блок. Слот под фотографию на весь экран, одно крупное число
- * поверх него слева, остальные цифры мелко в столбик справа внизу. Больше на
- * экране нет ничего — это точка отдыха между двумя плотными блоками.
+ * Полноэкранный блок: кадр парка, одно крупное число слева и сетка цифр
+ * справа.
  *
- * Пока снимка нет, фон инвертирован: перепад с соседними светлыми секциями
- * должен читаться даже без кадра.
+ * Затемнение кадра — 35% и ни процентом больше: техника должна читаться.
+ * Раньше поверх лежали два градиента по 0,92 и 0,93, и снимок был почти
+ * чёрным. Контраст держат не подложки на весь кадр, а две тёмные стеклянные
+ * панели под самими цифрами — тот же материал, что на первом экране, только
+ * тёмный: парк снят днём, и белая цифра над жёлтым бортом самосвала без
+ * панели давала 2,1:1.
+ *
+ * У каждой мелкой цифры своя подпись и своё пояснение, между строками тонкие
+ * разделители: раньше справа висели три числа без объяснения, что они значат.
  */
 export function Fleet() {
   return (
     <div
-      className="inv relative flex min-h-[86svh] flex-col justify-between overflow-hidden py-16 md:py-24"
+      className="inv relative flex min-h-[86svh] flex-col justify-end overflow-hidden py-16 md:py-24"
       /* Фон .inv прозрачный: он непрозрачным перекрывал фотографию, лежащую
-         ниже по стопке. Тёмный тон теперь даёт сам кадр плюс градиент. */
+         ниже по стопке. Тёмный тон теперь даёт сам кадр плюс затемнение. */
       style={{ background: 'transparent' }}
     >
       <div className="absolute inset-0 -z-10 overflow-hidden bg-[#14161a]">
@@ -45,51 +52,61 @@ export function Fleet() {
             imgClassName="absolute inset-x-0 -top-6 h-[calc(100%+48px)]"
           />
         )}
-        {/* Читаемость: градиент от левого и нижнего краёв кадра. Не сплошная
-            заливка и не размытие — правая часть снимка остаётся чистой. */}
+        {/* Ровное затемнение кадра — 35%, ни процентом больше: техника
+            должна читаться. Всё остальное держат стеклянные панели под
+            цифрами, а не подложка на весь снимок. */}
         {PHOTO.fleet.file && (
           <div
             aria-hidden="true"
             className="absolute inset-0 z-[2]"
-            style={{
-              background:
-                'linear-gradient(to right, rgba(12,14,17,.92) 0%, rgba(12,14,17,.72) 34%, rgba(12,14,17,.18) 64%, rgba(12,14,17,0) 88%),' +
-                'linear-gradient(to top, rgba(12,14,17,.93) 0%, rgba(12,14,17,.82) 42%, rgba(12,14,17,.42) 72%, rgba(12,14,17,0) 100%)',
-            }}
+            style={{ background: 'rgba(12, 14, 17, .35)' }}
           />
         )}
       </div>
 
-      <div className="shell">
-        <p data-fleet="label" className="max-w-[24ch] text-t2 text-ink-2">
-          {LEAD.note}
-        </p>
-      </div>
+      <div className="shell grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-8">
+        {/* ── Главное число ─────────────────────────────────────────────── */}
+        <div className="glass-dark rounded-panel p-6 md:p-8 lg:col-span-6">
+          <p data-fleet="label" className="max-w-[24ch] text-t2 text-ink-2">
+            {typo(LEAD.note)}
+          </p>
+          {/* tracking-normal на потомках — не украшение. letter-spacing в em
+              наследуется вычисленным значением: −0,04em от 128 px это −5,1 px,
+              и на подписи в 16 px буквы налезали друг на друга. */}
+          <p
+            data-fleet="lead"
+            className="mt-6 font-black text-t5 leading-[.82] tracking-[-.04em]"
+          >
+            <Counter value={LEAD.value} />
+            <span className="ml-3 text-[.28em] font-medium tracking-normal text-ink-2">
+              {LEAD.unit}
+            </span>
+            <span className="mt-3 block text-t2 font-medium tracking-normal text-ink-2">
+              {LEAD.label}
+            </span>
+          </p>
+        </div>
 
-      <div className="shell mt-16 flex flex-col gap-10 md:flex-row md:items-end md:justify-between md:gap-16">
-        {/* tracking-normal на потомках — не украшение. letter-spacing в em
-            наследуется вычисленным значением: −0,04em от 128 px это −5,1 px,
-            и на подписи в 16 px буквы налезали друг на друга. */}
-        <p data-fleet="lead" className="font-black text-t5 leading-[.82] tracking-[-.04em]">
-          <Counter value={LEAD.value} />
-          <span className="ml-3 text-[.28em] font-medium tracking-normal text-ink-2">
-            {LEAD.unit}
-          </span>
-          <span className="mt-3 block text-t2 font-medium tracking-normal text-ink-2">
-            {LEAD.label}
-          </span>
-        </p>
-
-        {/* dt стоит перед dd — этого требует разметка списка определений;
-            визуальный порядок задаёт order у колонок. */}
-        <dl className="grid shrink-0 gap-5 sm:grid-cols-3 md:max-w-[38ch] md:grid-cols-1 md:gap-4">
+        {/* ── Остальные цифры сеткой ────────────────────────────────────── */}
+        <dl className="glass-dark rounded-panel p-6 md:p-7 lg:col-span-5 lg:col-start-8">
           {REST.map((n) => (
-            <div key={n.label} data-fleet="rest" className="flex items-baseline gap-3">
-              <dt className="order-2 text-t1 leading-snug text-ink-2">{n.label}</dt>
-              <dd className="tnum order-1 shrink-0 font-black text-t3 leading-none">
+            <div
+              key={n.label}
+              data-fleet="rest"
+              className="grid grid-cols-[auto_1fr] items-baseline gap-x-5 gap-y-1 border-t border-line py-4 first:border-t-0 first:pt-0 md:py-5"
+            >
+              {/* dt стоит перед dd — этого требует разметка списка
+                  определений; визуальный порядок задаёт order. */}
+              <dt className="order-2 text-t2 font-medium">{n.label}</dt>
+              <dd className="tnum order-1 row-span-2 shrink-0 font-black text-t4 leading-none tracking-[-.03em]">
                 <Counter value={n.value} />
-                {n.unit && <span className="ml-1 text-t1 font-medium text-ink-2">{n.unit}</span>}
+                {n.unit && (
+                  <span className="ml-1 text-t1 font-medium tracking-normal text-ink-2">
+                    {n.unit}
+                  </span>
+                )}
               </dd>
+              <dd className="order-3 text-t1 leading-snug text-ink-2">{typo(n.note)}</dd>
             </div>
           ))}
         </dl>
