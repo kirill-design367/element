@@ -114,7 +114,8 @@ export function CatalogClient() {
 
   return (
     <>
-      <div className="shell py-6 md:py-10">
+      {/* Верхний отступ под плавающую шапку: она вынута из потока. */}
+      <div className="shell pb-6 pt-[calc(74px+1.5rem)] md:pb-10 md:pt-[calc(74px+2rem)]">
         <nav aria-label="Хлебные крошки" className="mb-5 flex flex-wrap items-center text-t1 text-ink-2">
           <Link href="/#materialy" onClick={backHome} className="-my-2 rounded py-2 hover:text-accent">
             Главная

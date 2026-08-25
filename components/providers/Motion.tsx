@@ -75,6 +75,20 @@ export function Motion() {
       };
       document.addEventListener('click', onAnchor);
 
+      /* Пилюля шапки ужимается, как только страница тронулась с места.
+         Порог 40 px и флаг на <html>: переход описан в CSS, JS только
+         переключает состояние — никаких стилей в цикле прокрутки. */
+      const root = document.documentElement;
+      const onScroll = ({ scroll }: { scroll: number }) => {
+        const on = scroll > 40;
+        if (on !== root.hasAttribute('data-scrolled')) {
+          if (on) root.setAttribute('data-scrolled', '');
+          else root.removeAttribute('data-scrolled');
+        }
+      };
+      lenis.on('scroll', onScroll);
+      onScroll({ scroll: window.scrollY });
+
       /* ── 2. Появления ───────────────────────────────────────────────────
          Сдвиг снизу плюс проявление. Порог входа — top 85%: блок начинает
          появляться, когда до центра экрана ему остаётся треть высоты, и
@@ -231,6 +245,7 @@ export function Motion() {
         ctx.revert();
         gsap.ticker.remove(raf);
         lenis.destroy();
+        root.removeAttribute('data-scrolled');
         document.documentElement.classList.remove('lenis-ready');
       };
     };

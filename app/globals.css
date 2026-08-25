@@ -43,6 +43,17 @@
   --narrow-max: 880px;
   --shell-x: clamp(16px, 4vw, 40px);
 
+  /* ── Матовое стекло ──
+     Плотность заливки подобрана замером контраста над тремя подложками:
+     фотографией первого экрана, светлой секцией и тёмным парком. Ниже 0.72
+     текст над кадром уходит под 4,5:1. Размытие крупное — 20 px: мелкое даёт
+     грязь вместо стекла, потому что сквозь него читается фактура щебня. */
+  --glass: rgba(247, 247, 244, .78);
+  --glass-dense: rgba(247, 247, 244, .9);
+  --glass-line: rgba(23, 25, 28, .1);
+  --glass-blur: 20px;
+  --glass-shadow: 0 10px 30px -12px rgba(20, 22, 26, .28);
+
   --dur-1: 140ms;
   --dur-2: 240ms;
   --ease-out: cubic-bezier(.22, 1, .36, 1);
@@ -103,6 +114,66 @@ body {
 /* Цифры в колонке: цены, объёмы, итоги. Только там, где числа надо
    сравнивать по вертикали, — на сплошном тексте tnum разгоняет пробелы. */
 .tnum { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum' 1; }
+
+/* ── Матовое стекло ──────────────────────────────────────────
+   Одним рецептом собраны шапка и обе панели первого экрана: размытие
+   подложки плюс плотная заливка. Заливка не декоративная — она и держит
+   контраст, размытие само по себе читаемости не даёт.
+   ──────────────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow);
+}
+/* Браузер без backdrop-filter получает почти непрозрачную панель: приём
+   пропадает, читаемость остаётся. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: rgba(247, 247, 244, .97); }
+}
+
+/* ── Плавающая шапка ─────────────────────────────────────────
+   Вынута из потока: под ней проходит кадр первого экрана. Ужимается по
+   высоте и ширине при прокрутке — класс на <html> ставит Motion. contain
+   не выпускает пересчёт панели наружу.
+   ──────────────────────────────────────────────────────────── */
+.site-header {
+  position: fixed;
+  top: 10px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding-inline: clamp(10px, 2.2vw, 22px);
+  contain: layout style;
+}
+.site-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: var(--shell-max);
+  height: 60px;
+  margin-inline: auto;
+  padding-inline: clamp(12px, 1.6vw, 20px);
+  border-radius: 999px;
+  transition: height .4s var(--ease-out), max-width .4s var(--ease-out),
+    background-color .4s var(--ease-out), box-shadow .4s var(--ease-out);
+}
+html[data-scrolled] .site-pill {
+  height: 52px;
+  max-width: calc(var(--shell-max) - 120px);
+  background: var(--glass-dense);
+  box-shadow: 0 8px 24px -14px rgba(20, 22, 26, .34);
+}
+@media (max-width: 767px) {
+  .site-header { top: 8px; }
+  .site-pill { height: 54px; }
+  html[data-scrolled] .site-pill { height: 50px; max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-pill { transition: none; }
+}
 
 /* ── Фотография ──────────────────────────────────────────────
    Кадр собран в трёх ширинах и двух форматах, выбор — за браузером через

@@ -86,7 +86,7 @@ export function Section({
           ? 'inv'
           : '';
   return (
-    <section id={id} className={`scroll-mt-20 ${PAD[pad]} ${bg} ${className}`}>
+    <section id={id} className={`scroll-mt-28 ${PAD[pad]} ${bg} ${className}`}>
       {width === 'edge' ? children : <div className={WIDTH[width]}>{children}</div>}
     </section>
   );
