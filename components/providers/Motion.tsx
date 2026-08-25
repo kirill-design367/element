@@ -101,6 +101,7 @@ export function Motion() {
         // каждый кадр. Возвращаем через 160 мс после остановки.
         root.setAttribute('data-scrolling', '');
         window.clearTimeout(stopTimer);
+        window.clearInterval(revealGuard);
         stopTimer = window.setTimeout(() => {
           root.removeAttribute('data-scrolling');
           applyGlassRef?.();
@@ -339,6 +340,7 @@ export function Motion() {
          разбора и построения всех триггеров занимала на придушенном вшестеро
          процессоре около 150 мс и целиком попадала во время блокировки. */
       const chunks: (() => void)[] = [];
+      let revealGuard = 0;
       const ctx = gsap.context(() => {
         const SEL = [
           '[data-reveal]',
@@ -356,6 +358,29 @@ export function Motion() {
         );
 
         if (below.length) {
+          /* Прячем сразу, одним gsap.set, — и только те элементы, которые
+             прямо сейчас ниже кадра. Это и есть лекарство от вспышки.
+
+             gsap.from на пороге top 85% гасил элемент в тот момент, когда он
+             уже вошёл в кадр на 15% высоты экрана: человек видел готовый
+             блок, блок гас и проявлялся заново. Замер ловил 25 таких вспышек
+             за один проход страницы.
+
+             Прятать стилями заранее нельзя: элемент останется невидимым,
+             если скрипт не выполнится, — правило 10 писалось после того, как
+             это съело полстраницы на мобильной. Здесь прячет и показывает
+             один и тот же механизм: не работает ScrollTrigger — ничего и не
+             спрятано. */
+          gsap.set(below, {
+            opacity: 0,
+            scale: REVEAL.scale,
+            transformOrigin: '50% 50%',
+            // Слой композитора создаётся здесь, заранее, а не в момент
+            // старта анимации: иначе первый кадр появления уходит на
+            // подготовку слоя.
+            willChange: 'transform,opacity',
+          });
+
           ScrollTrigger.batch(below, {
             start: REVEAL.start,
             once: true,
@@ -365,18 +390,36 @@ export function Motion() {
             interval: 0.08,
             batchMax: 6,
             onEnter: (batch) =>
-              gsap.from(batch, {
-                opacity: 0,
-                scale: REVEAL.scale,
-                transformOrigin: '50% 50%',
+              gsap.to(batch, {
+                opacity: 1,
+                scale: 1,
                 duration: DUR.reveal,
                 ease: EASE_REVEAL,
                 stagger: REVEAL.stagger,
                 overwrite: 'auto',
                 clearProps: 'opacity,transform,willChange',
-                willChange: 'transform,opacity',
               }),
           });
+
+          /* Страховка. Если триггер по какой-то причине не отработал, а
+             элемент уже в кадре — показываем его. При нормальном ходе
+             проверка ничего не находит; замер это подтверждает. */
+          revealGuard = window.setInterval(() => {
+            let hidden = 0;
+            below.forEach((el) => {
+              const b = el.getBoundingClientRect();
+              if (b.bottom < 0 || b.top > window.innerHeight) return;
+              if (+getComputedStyle(el).opacity < 0.9) {
+                hidden += 1;
+                gsap.to(el, { opacity: 1, scale: 1, duration: DUR.reveal, ease: EASE_REVEAL,
+                  clearProps: 'opacity,transform,willChange' });
+              }
+            });
+            if (!hidden && !below.some((el) => +getComputedStyle(el).opacity < 0.9)) {
+              window.clearInterval(revealGuard);
+              revealGuard = 0;
+            }
+          }, 2000);
         }
 
         chunks.push(() => {
@@ -572,6 +615,7 @@ export function Motion() {
         gsap.ticker.remove(raf);
         lenis.destroy();
         window.clearTimeout(stopTimer);
+        window.clearInterval(revealGuard);
         root.style.removeProperty('--pill');
         root.removeAttribute('data-scrolling');
         document.documentElement.classList.remove('lenis-ready');
