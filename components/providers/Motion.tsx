@@ -414,142 +414,49 @@ export function Motion() {
         });
 
         chunks.push(() => {
-        /* ── Условия: закреплённая секция ───────────────────────────────
-           Левая колонка стоит, правая листается внутри закреплённой секции.
-           Входящий пункт приходит снизу, уходящий уползает вверх; скраб
-           делает переход обратимым — вверх всё воспроизводится назад.
-           Индикатор слева показывает, на каком пункте стоим. */
-        const termsStage = document.querySelector<HTMLElement>('[data-terms-stage]');
-        const termsList = document.querySelector<HTMLElement>('[data-terms-list]');
-        const terms = gsap.utils.toArray<HTMLElement>('[data-term]');
-        const termsCurrent = document.querySelector<HTMLElement>('[data-terms-current]');
-        if (termsStage && termsList && terms.length > 1 && window.innerWidth >= 1024) {
-          termsList.classList.add('is-pinned');
-          // Пролёт больше высоты одного пункта: на 60 px уходящий и входящий
-          // накладывались друг на друга серединой текста.
-          gsap.set(terms.slice(1), { autoAlpha: 0, y: 120 });
-          terms[0].classList.add('is-active');
+        /* ── Порядок работы и условия: сползание секции ─────────────────
+           Ни одного закрепления. Раньше здесь стояли две закреплённые
+           секции подряд: человек крутил колесо, а страница не двигалась
+           сначала шесть условий, потом пять шагов. Теперь секция едет
+           вместе со страницей, а её содержимое отстаёт — сползает примерно
+           на 15% от пройденной прокрутки.
 
-          const tl = gsap.timeline({
-            defaults: { ease: 'power2.inOut' },
-            scrollTrigger: {
-              trigger: termsStage,
-              start: 'top top+=96',
-              end: () => '+=' + window.innerHeight * (terms.length - 1) * 0.62,
-              pin: termsStage,
-              pinSpacing: true,
-              anticipatePin: 1,
-              scrub: 0.6,
-              invalidateOnRefresh: true,
-              onUpdate: (self) => {
-                const i = Math.min(terms.length - 1, Math.round(self.progress * (terms.length - 1)));
-                terms.forEach((t, k) => t.classList.toggle('is-active', k === i));
-                if (termsCurrent) {
-                  const next = String(i + 1).padStart(2, '0');
-                  if (termsCurrent.textContent !== next) {
-                    // Плавный перебор: цифра уходит вверх и приходит снизу.
-                    gsap.fromTo(
-                      termsCurrent,
-                      { yPercent: 40, autoAlpha: 0 },
-                      { yPercent: 0, autoAlpha: 1, duration: 0.35, ease: EASE, overwrite: true },
-                    );
-                    termsCurrent.textContent = next;
-                  }
-                }
+           Отставание симметричное: содержимое входит чуть ниже своего места
+           и уходит чуть выше. Односторонний сдвиг на те же 15% уводил бы
+           блок за верхнюю кромку задолго до конца.
+
+           Размах ограничен сверху: на длинной секции 15% от полного прохода
+           это уже сотни пикселей. Потолок 180 px на весь проход, то есть
+           ±90 — ровно столько, чтобы содержимое не вылезало за собственную
+           отбивку секции (96 px). На потолке 240 замер показывал выход на
+           24 px за верхнюю границу в конце прохода. */
+        const wfDrift = document.querySelector<HTMLElement>('[data-workflow-drift]');
+        const wfBox = document.querySelector<HTMLElement>('[data-workflow]');
+        if (wfDrift && wfBox) {
+          const half = () => {
+            const pass = wfBox.getBoundingClientRect().height + window.innerHeight;
+            return Math.min(180, Math.max(110, pass * 0.15)) / 2;
+          };
+          gsap.fromTo(
+            wfDrift,
+            { y: () => half() },
+            {
+              y: () => -half(),
+              ease: 'none',
+              scrollTrigger: {
+                trigger: wfBox,
+                start: 'top bottom',
+                end: 'bottom top',
+                // Короткая догонка: под инерцией Lenis жёсткий скраб
+                // отыгрывает каждый микрошаг колеса и блок мелко трясётся.
+                scrub: 0.5,
+                invalidateOnRefresh: true,
+                onToggle: (self) => {
+                  wfDrift.style.willChange = self.isActive ? 'transform' : '';
+                },
               },
             },
-          });
-          terms.forEach((item, i) => {
-            if (i === 0) return;
-            /* Такт — ровно единица, переход занимает чуть больше половины,
-               остальное пункт стоит на полной плотности. Без этой площадки
-               он выходил на 1,0 на мгновение и снова гас; а когда переходы
-               ставились долями (i-1)/(n-1) при длительности 0,5, они ещё и
-               налезали друг на друга. Уходящий стартует раньше входящего —
-               так между ними нет ни наложения, ни провала. */
-            const at = i - 1;
-            tl.to(terms[i - 1], { autoAlpha: 0, y: -120, duration: 0.35 }, at).to(
-              item,
-              { autoAlpha: 1, y: 0, duration: 0.4 },
-              at + 0.15,
-            );
-          });
-        } else {
-          // Узкий экран и режим покоя: подсветка активного пункта без
-          // закрепления — список просто читается сверху вниз.
-          terms.forEach((item) => {
-            ScrollTrigger.create({
-              trigger: item,
-              start: 'top 62%',
-              end: 'bottom 38%',
-              toggleClass: { targets: item, className: 'is-active' },
-            });
-          });
-        }
-
-        /* ── Как работаем: шаги на всю ширину ───────────────────────────
-           Секция закрепляется, но не колом: контейнер внутри сползает на 15%
-           пройденной прокрутки, пока шаги сменяются на полной скорости. На
-           последнем шаге пин отпускается — переход в следующий блок без
-           щелчка. По низу идёт линия прогресса. */
-        const stage = document.querySelector<HTMLElement>('[data-process-stage]');
-        const drift = document.querySelector<HTMLElement>('[data-process-drift]');
-        const stepsBox = document.querySelector<HTMLElement>('[data-process-steps]');
-        const steps = gsap.utils.toArray<HTMLElement>('[data-step]');
-        const processBar = document.querySelector<HTMLElement>('[data-process-bar]');
-        if (stage && stepsBox && steps.length > 1) {
-          stepsBox.classList.add('is-pinned');
-          // Пролёт больше высоты шага: на 60 px уходящий и входящий шаги
-          // читались один поверх другого — накладывались и цифры, и текст.
-          gsap.set(steps.slice(1), { autoAlpha: 0, y: 140 });
-
-          // Длина прогона: чуть больше половины экрана на переход. Длиннее —
-          // и страница читается как застрявшая.
-          const span = () => window.innerHeight * (steps.length - 1) * 0.62;
-          const tl = gsap.timeline({
-            defaults: { ease: 'power2.inOut' },
-            scrollTrigger: {
-              trigger: stage,
-              start: 'top top',
-              end: () => '+=' + span(),
-              pin: stage,
-              pinSpacing: true,
-              anticipatePin: 1,
-              scrub: 0.6,
-              invalidateOnRefresh: true,
-              onUpdate: (self) => {
-                if (processBar) gsap.set(processBar, { scaleX: self.progress });
-              },
-            },
-          });
-          /* Сползание контейнера: всего 15% от пройденной прокрутки, но
-             симметрично — содержимое входит чуть ниже центра и уходит чуть
-             выше. Односторонний сдвиг на те же 15% уводил блок за верхнюю
-             кромку задолго до последнего шага. */
-          /* Переходы строятся подряд, а не по вычисленным долям. Доли
-             (i-1)/(n-1) при длительности 0,5 накладывали переходы друг на
-             друга: на середине прогона гасли сразу два шага, и на экране не
-             читался ни один. Уходящий стартует раньше и гаснет быстрее
-             входящего — так между ними нет ни наложения, ни провала. */
-          steps.forEach((step, i) => {
-            if (i === 0) return;
-            // Такт — единица: переход и площадка, как в «Условиях».
-            const at = i - 1;
-            tl.to(steps[i - 1], { autoAlpha: 0, y: -140, duration: 0.35 }, at).to(
-              step,
-              { autoAlpha: 1, y: 0, duration: 0.4 },
-              at + 0.15,
-            );
-          });
-          // Сползание идёт ровно во всю длину собранного таймлайна.
-          if (drift) {
-            tl.fromTo(
-              drift,
-              { y: () => span() * 0.075 },
-              { y: () => -span() * 0.075, ease: 'none', duration: tl.duration() },
-              0,
-            );
-          }
+          );
         }
 
         });

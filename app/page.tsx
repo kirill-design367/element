@@ -3,8 +3,7 @@ import { Hero } from '@/components/home/Hero';
 import { FactsStrip } from '@/components/home/FactsStrip';
 import { Calculator } from '@/components/home/Calculator';
 import { CatalogPreview } from '@/components/home/CatalogPreview';
-import { Terms } from '@/components/home/Terms';
-import { Process } from '@/components/home/Process';
+import { Workflow } from '@/components/home/Workflow';
 import { Fleet } from '@/components/home/Fleet';
 import { Objects } from '@/components/home/Objects';
 import { LeadForm } from '@/components/home/LeadForm';
@@ -57,17 +56,13 @@ export default function HomePage() {
         <CatalogPreview />
       </Section>
 
-      {/* Заголовок живёт внутри Terms: он стоит в левой липкой колонке
-          рядом с пунктами, а не над блоком во всю ширину. */}
-      <Section id="usloviya" tone="muted" width="shell" pad="loose" className="pt-24 md:pt-36">
-        <Terms />
-      </Section>
-
-      {/* Залипающая последовательность: шаги сменяют друг друга по мере
-          прокрутки, поэтому секция во всю ширину и без вертикального воздуха
-          снаружи — воздух держит сама сцена. */}
-      <Section id="process" width="edge" pad="none">
-        <Process />
+      {/* Порядок работы и условия — одна секция с двумя дорожками. Раньше
+          это были два блока подряд, и оба закреплялись: человек крутил, а
+          страница стояла. Закрепления нет, секция едет вместе со страницей и
+          слегка сползает по прокрутке. Оба якоря на месте: usloviya на
+          секции, process на дорожке шагов. */}
+      <Section id="usloviya" tone="muted" width="edge" pad="normal">
+        <Workflow />
       </Section>
 
       {/* Полноэкранный блок: одно число и фон, больше ничего. Заголовок

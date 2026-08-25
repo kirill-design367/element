@@ -544,83 +544,31 @@ select.field option { color: #17191c; background: #fff; }
   .object-row { transition: none; }
 }
 
-/* ── Как работаем: шаг на всю ширину ─────────────────────────
-   Номер слева, текст справа, между ними воздух. По умолчанию — обычный
-   список в потоке: без скрипта и в режиме покоя пять шагов читаются сверху
-   вниз. Класс is-pinned ставит Motion, и тогда шаги встают друг на друга.
+/* ── Порядок работы и условия: две дорожки ───────────────────
+   Закрепления нет ни у одной дорожки — секция едет вместе со страницей.
+   Плотность выше прежней: воздух вокруг текста уменьшен, крупный номер
+   стоит вплотную к заголовку шага, а не через треть экрана.
    ──────────────────────────────────────────────────────────── */
-/* Номер прижат к левой линии контейнера, текст начинает вторую треть —
-   между ними воздух во всю оставшуюся ширину. */
-.process-step {
+.wf-steps { display: grid; gap: clamp(18px, 2.2vw, 28px); }
+.wf-step {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
-  align-items: center;
-  gap: clamp(20px, 4vw, 64px);
-  padding-block: 28px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  /* Номер и текст рядом: раньше между ними было до 64 px и полстроки пустоты. */
+  gap: clamp(14px, 1.6vw, 22px);
 }
-@media (max-width: 767px) {
-  .process-step { grid-template-columns: auto 1fr; gap: 20px; }
-}
-.process-step + .process-step { border-top: 1px solid var(--line); }
-.process-num { font-size: var(--t5); }
-
-.process-steps.is-pinned { position: relative; height: 300px; }
-.process-steps.is-pinned .process-step {
-  position: absolute;
-  inset: 0;
-  padding-block: 0;
-  border-top: 0;
-}
-@media (min-width: 768px) {
-  .process-steps.is-pinned { height: 240px; }
+.wf-num {
+  /* Четвёртая ступень, не пятая: пять шагов подряд с t5 не помещаются в
+     экран, а крупность здесь держат вес и светлота, а не кегль. */
+  font-size: var(--t4);
+  min-width: 1.1em;
+  text-align: right;
 }
 
-/* Линия прогресса по низу секции. */
-.process-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: var(--line);
-  overflow: hidden;
-}
-.process-line > span {
-  display: block;
-  height: 100%;
-  background: var(--ink);
-  transform: scaleX(0);
-  transform-origin: left center;
-  will-change: transform;
-}
-
-
-
-/* ── Условия: закреплённая секция ────────────────────────────
-   По умолчанию — обычный список в потоке. Класс is-pinned ставит Motion,
-   и тогда пункты встают друг на друга и сменяются по прокрутке.
-   ──────────────────────────────────────────────────────────── */
-.terms-list.is-pinned { position: relative; height: 320px; }
-.terms-list.is-pinned .term-item {
-  position: absolute;
-  inset: 0;
-  border-top: 0;
-  padding-block: 0;
-}
-@media (min-width: 768px) { .terms-list.is-pinned { height: 260px; } }
-
-/* ── Условия: активный пункт ─────────────────────────────────
-   Приглушение — сменой цвета, а не прозрачностью: полупрозрачный тёмный
-   текст на светлом фоне даёт 3:1 и проваливает контраст, вторичный цвет —
-   5,4:1. Класс вешает Motion по мере прокрутки; без скрипта все пункты
-   одинаковые и читаемые.
-   ──────────────────────────────────────────────────────────── */
-.term-num, .term-title { transition: color .45s var(--ease-out); }
-[data-term].is-active .term-num,
-[data-term].is-active .term-title { color: var(--ink); }
-@media (prefers-reduced-motion: reduce) {
-  .term-num, .term-title { transition: none; }
-}
+.wf-track-title { padding-top: 2px; }
+.wf-terms { display: grid; gap: 13px; }
+.wf-term { border-top: 1px solid var(--line); padding-top: 11px; }
+.wf-term:first-child { border-top: 0; padding-top: 0; }
 
 /* ── Лента: захват, стрелки, затухание по краям ──────────────
    Три подсказки о том, что листается лента, а не страница: курсор-захват,
