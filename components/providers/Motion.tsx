@@ -90,6 +90,7 @@ export function Motion() {
       // же щелчок колеса.
       const PILL_RANGE = 160;
       let pillStep = -1;
+      let scrolling = false;
       const onScroll = ({ scroll }: { scroll: number }) => {
         const step = Math.round(Math.min(1, Math.max(0, scroll / PILL_RANGE)) * 60);
         if (step !== pillStep) {
@@ -99,10 +100,18 @@ export function Motion() {
         // Пока страница едет, со стекла снимается размытие: композитор не
         // может закэшировать блюр движущейся подложки и пересчитывает его
         // каждый кадр. Возвращаем через 160 мс после остановки.
-        root.setAttribute('data-scrolling', '');
+        //
+        // Атрибут ставится один раз на всю прокрутку, а не на каждый кадр.
+        // setAttribute с тем же значением всё равно инвалидирует стили всего
+        // документа: без флага это давало +200 пересчётов стиля за проход
+        // страницы на ровном месте.
+        if (!scrolling) {
+          scrolling = true;
+          root.setAttribute('data-scrolling', '');
+        }
         window.clearTimeout(stopTimer);
-        window.clearInterval(revealGuard);
         stopTimer = window.setTimeout(() => {
+          scrolling = false;
           root.removeAttribute('data-scrolling');
           applyGlassRef?.();
         }, 160);
@@ -381,6 +390,22 @@ export function Motion() {
             willChange: 'transform,opacity',
           });
 
+          // Кто ещё не показан. Список нужен страховке ниже: по нему она
+          // ходит вместо всей страницы и читает только геометрию, не стили.
+          const pending = new Set(below);
+          const show = (els: HTMLElement[]) => {
+            els.forEach((el) => pending.delete(el));
+            gsap.to(els, {
+              opacity: 1,
+              scale: 1,
+              duration: DUR.reveal,
+              ease: EASE_REVEAL,
+              stagger: REVEAL.stagger,
+              overwrite: 'auto',
+              clearProps: 'opacity,transform,willChange',
+            });
+          };
+
           ScrollTrigger.batch(below, {
             start: REVEAL.start,
             once: true,
@@ -389,36 +414,30 @@ export function Motion() {
             // проявляется одной простынёй.
             interval: 0.08,
             batchMax: 6,
-            onEnter: (batch) =>
-              gsap.to(batch, {
-                opacity: 1,
-                scale: 1,
-                duration: DUR.reveal,
-                ease: EASE_REVEAL,
-                stagger: REVEAL.stagger,
-                overwrite: 'auto',
-                clearProps: 'opacity,transform,willChange',
-              }),
+            onEnter: (batch) => show(batch as HTMLElement[]),
           });
 
-          /* Страховка. Если триггер по какой-то причине не отработал, а
-             элемент уже в кадре — показываем его. При нормальном ходе
-             проверка ничего не находит; замер это подтверждает. */
+          /* Страховка на случай, если триггер не отработал: спрятанный
+             элемент, оказавшийся в кадре, показывается принудительно.
+
+             Ходит только по тем, кто ещё не показан, и читает
+             getBoundingClientRect, а не getComputedStyle. Первая версия
+             читала стили у всех элементов страницы раз в две секунды и
+             добавляла 190 пересчётов стиля за проход — страховка стоила
+             дороже того, от чего страхует. Когда показывать больше некого,
+             проверка снимает себя. */
           revealGuard = window.setInterval(() => {
-            let hidden = 0;
-            below.forEach((el) => {
-              const b = el.getBoundingClientRect();
-              if (b.bottom < 0 || b.top > window.innerHeight) return;
-              if (+getComputedStyle(el).opacity < 0.9) {
-                hidden += 1;
-                gsap.to(el, { opacity: 1, scale: 1, duration: DUR.reveal, ease: EASE_REVEAL,
-                  clearProps: 'opacity,transform,willChange' });
-              }
-            });
-            if (!hidden && !below.some((el) => +getComputedStyle(el).opacity < 0.9)) {
+            if (!pending.size) {
               window.clearInterval(revealGuard);
               revealGuard = 0;
+              return;
             }
+            const late: HTMLElement[] = [];
+            pending.forEach((el) => {
+              const b = el.getBoundingClientRect();
+              if (b.bottom > 0 && b.top < window.innerHeight) late.push(el);
+            });
+            if (late.length) show(late);
           }, 2000);
         }
 
