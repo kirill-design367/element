@@ -465,18 +465,69 @@ export function Motion() {
         if (document.fonts?.status === 'loaded') splitHeads();
         else void document.fonts?.ready.then(() => !cancelled && splitHeads());
 
-        /* ── Условия: активный пункт ────────────────────────────────────
-           Пункт считается активным, пока его верх выше середины экрана, а низ
-           ещё не ушёл выше шапки. Класс переключается по toggleClass — стилями
-           занимается CSS, JS в цикле прокрутки ничего не считает. */
-        document.querySelectorAll<HTMLElement>('[data-term]').forEach((item) => {
-          ScrollTrigger.create({
-            trigger: item,
-            start: 'top 62%',
-            end: 'bottom 38%',
-            toggleClass: { targets: item, className: 'is-active' },
+        /* ── Условия: закреплённая секция ───────────────────────────────
+           Левая колонка стоит, правая листается внутри закреплённой секции.
+           Входящий пункт приходит снизу, уходящий уползает вверх; скраб
+           делает переход обратимым — вверх всё воспроизводится назад.
+           Индикатор слева показывает, на каком пункте стоим. */
+        const termsStage = document.querySelector<HTMLElement>('[data-terms-stage]');
+        const termsList = document.querySelector<HTMLElement>('[data-terms-list]');
+        const terms = gsap.utils.toArray<HTMLElement>('[data-term]');
+        const termsCurrent = document.querySelector<HTMLElement>('[data-terms-current]');
+        if (termsStage && termsList && terms.length > 1 && window.innerWidth >= 1024) {
+          termsList.classList.add('is-pinned');
+          gsap.set(terms.slice(1), { autoAlpha: 0, y: 60 });
+          terms[0].classList.add('is-active');
+
+          const tl = gsap.timeline({
+            defaults: { ease: 'power2.inOut' },
+            scrollTrigger: {
+              trigger: termsStage,
+              start: 'top top+=96',
+              end: () => '+=' + window.innerHeight * (terms.length - 1) * 0.62,
+              pin: termsStage,
+              pinSpacing: true,
+              anticipatePin: 1,
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => {
+                const i = Math.min(terms.length - 1, Math.round(self.progress * (terms.length - 1)));
+                terms.forEach((t, k) => t.classList.toggle('is-active', k === i));
+                if (termsCurrent) {
+                  const next = String(i + 1).padStart(2, '0');
+                  if (termsCurrent.textContent !== next) {
+                    // Плавный перебор: цифра уходит вверх и приходит снизу.
+                    gsap.fromTo(
+                      termsCurrent,
+                      { yPercent: 40, autoAlpha: 0 },
+                      { yPercent: 0, autoAlpha: 1, duration: 0.35, ease: EASE, overwrite: true },
+                    );
+                    termsCurrent.textContent = next;
+                  }
+                }
+              },
+            },
           });
-        });
+          terms.forEach((item, i) => {
+            if (i === 0) return;
+            tl.to(terms[i - 1], { autoAlpha: 0, y: -60, duration: 0.5 }).to(
+              item,
+              { autoAlpha: 1, y: 0, duration: 0.5 },
+              '<',
+            );
+          });
+        } else {
+          // Узкий экран и режим покоя: подсветка активного пункта без
+          // закрепления — список просто читается сверху вниз.
+          terms.forEach((item) => {
+            ScrollTrigger.create({
+              trigger: item,
+              start: 'top 62%',
+              end: 'bottom 38%',
+              toggleClass: { targets: item, className: 'is-active' },
+            });
+          });
+        }
 
         /* ── Как работаем: залипающая последовательность ─────────────────
            Секция залипает, шаги сменяют друг друга по прокрутке, точки внизу

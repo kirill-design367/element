@@ -487,6 +487,19 @@ select.field option { color: #17191c; background: #fff; }
   .process-dot { transition: none; }
 }
 
+/* ── Условия: закреплённая секция ────────────────────────────
+   По умолчанию — обычный список в потоке. Класс is-pinned ставит Motion,
+   и тогда пункты встают друг на друга и сменяются по прокрутке.
+   ──────────────────────────────────────────────────────────── */
+.terms-list.is-pinned { position: relative; height: 320px; }
+.terms-list.is-pinned .term-item {
+  position: absolute;
+  inset: 0;
+  border-top: 0;
+  padding-block: 0;
+}
+@media (min-width: 768px) { .terms-list.is-pinned { height: 260px; } }
+
 /* ── Условия: активный пункт ─────────────────────────────────
    Приглушение — сменой цвета, а не прозрачностью: полупрозрачный тёмный
    текст на светлом фоне даёт 3:1 и проваливает контраст, вторичный цвет —

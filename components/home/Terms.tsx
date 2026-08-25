@@ -28,24 +28,30 @@ const TERMS = [
 ];
 
 /**
- * Два столбца: слева заголовок секции, он липкий и стоит на месте, справа
- * прокручиваются пункты. Сетка из шести одинаковых карточек, которая была
- * здесь раньше, композиции не имела вовсе — шесть прямоугольников в три
- * колонки читались как таблица.
+ * Закреплённая секция: левая колонка стоит, правая листается.
  *
- * Пункты разделены воздухом, а не рамками: рамок здесь нет ни одной.
- * Активный пункт подсвечивается по мере прокрутки — Motion вешает на него
- * класс is-active, остальные приглушены. Приглушение сделано сменой цвета,
- * а не прозрачностью: полупрозрачный тёмный текст на светлом фоне даёт
- * 3:1 и проваливает контраст, а вторичный цвет — 5,4:1.
+ * Пункты сменяют друг друга по прокрутке — входящий приходит снизу со
+ * сдвигом и проявлением, уходящий уползает вверх и гаснет. Скраб делает это
+ * обратимым: при прокрутке вверх всё воспроизводится назад.
+ *
+ * Слева под заголовком индикатор: номер текущего пункта и сколько всего.
+ *
+ * Разметка остаётся обычным списком в потоке. Абсолютное позиционирование
+ * включает класс is-pinned, который ставит Motion уже после того, как
+ * таймлайн собран: без скрипта и в режиме покоя это шесть пунктов подряд,
+ * которые просто читаются сверху вниз.
  *
  * Тексты и состав условий не менялись.
  */
 export function Terms() {
   return (
-    <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
+    <div data-terms className="relative">
+      <div
+        data-terms-stage
+        className="grid gap-10 lg:min-h-[76svh] lg:grid-cols-12 lg:items-center lg:gap-8"
+      >
       <div className="lg:col-span-4">
-        <div className="lg:sticky lg:top-32">
+        <div>
           <h2
             id="usloviya-title"
             data-lines
@@ -58,15 +64,27 @@ export function Terms() {
               'То, ради чего снабженец меняет поставщика: документы вовремя, отсрочка и один ответственный человек.',
             )}
           </p>
+
+          {/* Индикатор: где мы в списке. Дублирует номер пункта, поэтому от
+              скринридера скрыт. */}
+          <p
+            aria-hidden="true"
+            className="tnum mt-10 flex items-baseline gap-2 text-t1 text-ink-2"
+          >
+            <span data-terms-current className="font-black text-t3 leading-none text-ink">
+              01
+            </span>
+            <span>/ {String(TERMS.length).padStart(2, '0')}</span>
+          </p>
         </div>
       </div>
 
-      <ol className="lg:col-span-7 lg:col-start-6">
+      <ol data-terms-list className="terms-list lg:col-span-7 lg:col-start-6">
         {TERMS.map((t, i) => (
           <li
             key={t.title}
             data-term
-            className="flex gap-5 border-t border-line py-8 first:border-t-0 first:pt-0 md:gap-8 md:py-10"
+            className="term-item flex gap-5 border-t border-line py-8 first:border-t-0 first:pt-0 md:gap-8 md:py-10"
           >
             <span
               aria-hidden="true"
@@ -83,6 +101,7 @@ export function Terms() {
           </li>
         ))}
       </ol>
+      </div>
     </div>
   );
 }
