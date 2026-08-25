@@ -36,7 +36,9 @@ const config: Config = {
         t5: ['var(--t5)', { lineHeight: '.92' }],
       },
       maxWidth: { shell: '1320px' },
-      borderRadius: { card: '10px', pill: '999px' },
+      /* panel — крупное скругление: панель результата расчёта и стеклянные
+         блоки, которые должны читаться как отдельный предмет, а не как лист. */
+      borderRadius: { card: '10px', panel: '24px', pill: '999px' },
       boxShadow: {
         card: '0 1px 2px rgba(23,25,28,.05), 0 8px 24px -16px rgba(23,25,28,.18)',
         lift: '0 2px 4px rgba(23,25,28,.06), 0 18px 40px -22px rgba(23,25,28,.28)',

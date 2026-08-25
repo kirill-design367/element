@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { CATEGORIES, MATERIALS, materialsOf } from '@/lib/catalog';
 import { DESTINATIONS, MAX_KM, MIN_ORDER_M3, calculate, type Unit } from '@/lib/pricing';
-import { rides, rub, tons, volume, typo } from '@/lib/format';
+import { num, rides, rub, tons, volume, typo } from '@/lib/format';
+import { Counter } from './Counter';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { ArrowIcon } from '@/components/site/Icons';
-import { prefersReducedMotion } from '@/lib/motion';
 
 const QUICK = [10, 20, 30, 60];
 
@@ -36,14 +36,6 @@ export function Calculator() {
     [materialId, amount, unit, km, valid],
   );
 
-  /**
-   * Подсвет пересчитанной строки. Обратная связь, а не украшение: 0,2 с —
-   * ровно столько, чтобы глаз заметил, какая цифра поехала, и не больше.
-   * Первый расчёт не подсвечивается: подсвечивать нечего, строка только
-   * появилась. В режиме покоя подсвет не запускается вовсе.
-   */
-  const flash = useRecalcFlash([result?.materialCost, result?.deliveryCost, result?.total]);
-
   const onDestination = (id: string) => {
     setDestinationId(id);
     const d = DESTINATIONS.find((x) => x.id === id);
@@ -71,12 +63,12 @@ export function Calculator() {
   const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   return (
-    /* Поля и результат встают во всю ширину экрана: поля слева на две трети,
-       результат справа на треть, полей по краям нет. Левый край полей
-       совпадает с линией контейнера — заголовок стоит над ним. */
-    <div className="bleed-r grid gap-8 lg:grid-cols-12 lg:gap-10">
+    /* Поля и результат стоят рядом внутри контейнера: вылет за правый край
+       убран. Обрезанное краем экрана число читалось как ошибка вёрстки, а не
+       как приём, — теперь итог целиком в кадре и с воздухом вокруг. */
+    <div className="shell grid items-start gap-8 lg:grid-cols-12 lg:gap-10">
       {/* ── Поля ─────────────────────────────────────────────────────────── */}
-      <div className="pr-[var(--shell-x)] lg:col-span-8 lg:pr-0">
+      <div className="lg:col-span-6">
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className={label} htmlFor={`${uid}-material`}>
@@ -214,32 +206,27 @@ export function Calculator() {
         </div>
       </div>
 
-      {/* ── Результат ────────────────────────────────────────────────────── */}
-      <div className="lg:col-span-4">
-        <div className="rounded-l-card border border-r-0 border-line bg-surface p-5 shadow-lift md:p-6 lg:sticky lg:top-24">
-          <div className="flex items-baseline justify-between">
-            <h3 className="text-t2 font-black">
-              Расчёт
-            </h3>
+      {/* ── Результат ────────────────────────────────────────────────────
+          Самый заметный предмет блока: тёмная панель с крупным скруглением,
+          воздухом внутри и подъёмом тенью. Не обрезается ничем. */}
+      <div className="lg:col-span-6">
+        <div className="inv rounded-panel p-6 shadow-lift md:p-8 lg:sticky lg:top-28">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3 className="text-t2 font-black">Расчёт</h3>
             <span className="text-t1 text-ink-2">цены с НДС</span>
           </div>
 
-          {/* Разбивка как в счёте: строка — статья — сумма. Итог отделён
-              от строк и от полей ввода: он не продолжение формы, а ответ. */}
-          <div className="mt-5 space-y-3 text-t2" aria-live="polite">
+          {/* Разбивка как в счёте: строка — статья — сумма. Она стоит над
+              итогом: сначала из чего сложилось, потом сколько всего. */}
+          <div className="mt-6 space-y-3 text-t2" aria-live="polite">
             <Row
               label="Объём"
               value={result ? `${volume(result.volumeM3)} · ${tons(result.massT)}` : '—'}
             />
-            <Row
-              label="Материал"
-              value={result ? rub(result.materialCost) : '—'}
-              flash={flash[0]}
-            />
+            <Row label="Материал" value={result ? rub(result.materialCost) : '—'} />
             <Row
               label="Доставка"
               value={result ? rub(result.deliveryCost) : '—'}
-              flash={flash[1]}
               note={
                 result
                   ? typo(`${rides(result.rides)} · ${result.truck.name} · до ${volume(result.perRideM3)} за рейс`)
@@ -248,23 +235,29 @@ export function Calculator() {
             />
           </div>
 
-          {/* Итог — самое крупное число на странице. Прижат к правому краю
-              экрана и обрезается им, как вордмарк: цифра не помещается в
-              карточку целиком, и это читается как масштаб, а не как ошибка. */}
-          <div className="-mx-5 mt-5 overflow-hidden border-t border-line-strong bg-surface-2 px-5 pb-5 pt-4 md:-mx-6 md:px-6">
+          {/* Итог. Число не подменяется мгновенно: при правке любого поля оно
+              добегает до нового значения за 0,6 с — видно, в какую сторону
+              поехала цифра. Ширина ячейки при этом не скачет, её держит
+              невидимый двойник внутри Counter. */}
+          <div className="mt-6 border-t border-line pt-5">
             <dl>
               <dt className="text-t1 font-medium text-ink-2">Итого</dt>
-              <dd
-                data-total
-                className={`-mr-6 mt-1 whitespace-nowrap text-right font-black text-t5 leading-[.85] tracking-[-.04em] md:-mr-10 ${flash[2] ? 'recalc' : ''}`}
-                key={result ? result.total : 'empty'}
-              >
-                {result ? rub(result.total) : '—'}
+              <dd data-total className="mt-2 flex items-baseline gap-2 font-black text-t5 leading-[.85] tracking-[-.04em]">
+                {result ? (
+                  <>
+                    <Counter value={result.total} format={(n) => num(Math.round(n))} live />
+                    <span className="text-t4">₽</span>
+                  </>
+                ) : (
+                  '—'
+                )}
               </dd>
             </dl>
+            {/* tnum висит только на числе: в CoFo Sans фича подменяет заодно
+                пробел широким, и фраза расходится разрядкой. */}
             {result && result.volumeM3 > 0 && (
-              <p className="tnum mt-2 text-right text-t1 text-ink-2">
-                {rub(result.totalPerM3)} за м³ с доставкой на объект
+              <p className="mt-3 text-t1 text-ink-2">
+                <span className="tnum">{rub(result.totalPerM3)}</span> за м³ с доставкой на объект
               </p>
             )}
           </div>
@@ -283,7 +276,7 @@ export function Calculator() {
           <Button
             type="button"
             size="lg"
-            className="mt-5 w-full"
+            className="mt-6 w-full"
             onClick={toRequest}
             disabled={!result}
           >
@@ -301,52 +294,14 @@ export function Calculator() {
   );
 }
 
-function Row({
-  label,
-  value,
-  note,
-  flash,
-}: {
-  label: string;
-  value: string;
-  note?: string;
-  flash?: boolean;
-}) {
+function Row({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
         <span className="text-ink-2">{label}</span>
         {note && <p className="mt-0.5 text-t1 leading-snug text-ink-2">{note}</p>}
       </div>
-      <span className={`tnum shrink-0 font-medium ${flash ? 'recalc' : ''}`}>{value}</span>
+      <span className="tnum shrink-0 font-medium">{value}</span>
     </div>
   );
-}
-
-/**
- * Возвращает по флагу на каждое переданное значение: true в тот кадр, когда
- * значение изменилось. Флаг снимается таймером — иначе класс остаётся висеть
- * и следующая анимация не запускается.
- */
-function useRecalcFlash(values: (number | undefined)[]) {
-  const prev = useRef<(number | undefined)[]>(values);
-  const [on, setOn] = useState<boolean[]>(() => values.map(() => false));
-  const key = values.join('|');
-
-  useEffect(() => {
-    if (prefersReducedMotion()) {
-      prev.current = values;
-      return;
-    }
-    const changed = values.map((v, i) => prev.current[i] !== undefined && v !== prev.current[i]);
-    prev.current = values;
-    if (!changed.some(Boolean)) return;
-    setOn(changed);
-    const t = setTimeout(() => setOn(values.map(() => false)), 220);
-    return () => clearTimeout(t);
-    // values пересобирается каждый рендер — сравниваем по строковому ключу
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-
-  return on;
 }

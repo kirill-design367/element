@@ -319,23 +319,6 @@ html.js [data-marquee-clone] { display: flex; }
    Chromium при загрузке подтягивал первую карточку к нулю и съедал отбивку. */
 .rail { scroll-padding-left: max(var(--shell-x), calc((100% - var(--shell-max)) / 2)); }
 
-/* ── Подсвет пересчитанной цифры ─────────────────────────────
-   Обратная связь, а не украшение: 0,2 с — ровно столько, чтобы глаз
-   заметил, какая строка поехала. Анимируется только фон, вёрстка не
-   пересчитывается. В режиме покоя класс не навешивается вовсе — см.
-   useRecalcFlash в Calculator.tsx, — а медиазапрос ниже гасит анимацию
-   и в том случае, если класс всё же попал в разметку.
-   ──────────────────────────────────────────────────────────── */
-@keyframes recalc {
-  from { background-color: var(--accent-soft); }
-  to   { background-color: transparent; }
-}
-.recalc {
-  animation: recalc .2s linear;
-  border-radius: 3px;
-  box-decoration-break: clone;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
