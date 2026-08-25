@@ -138,7 +138,6 @@ export function CatalogClient() {
         <div ref={plateRef} data-catalog-plate>
           {activeCategory ? (
             <PhotoSlot
-              category={activeCategory}
               slot={categorySlot(activeCategory.id)}
               className="flex min-h-[132px] items-end rounded-card border border-line md:min-h-[168px]"
             >

@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { CATEGORIES } from '@/lib/catalog';
 import { CategoryCard } from './CategoryCard';
 import { useFlipArrival } from '@/components/providers/FlipArrival';
+import { ArrowIcon } from '@/components/site/Icons';
 
 /**
  * Пять категорий горизонтальной лентой. Лента начинается от левой линии
@@ -18,8 +19,10 @@ import { useFlipArrival } from '@/components/providers/FlipArrival';
  * gsap, что и вертикальная. Из-за неё снят scroll-snap: программная инерция
  * и снап тянут ленту в разные стороны и она дёргается на остановке.
  *
- * Под лентой тонкая полоса прогресса — единственный указатель на то, сколько
- * ленты осталось.
+ * Что листается — лента, а не страница — видно сразу: курсор над лентой
+ * становится захватом, лента тянется мышью с инерцией, по краям содержимое
+ * затухает в фон, при наведении появляются стрелки, под лентой полоса
+ * прогресса.
  *
  * Этот же блок принимает обратный перелёт из каталога: плашка сворачивается
  * ровно на своё место.
@@ -44,14 +47,23 @@ export function CatalogPreview() {
   );
 
   return (
-    <>
+    <div className="rail-wrap relative">
+      {/* Стрелки появляются при наведении на ленту. Кнопки настоящие: с
+          клавиатуры до них можно дойти табом, и они листают на карточку. */}
+      <button type="button" data-rail-prev aria-label="Предыдущие материалы" className="rail-arrow rail-arrow-prev">
+        <ArrowIcon className="h-4 w-4 rotate-180" />
+      </button>
+      <button type="button" data-rail-next aria-label="Следующие материалы" className="rail-arrow rail-arrow-next">
+        <ArrowIcon className="h-4 w-4" />
+      </button>
+
       <div
       ref={gridRef}
       data-rail
       role="group"
       aria-label="Группы материалов, лента с прокруткой"
       tabIndex={0}
-      className="rail hide-rail-bar flex gap-4 overflow-x-auto overscroll-x-contain pb-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+      className="rail rail-fade hide-rail-bar flex cursor-grab gap-4 overflow-x-auto overscroll-x-contain pb-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
     >
       {/* Отбивка слева распоркой, а не паддингом: паддинг у прокручиваемого
           контейнера съедается при программной прокрутке. Ширина в процентах
@@ -73,6 +85,6 @@ export function CatalogPreview() {
           <span data-rail-bar />
         </div>
       </div>
-    </>
+    </div>
   );
 }

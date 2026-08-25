@@ -152,8 +152,90 @@ export function Motion() {
         };
         rail.addEventListener('scroll', paint, { passive: true });
         paint();
+
+        /* Перетаскивание мышью. Пока тянут, Lenis выключен и позиция
+           пишется напрямую; на отпускании остаток скорости уходит в
+           lenis.scrollTo — лента доезжает по инерции, а не встаёт колом. */
+        let dragging = false;
+        let startX = 0;
+        let startLeft = 0;
+        let lastX = 0;
+        let lastT = 0;
+        let velocity = 0;
+        const onDown = (e: PointerEvent) => {
+          if (e.button !== 0) return;
+          dragging = true;
+          startX = lastX = e.clientX;
+          startLeft = rail.scrollLeft;
+          lastT = performance.now();
+          velocity = 0;
+          railLenis?.stop();
+          rail.classList.add('is-dragging');
+          rail.setPointerCapture(e.pointerId);
+        };
+        const onMove = (e: PointerEvent) => {
+          if (!dragging) return;
+          const now = performance.now();
+          const dt = Math.max(1, now - lastT);
+          velocity = (e.clientX - lastX) / dt;
+          lastX = e.clientX;
+          lastT = now;
+          rail.scrollLeft = startLeft - (e.clientX - startX);
+        };
+        const onUp = (e: PointerEvent) => {
+          if (!dragging) return;
+          dragging = false;
+          rail.classList.remove('is-dragging');
+          rail.releasePointerCapture?.(e.pointerId);
+          railLenis?.start();
+          // 260 — во столько раз догоняет остаток жеста; подобрано так,
+          // чтобы бросок пальцем проходил примерно карточку.
+          const throwTo = rail.scrollLeft - velocity * 260;
+          railLenis?.scrollTo(Math.max(0, Math.min(rail.scrollWidth - rail.clientWidth, throwTo)), {
+            duration: 1.1,
+          });
+        };
+        rail.addEventListener('pointerdown', onDown);
+        rail.addEventListener('pointermove', onMove);
+        rail.addEventListener('pointerup', onUp);
+        rail.addEventListener('pointercancel', onUp);
+        // Клик по карточке после протаскивания открывал бы каталог.
+        rail.addEventListener(
+          'click',
+          (e) => {
+            if (Math.abs(lastX - startX) > 6) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          },
+          true,
+        );
+
+        /* Стрелки: листают на ширину карточки и гаснут на краях. */
+        const prev = document.querySelector<HTMLButtonElement>('[data-rail-prev]');
+        const next = document.querySelector<HTMLButtonElement>('[data-rail-next]');
+        const step = () => (rail.querySelector<HTMLElement>('[data-rail-item]')?.offsetWidth ?? 320) + 16;
+        const go = (dir: number) =>
+          railLenis?.scrollTo(
+            Math.max(0, Math.min(rail.scrollWidth - rail.clientWidth, rail.scrollLeft + dir * step())),
+            { duration: 0.9 },
+          );
+        prev?.addEventListener('click', () => go(-1));
+        next?.addEventListener('click', () => go(1));
+        const edges = () => {
+          const max = rail.scrollWidth - rail.clientWidth;
+          if (prev) prev.disabled = rail.scrollLeft < 4;
+          if (next) next.disabled = rail.scrollLeft > max - 4;
+        };
+        rail.addEventListener('scroll', edges, { passive: true });
+        edges();
         const railCleanup = () => {
           rail.removeEventListener('scroll', paint);
+          rail.removeEventListener('scroll', edges);
+          rail.removeEventListener('pointerdown', onDown);
+          rail.removeEventListener('pointermove', onMove);
+          rail.removeEventListener('pointerup', onUp);
+          rail.removeEventListener('pointercancel', onUp);
           gsap.ticker.remove(railRaf);
           railLenis?.destroy();
         };
@@ -304,7 +386,8 @@ export function Motion() {
 
         enter('[data-hero]', { opacity: 0, y: 44, duration: DUR.reveal, ease: EASE }, { stagger: 0.08 });
         enter('[data-fact]', { opacity: 0, y: 40, duration: DUR.reveal, ease: EASE }, { stagger: 0.07 });
-        enter('[data-rail-item]', { opacity: 0, y: 48, duration: DUR.reveal, ease: EASE }, { stagger: 0.07 });
+        // Лента въезжает справа: движение совпадает с направлением прокрутки.
+        enter('[data-rail-item]', { opacity: 0, x: 70, duration: DUR.reveal, ease: EASE }, { stagger: 0.09 });
         enter('[data-fleet="lead"], [data-total]', { opacity: 0, y: 56, duration: DUR.reveal, ease: EASE });
         enter(
           '[data-fleet="rest"], [data-fleet="label"]',

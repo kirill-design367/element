@@ -37,11 +37,10 @@ export function CategoryCard({ category }: { category: Category }) {
       href={href}
       onClick={onClick}
       data-reveal
-      className="group flex flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="group flex select-none flex-col overflow-hidden rounded-panel bg-surface shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div ref={plateRef} data-flip-plate={category.id} className="relative">
         <PhotoSlot
-          category={category}
           slot={categorySlot(category.id)}
           className="aspect-[4/3] w-full"
         >
@@ -64,12 +63,12 @@ export function CategoryCard({ category }: { category: Category }) {
       </div>
 
       <div className="flex flex-1 flex-col p-4 md:p-5">
-        <h3 className="text-t3 font-bold leading-tight tracking-[-.015em]">
+        <h3 className="card-title text-t3 font-bold leading-tight tracking-[-.015em]">
           {typo(category.name)}
         </h3>
         <p className="mt-1.5 text-t1 leading-snug text-ink-2">{typo(category.fractionsLine)}</p>
 
-        <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
+        <div className="mt-4 flex items-end justify-between gap-3 border-t border-line/70 pt-3">
           <div>
             <div className="text-t1 text-ink-2">Цена</div>
             <div className="mt-0.5 text-t3 font-bold leading-none">

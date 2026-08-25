@@ -1,4 +1,3 @@
-import type { Category } from '@/lib/catalog';
 import { PHOTO } from '@/lib/assets';
 import { Photo } from './Photo';
 
@@ -14,12 +13,10 @@ import { Photo } from './Photo';
  * заданной пропорцией, и ни одна строка вёрстки вокруг не изменится.
  */
 export function PhotoSlot({
-  category,
   slot,
   className = '',
   children,
 }: {
-  category: Pick<Category, 'grain'>;
   /** Ключ в lib/assets.ts. Там же лежит бриф на кадр. */
   slot: string;
   className?: string;
@@ -28,10 +25,10 @@ export function PhotoSlot({
   const photo = PHOTO[slot];
 
   return (
-    <div
-      className={`relative overflow-hidden ${className}`}
-      style={{ backgroundColor: category.grain.bg }}
-    >
+    /* Фон одинаковый у всех карточек. Раньше он брался из данных материала,
+       и у щебня, песка и ПГС подложка была разной светлоты — в ряду это
+       читалось как ошибка, а не как признак материала. */
+    <div className={`relative overflow-hidden bg-surface-2 ${className}`}>
       {photo?.file && (
         <Photo
           file={photo.file}
