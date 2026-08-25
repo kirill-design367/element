@@ -89,8 +89,7 @@ export default function HomePage() {
                 Заявка на просчёт
               </h2>
               <p className="mt-3 max-w-[32ch] text-t2 leading-relaxed text-ink-2">
-                Ответим ценой на материал и доставку в течение рабочего часа. Держим цену
-                пять дней.
+                Ответим ценой на материал и доставку. Держим цену пять дней.
               </p>
               <a
                 href={`tel:${COMPANY.phone}`}
