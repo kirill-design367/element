@@ -600,7 +600,7 @@ export function Motion() {
             gsap.to(objPhoto, {
               scale: 1 + i * 0.035,
               x: i * -14,
-              duration: 0.8,
+              duration: 0.4,
               ease: EASE,
               overwrite: 'auto',
             });
@@ -610,28 +610,6 @@ export function Motion() {
           });
           const list = rows[0].parentElement;
           list?.addEventListener('pointerleave', () => frame(0));
-        }
-
-        /* Переход «парк → объекты»: полоса цвета парка гаснет по прокрутке,
-           и светлая секция как будто проявляется из тёмной. Скрабится
-           прозрачность — перекраска фона стоила бы полного перерисовывания
-           секции каждый кадр. */
-        const tone = document.querySelector<HTMLElement>('[data-tone-shift]');
-        if (tone) {
-          gsap.fromTo(
-            tone,
-            { opacity: 1 },
-            {
-              opacity: 0,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: tone.parentElement ?? tone,
-                start: 'top bottom',
-                end: 'top 55%',
-                scrub: 0.4,
-              },
-            },
-          );
         }
 
         /* ── 3. Параллакс ─────────────────────────────────────────────────

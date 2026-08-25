@@ -39,26 +39,15 @@ const OBJECTS = [
  * список объектов стоит слева в узкой колонке. Высота блока меньше экрана —
  * после полноэкранного парка сюда нужен короткий блок, а не второй такой же.
  *
- * Список и кадр связаны: при наведении на объект кадр справа меняет кроп и
- * масштаб. Своего снимка у каждого объекта пока нет — механика заложена и
+ * Список и кадр связаны: при наведении на строку она подсвечивается, а кадр
+ * справа за 0,4 с меняет кроп и масштаб. Своего снимка у каждого объекта пока нет — механика заложена и
  * работает на одном кадре, чтобы приём читался; когда придут отдельные
  * кадры, в data-object-photo будет подставляться свой файл, а не свой кроп.
  * Меняется только transform.
  */
 export function Objects() {
   return (
-    <div className="relative grid items-stretch gap-10 lg:grid-cols-12 lg:gap-0">
-      {/* Третий тип перехода: светлота фона меняется по прокрутке. Сверху
-          лежит полоса цвета парка, её прозрачность скрабится к нулю — то
-          есть светлая секция как будто проявляется из тёмной. Анимируется
-          opacity, не background-color: цвет перекрашивал бы всю секцию
-          каждый кадр. */}
-      <div
-        aria-hidden="true"
-        data-tone-shift
-        className="pointer-events-none absolute inset-x-0 -top-px -z-[1] h-[240px]"
-        style={{ background: 'linear-gradient(to bottom, #14161a 0%, rgba(20,22,26,0) 100%)' }}
-      />
+    <div className="grid items-stretch gap-10 lg:grid-cols-12 lg:gap-0">
       <div className="narrow narrow-left lg:col-span-6 lg:max-w-none lg:pr-10">
         <h2 data-lines className="font-black text-t4 leading-[1.04] tracking-[-.02em]">Объекты</h2>
         <p className="mt-3 max-w-[42ch] text-t2 leading-relaxed text-ink-2">
@@ -72,7 +61,7 @@ export function Objects() {
               data-reveal
               data-object={i}
               tabIndex={0}
-              className="object-row flex items-start justify-between gap-5 rounded py-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="object-row flex items-start justify-between gap-5 rounded-card px-3 py-4 -mx-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <div className="min-w-0">
                 <h3 className="text-t2 font-bold leading-snug tracking-[-.015em]">{typo(o.name)}</h3>
@@ -93,9 +82,12 @@ export function Objects() {
       {/* Правая половина уходит за край экрана: у неё нет правого поля,
           а сама секция обрезает вылет. */}
       <div className="lg:col-span-6">
+        {/* contain: paint и свой слой композитора: без них кадр при
+            прокрутке рвался — браузер каждый кадр пересчитывал обрезку по
+            скруглению вместе со смещением параллакса. */}
         <div
           data-object-photo
-          className="relative h-full min-h-[280px] overflow-hidden rounded-l-panel bg-surface-2 lg:min-h-full"
+          className="relative h-full min-h-[280px] overflow-hidden rounded-l-panel bg-surface-2 [contain:paint] [transform:translateZ(0)] lg:min-h-full"
         >
           {PHOTO.objects.file && (
             <Photo

@@ -447,12 +447,23 @@ select.field option { color: #17191c; background: #fff; }
   .btn:hover .arrow-slide { transform: none; }
 }
 
+/* ── Стык «парк → объекты» ───────────────────────────────────
+   Светлота меняется фоном самой секции, а не слоем поверх содержимого.
+   Прошлая версия клала градиент от цвета парка сверху на «Объекты» — он
+   ложился прямо на заголовок и читался как поломка. Оба цвета светлые,
+   поэтому тексту это ничем не грозит.
+   ──────────────────────────────────────────────────────────── */
+#obyekty { background: linear-gradient(to bottom, var(--surface-2) 0, var(--bg) 340px); }
+
 /* ── Объекты: строка списка и кадр ───────────────────────────
    Наведение на строку меняет кроп кадра справа. Здесь только цвет строки —
    сам кадр возит Motion трансформом.
    ──────────────────────────────────────────────────────────── */
-.object-row { transition: color .3s var(--ease-out); }
-.object-row:hover, .object-row:focus-visible { color: var(--ink); }
+.object-row { transition: color .4s var(--ease-out), background-color .4s var(--ease-out); }
+.object-row:hover, .object-row:focus-visible {
+  color: var(--ink);
+  background: var(--field-bg);
+}
 .object-row:hover .text-ink-2, .object-row:focus-visible .text-ink-2 { color: var(--ink-2); }
 
 /* Крупное скругление слева — у кадра «Объектов» и у панели заявки. */
@@ -535,12 +546,23 @@ select.field option { color: #17191c; background: #fff; }
   will-change: transform;
 }
 
+/* ── Стык «парк → объекты» ───────────────────────────────────
+   Светлота меняется фоном самой секции, а не слоем поверх содержимого.
+   Прошлая версия клала градиент от цвета парка сверху на «Объекты» — он
+   ложился прямо на заголовок и читался как поломка. Оба цвета светлые,
+   поэтому тексту это ничем не грозит.
+   ──────────────────────────────────────────────────────────── */
+#obyekty { background: linear-gradient(to bottom, var(--surface-2) 0, var(--bg) 340px); }
+
 /* ── Объекты: строка списка и кадр ───────────────────────────
    Наведение на строку меняет кроп кадра справа. Здесь только цвет строки —
    сам кадр возит Motion трансформом.
    ──────────────────────────────────────────────────────────── */
-.object-row { transition: color .3s var(--ease-out); }
-.object-row:hover, .object-row:focus-visible { color: var(--ink); }
+.object-row { transition: color .4s var(--ease-out), background-color .4s var(--ease-out); }
+.object-row:hover, .object-row:focus-visible {
+  color: var(--ink);
+  background: var(--field-bg);
+}
 .object-row:hover .text-ink-2, .object-row:focus-visible .text-ink-2 { color: var(--ink-2); }
 
 /* Крупное скругление слева — у кадра «Объектов» и у панели заявки. */
