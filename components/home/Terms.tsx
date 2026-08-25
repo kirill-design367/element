@@ -54,7 +54,7 @@ export function Terms() {
         <div>
           <h2
             id="usloviya-title"
-            data-lines
+            data-reveal
             className="font-black text-t4 leading-[1.04] tracking-[-.02em]"
           >
             {typo('Условия для юридических лиц')}

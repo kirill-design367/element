@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { DUR, EASE, prefersReducedMotion } from '@/lib/motion';
+import { DUR, EASE, EASE_REVEAL, REVEAL, prefersReducedMotion } from '@/lib/motion';
 
 /**
  * Всё движение сайта в одном месте: инерционная прокрутка, появления,
@@ -23,14 +23,6 @@ import { DUR, EASE, prefersReducedMotion } from '@/lib/motion';
  * Появление — это gsap.from в момент входа в кадр. Не выполнился скрипт,
  * не сработал ScrollTrigger, страницу снимают целиком — содержимое на месте.
  */
-/* Разбор SplitText делается один раз и запоминается: греется в простое
-   при подъёме движения, а заголовки потом просто ждут готовый промис. */
-let splitPromise: Promise<typeof import('gsap/SplitText')> | null = null;
-const splitModule = () => {
-  splitPromise ??= import('gsap/SplitText');
-  return splitPromise;
-};
-
 export function Motion() {
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -322,92 +314,63 @@ export function Motion() {
         applyGlass();
       }
 
-      /* ── 2. Появления ───────────────────────────────────────────────────
-         Сдвиг снизу плюс проявление. Порог входа — top 85%: блок начинает
-         появляться, когда до центра экрана ему остаётся треть высоты, и
-         заканчивает до того, как доедет. */
-      /* Сборка идёт частями через простой, а не одной задачей. Это не
-         косметика: одна задача разбора и построения всех триггеров занимала
-         на придушенном вшестеро процессоре около 150 мс и целиком попадала в
-         общее время блокировки. Разбитая на четыре куска, она перестаёт быть
-         долгой задачей — ни один кусок не переваливает за 50 мс. */
+      /* ── 2. Появление ───────────────────────────────────────────────────
+         Одно на весь сайт: прозрачность 0 → 1 и масштаб 0,98 → 1 от центра.
+         Ни сдвига по вертикали, ни по горизонтали, ни разбора текста на
+         строки. Обе свойства композитор считает сам, вёрстка не
+         пересчитывается — моргать физически нечему.
+
+         Играет только то, что при загрузке лежит ниже кадра. Элементы,
+         которые уже видны, не трогаются вовсе: движение поднимается по
+         первому намерению листать, то есть заведомо после первой отрисовки,
+         и любое прятание таких элементов скриптом — это вспышка на готовом
+         содержимом. Пряталось бы стилями — тот же элемент остался бы
+         невидимым, если ScrollTrigger не отработал; это уже съедало полстраницы
+         на мобильной, и правило 10 писалось именно поэтому.
+
+         Сборка идёт частями через простой, а не одной задачей: одна задача
+         разбора и построения всех триггеров занимала на придушенном вшестеро
+         процессоре около 150 мс и целиком попадала во время блокировки. */
       const chunks: (() => void)[] = [];
       const ctx = gsap.context(() => {
-        const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
-        const below = nodes.filter(
+        const SEL = [
+          '[data-reveal]',
+          '[data-hero]',
+          '[data-fact]',
+          '[data-rail-item]',
+          '[data-fleet]',
+          '[data-total]',
+          '[data-term]',
+          '[data-step]',
+        ].join(',');
+
+        const below = Array.from(document.querySelectorAll<HTMLElement>(SEL)).filter(
           (el) => el.getBoundingClientRect().top > window.innerHeight * 0.86,
         );
+
         if (below.length) {
           ScrollTrigger.batch(below, {
-            start: 'top 85%',
+            start: REVEAL.start,
             once: true,
-            // Строки и карточки, входящие в кадр вместе, играют одной
-            // группой: интервал сборки 0,08 с, не больше шести в пачке —
-            // иначе длинная сетка каталога уезжает одной простынёй.
+            // Элементы, входящие в кадр вместе, играют одной группой.
+            // Не больше шести в пачке — иначе длинная сетка каталога
+            // проявляется одной простынёй.
             interval: 0.08,
             batchMax: 6,
             onEnter: (batch) =>
               gsap.from(batch, {
                 opacity: 0,
-                y: 48,
+                scale: REVEAL.scale,
+                transformOrigin: '50% 50%',
                 duration: DUR.reveal,
-                ease: EASE,
-                stagger: 0.07,
+                ease: EASE_REVEAL,
+                stagger: REVEAL.stagger,
                 overwrite: 'auto',
                 clearProps: 'opacity,transform,willChange',
                 willChange: 'transform,opacity',
               }),
           });
         }
-
-        /** Именованная группа: то же появление, но со своими параметрами. */
-        const enter = (
-          selector: string,
-          vars: Record<string, unknown>,
-          opts: { start?: string; stagger?: number } = {},
-        ) => {
-          const els = Array.from(document.querySelectorAll<HTMLElement>(selector));
-          if (!els.length) return;
-          const visible = els.filter(
-            (el) => el.getBoundingClientRect().top < window.innerHeight * 0.86,
-          );
-          const later = els.filter((el) => !visible.includes(el));
-          if (visible.length) {
-            // Уже в кадре при загрузке — играем сразу, ждать нечего.
-            gsap.from(visible, {
-              ...vars,
-              stagger: opts.stagger ?? 0.07,
-              overwrite: 'auto',
-              clearProps: 'opacity,transform,willChange',
-              willChange: 'transform,opacity',
-            });
-          }
-          later.forEach((el) => {
-            ScrollTrigger.create({
-              trigger: el,
-              start: opts.start ?? 'top 85%',
-              once: true,
-              onEnter: () =>
-                gsap.from(el, {
-                  ...vars,
-                  overwrite: 'auto',
-                  clearProps: 'opacity,transform,willChange',
-                  willChange: 'transform,opacity',
-                }),
-            });
-          });
-        };
-
-        enter('[data-hero]', { opacity: 0, y: 44, duration: DUR.reveal, ease: EASE }, { stagger: 0.08 });
-        enter('[data-fact]', { opacity: 0, y: 40, duration: DUR.reveal, ease: EASE }, { stagger: 0.07 });
-        // Лента въезжает справа: движение совпадает с направлением прокрутки.
-        enter('[data-rail-item]', { opacity: 0, x: 70, duration: DUR.reveal, ease: EASE }, { stagger: 0.09 });
-        enter('[data-fleet="lead"], [data-total]', { opacity: 0, y: 56, duration: DUR.reveal, ease: EASE });
-        enter(
-          '[data-fleet="rest"], [data-fleet="label"]',
-          { opacity: 0, y: 40, duration: DUR.reveal, ease: EASE },
-          { stagger: 0.07 },
-        );
 
         chunks.push(() => {
         /* ── Бегущая строка фактов ───────────────────────────────────────
@@ -440,45 +403,6 @@ export function Motion() {
             }
           });
         }
-
-        /* Заголовки секций проявляются строками из-под маски: строка
-           выезжает снизу, следующая идёт через 0,07 с. SplitText режет уже
-           после загрузки шрифта — иначе строки посчитаются по подменному
-           начертанию и разъедутся, когда придёт CoFo. Прятать заранее
-           по-прежнему нельзя: маска и сдвиг ставятся в момент входа в кадр,
-           а не при разборе страницы. */
-        const splitHeads = () => {
-          document.querySelectorAll<HTMLElement>('[data-lines]').forEach((head) => {
-            const play = async () => {
-              // Модуль уже прогрет в простое (splitModule ниже): здесь ждём
-              // готовый промис, а не начинаем разбор. Раньше 14 КБ SplitText
-              // разбирались в тот момент, когда первый заголовок подходил к
-              // кадру, — то есть посреди прокрутки, и это давало один кадр
-              // длиной 100-167 мс на замере.
-              const { SplitText } = await splitModule();
-              if (cancelled) return;
-              gsap.registerPlugin(SplitText);
-              const split = SplitText.create(head, { type: 'lines', mask: 'lines', aria: 'auto' });
-              gsap.from(split.lines, {
-                yPercent: 108,
-                duration: DUR.reveal,
-                ease: EASE,
-                stagger: 0.07,
-                onComplete: () => split.revert(),
-              });
-            };
-            if (head.getBoundingClientRect().top < window.innerHeight * 0.86) void play();
-            else
-              ScrollTrigger.create({
-                trigger: head,
-                start: 'top 85%',
-                once: true,
-                onEnter: () => void play(),
-              });
-          });
-        };
-        if (document.fonts?.status === 'loaded') splitHeads();
-        else void document.fonts?.ready.then(() => !cancelled && splitHeads());
 
         });
 
@@ -699,14 +623,6 @@ export function Motion() {
           );
         });
         });
-      });
-
-      /* SplitText греется отдельным куском в простое. В первый бандл он
-         по-прежнему не входит — движение целиком поднимается по первому
-         намерению листать, — но к моменту, когда до первого размеченного
-         заголовка доедет прокрутка, модуль уже разобран. */
-      chunks.push(() => {
-        void splitModule();
       });
 
       /* Куски выполняются по одному в простое; если простоя нет — таймером,

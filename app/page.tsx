@@ -90,7 +90,7 @@ export default function HomePage() {
         <div className="lead-band rounded-panel px-5 py-8 md:px-10 md:py-12">
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-8">
             <div className="lg:col-span-4">
-              <h2 data-lines className="font-black text-t4 leading-[1.02] tracking-[-.02em]">
+              <h2 data-reveal className="font-black text-t4 leading-[1.02] tracking-[-.02em]">
                 Заявка на просчёт
               </h2>
               <p className="mt-3 max-w-[32ch] text-t2 leading-relaxed text-ink-2">

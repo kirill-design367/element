@@ -17,7 +17,7 @@ export function Contacts() {
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
           {/* ── Телефон и адреса ──────────────────────────────────────── */}
           <div className="lg:col-span-7">
-            <h2 data-lines className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
+            <h2 data-reveal className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
               Контакты
             </h2>
 

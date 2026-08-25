@@ -31,7 +31,7 @@ export function Process() {
     <div data-process className="relative">
       <div data-process-stage className="relative flex min-h-[100svh] flex-col justify-center py-24">
         <div data-process-drift className="shell w-full">
-          <h2 data-lines className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
+          <h2 data-reveal className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
             {typo('Как работаем')}
           </h2>
           <p className="mt-4 max-w-[46ch] text-t2 leading-relaxed text-ink-2">
