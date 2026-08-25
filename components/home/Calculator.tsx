@@ -215,9 +215,43 @@ export function Calculator() {
             <span className="text-t1 text-ink-2">цены с НДС</span>
           </div>
 
-          {/* Разбивка как в счёте: строка — статья — сумма. Она стоит над
-              итогом: сначала из чего сложилось, потом сколько всего. */}
-          <div className="mt-5 space-y-3 text-t2" aria-live="polite">
+          {/* Итог стоит первым, разбивка под ним. Раньше было наоборот —
+              сначала из чего сложилось, потом сколько всего, — и крупное
+              число оказывалось на 251 px ниже верхней кромки панели: чтобы
+              увидеть цену, надо было опускать глаза с полей. Теперь панель
+              и первое поле начинаются на одной горизонтали, и цифра попадает
+              в кадр вместе с полями.
+
+              Число не подменяется мгновенно: при правке любого поля оно
+              добегает до нового значения за 0,6 с — видно, в какую сторону
+              поехала цифра. Ширина ячейки не скачет, её держит невидимый
+              двойник внутри Counter. */}
+          <div className="mt-4">
+            <dl>
+              <dt className="text-t1 font-medium text-ink-2">Итого</dt>
+              <dd data-total className="mt-1 flex items-baseline gap-2 font-black text-t5 leading-[.85] tracking-[-.04em]">
+                {result ? (
+                  <>
+                    <Counter value={result.total} format={(n) => num(Math.round(n))} live />
+                    <span className="text-t4">₽</span>
+                  </>
+                ) : (
+                  '—'
+                )}
+              </dd>
+            </dl>
+            {/* tnum висит только на числе: в CoFo Sans фича подменяет заодно
+                пробел широким, и фраза расходится разрядкой. */}
+            {result && result.volumeM3 > 0 && (
+              <p className="mt-2 text-t1 text-ink-2">
+                <span className="tnum">{rub(result.totalPerM3)}</span> за м³ с доставкой на объект
+              </p>
+            )}
+          </div>
+
+          {/* Разбивка как в счёте: строка — статья — сумма. Под итогом: она
+              объясняет цифру, а не подводит к ней. */}
+          <div className="mt-5 space-y-3 border-t border-line pt-4 text-t2" aria-live="polite">
             <Row
               label="Объём"
               value={result ? nbsp(`${volume(result.volumeM3)} · ${tons(result.massT)}`) : '—'}
@@ -232,33 +266,6 @@ export function Calculator() {
                   : undefined
               }
             />
-          </div>
-
-          {/* Итог. Число не подменяется мгновенно: при правке любого поля оно
-              добегает до нового значения за 0,6 с — видно, в какую сторону
-              поехала цифра. Ширина ячейки при этом не скачет, её держит
-              невидимый двойник внутри Counter. */}
-          <div className="mt-5 border-t border-line pt-4">
-            <dl>
-              <dt className="text-t1 font-medium text-ink-2">Итого</dt>
-              <dd data-total className="mt-2 flex items-baseline gap-2 font-black text-t5 leading-[.85] tracking-[-.04em]">
-                {result ? (
-                  <>
-                    <Counter value={result.total} format={(n) => num(Math.round(n))} live />
-                    <span className="text-t4">₽</span>
-                  </>
-                ) : (
-                  '—'
-                )}
-              </dd>
-            </dl>
-            {/* tnum висит только на числе: в CoFo Sans фича подменяет заодно
-                пробел широким, и фраза расходится разрядкой. */}
-            {result && result.volumeM3 > 0 && (
-              <p className="mt-3 text-t1 text-ink-2">
-                <span className="tnum">{rub(result.totalPerM3)}</span> за м³ с доставкой на объект
-              </p>
-            )}
           </div>
 
           {result?.belowMinimum && (
