@@ -48,6 +48,15 @@ export function Contacts() {
               <Line term="Часы отгрузки" value={COMPANY.hoursShipping} />
               <Line term="География" value={COMPANY.geo} />
             </dl>
+
+            {/* Пока контакты демонстрационные, страница говорит об этом на
+                виду, а не внутри свёрнутых реквизитов: телефон и почта здесь
+                тоже ненастоящие, и человек должен узнать это до звонка. */}
+            {CONTACTS_ARE_PLACEHOLDER && (
+              <p className="mt-6 text-t1 leading-snug text-ink-2">
+                {typo('Телефон, почта, адреса и реквизиты приведены для примера и заменяются перед запуском.')}
+              </p>
+            )}
           </div>
 
           {/* ── Реквизиты ─────────────────────────────────────────────── */}
@@ -58,11 +67,6 @@ export function Contacts() {
                 <span aria-hidden="true" className="requisites-mark" />
               </summary>
 
-              {CONTACTS_ARE_PLACEHOLDER && (
-                <p className="mt-4 text-t1 leading-snug text-ink-2">
-                  {typo('Реквизиты и контакты приведены для примера и заменяются перед запуском.')}
-                </p>
-              )}
               <dl className="mt-4 space-y-2.5 text-t1">
                 <Line term="Наименование" value={COMPANY.legalName} tight />
                 <Line term="ИНН / КПП" value={nbsp(`${COMPANY.inn} / ${COMPANY.kpp}`)} tight mono />
