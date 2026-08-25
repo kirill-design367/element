@@ -14,26 +14,30 @@ export const FACTS = [
 ];
 
 /**
- * Первый экран во всю высоту вьюпорта.
+ * Первый экран: кадр во всю высоту и две стеклянные панели поверх него.
  *
- * Заголовок опущен ниже середины: над ним пустота, и это единственное место
- * на сайте, где пустоты столько. Карточка цен уходит вправо навылет и
- * обрезается краем экрана — она не помещается в кадр целиком, и именно
- * поэтому её хочется дочитать.
+ * Кадр больше не выбеливается. Раньше под текстом лежал светлый градиент от
+ * края, и на широком экране половина снимка превращалась в молочное пятно.
+ * Теперь читаемость держат сами панели — матовое стекло того же рецепта, что
+ * шапка, — а на кадр положено общее затемнение 13%: ровно столько, чтобы
+ * светлые участки не спорили с белым стеклом, и не настолько, чтобы снимок
+ * перестал читаться кадром.
  *
- * Слот под фотографию лежит фоном на всю ширину, заголовок ложится поверх.
- * Пока снимка нет, фон однотонный: заглушек не рисуем.
+ * Тёмной карточки цен больше нет: обе панели светлые и одинаковые по
+ * материалу. Левая поднята к середине высоты экрана, а не прижата к нижней
+ * трети — под ней остаётся кадр, над ней остаётся кадр.
  *
- * H1 отрисован на сервере и не участвует ни в одной анимации — это LCP.
+ * H1 отрисован на сервере и не участвует ни в одной анимации: рядом с ним
+ * фотография, и это она LCP, но заголовок обязан быть на месте с первого
+ * кадра в любом случае.
  */
 export function Hero() {
   return (
-    <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-24 md:pb-36 md:pt-28">
-      {/* Фоновый слот. Спецификация — PHOTO.hero в lib/assets.ts.
-          Кадр выше блока на 48 px и поднят на 24: параллакс возит его на
-          ±2% высоты, и без этого запаса на краях показалась бы полоса фона.
-          На узком экране идёт свой вертикальный кадр: горизонтальный на
-          390 px обрезается до полоски. */}
+    <section className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden pb-20 pt-28 md:pb-24 md:pt-32">
+      {/* Фоновый кадр. Спецификация — PHOTO.hero в lib/assets.ts. Кадр выше
+          блока на 48 px и поднят на 24: параллакс возит его на ±2% высоты, и
+          без этого запаса на краях показалась бы полоса фона. На узком экране
+          идёт свой вертикальный кадр. */}
       {PHOTO.hero.file && (
         <Photo
           file={PHOTO.hero.file}
@@ -47,52 +51,20 @@ export function Hero() {
         />
       )}
 
-      {/* Читаемость: подложка не сплошная и не размытие — градиент от края.
-          Кадр обязан остаться виден, поэтому подложки две и они разные.
-
-          Широкий экран: градиент идёт слева направо и к 80% ширины сходит
-          в ноль. Слева, где стоят надзаголовок, H1 и лид, плотность 0,96–0,98;
-          самосвал, конус щебня и горизонт справа остаются в чистом кадре.
-          Плотность подобрана замером: под каждой строкой берётся худший
-          пиксель кадра и считается, какая доля подложки нужна для 4,5:1.
-
-          Узкий экран: вертикальный кадр занят кузовом по всей ширине,
-          спокойной зоны в нём нет, а текст идёт от края до края — здесь
-          градиент вертикальный. Ноль у верхней кромки, полная плотность на
-          блоке текста, и снова спад ниже кнопок: кадр открыт полосой сверху
-          и полосой снизу, вокруг карточки цен. Раньше эта подложка начиналась
-          выше секции (top: -10rem), из-за чего её прозрачный конец оказывался
-          за экраном — на деле кадр был закрыт целиком и ровно. */}
+      {/* Общее затемнение 13%. Не подложка под текст — выравнивание светлоты
+          кадра под стекло. Больше 15% снимок начинает выглядеть вечерним. */}
       {PHOTO.hero.file && (
-        <>
-          <div
-            aria-hidden="true"
-            data-veil="desktop"
-            className="pointer-events-none absolute inset-0 -z-[5] hidden lg:block"
-            style={{
-              background:
-                'linear-gradient(to right, rgba(244,244,241,.98) 0%, rgba(244,244,241,.96) 32%, rgba(244,244,241,.86) 44%, rgba(244,244,241,.5) 58%, rgba(244,244,241,.12) 70%, rgba(244,244,241,0) 80%)',
-            }}
-          />
-          <div
-            aria-hidden="true"
-            data-veil="mobile"
-            className="pointer-events-none absolute inset-0 -z-[5] lg:hidden"
-            style={{
-              background:
-                'linear-gradient(to bottom, rgba(244,244,241,0) 0%, rgba(244,244,241,.5) 5%, rgba(244,244,241,.92) 11%, rgba(244,244,241,.95) 30%, rgba(244,244,241,.95) 50%, rgba(244,244,241,.55) 58%, rgba(244,244,241,.22) 66%, rgba(244,244,241,.22) 100%)',
-            }}
-          />
-        </>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-[5]"
+          style={{ background: 'rgba(18, 20, 24, .13)' }}
+        />
       )}
 
-      {/* bleed-r: левый край сетки совпадает с линией контейнера, правый —
-          с краем экрана. Дальше карточка выходит за него отрицательным
-          полем, а overflow секции её обрезает. */}
-      <div className="relative bleed-r">
-        <div className="grid w-full items-end gap-10 lg:grid-cols-12 lg:gap-10">
-          {/* Левая колонка стоит по линии контейнера. */}
-          <div className="pr-[var(--shell-x)] lg:col-span-7 lg:pr-0">
+      <div className="shell w-full">
+        <div className="grid items-center gap-4 md:gap-5 lg:grid-cols-12">
+          {/* ── Панель заголовка ─────────────────────────────────────────── */}
+          <div className="glass glass-panel rounded-card p-5 md:p-7 lg:col-span-7 lg:p-9">
             <p
               data-hero="eyebrow"
               className="flex flex-wrap items-center gap-x-3 gap-y-1 text-t1 text-ink-2"
@@ -109,44 +81,33 @@ export function Hero() {
 
             {/* Две строки заданы разметкой: точка переноса по ширине уезжает
                 от экрана к экрану, и «с доставкой» повисало в первой строке. */}
-            <h1
-              data-hero="title"
-              className="mt-5 font-black text-t4 leading-[.95] tracking-[-.035em]"
-            >
+            <h1 data-hero="title" className="mt-4 font-black text-t4 leading-[.95] tracking-[-.035em]">
               <span className="block">Щебень, песок и грунт</span>
               <span className="block">
                 с доставкой <span className="text-accent">на объект</span>
               </span>
             </h1>
 
-            <p data-hero="lead" className="mt-6 max-w-[46ch] text-t2 leading-relaxed text-ink-2">
+            <p data-hero="lead" className="mt-5 max-w-[46ch] text-t2 leading-relaxed text-ink-2">
               Пять групп материалов, {POSITIONS_TOTAL}{' '}
               {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}, из них{' '}
               {POSITIONS_IN_STOCK} на площадке сегодня. Считаем стоимость с доставкой прямо на
               странице — до звонка.
             </p>
 
-            <div data-hero="cta" className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div data-hero="cta" className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <ButtonLink href="/#zayavka" size="lg" className="w-full sm:w-auto">
                 Запросить прайс
               </ButtonLink>
-              <ButtonLink
-                href="/catalog/"
-                variant="secondary"
-                size="lg"
-                className="w-full sm:w-auto"
-              >
+              <ButtonLink href="/catalog/" variant="secondary" size="lg" className="w-full sm:w-auto">
                 Каталог материалов
               </ButtonLink>
             </div>
           </div>
 
-          {/* Карточка цен уходит вправо навылет: отрицательное правое поле
-              выносит её за край экрана, overflow секции обрезает. Радиус
-              справа снят — обрезанная карточка со скруглением читалась бы
-              как ошибка вёрстки, а не как приём. */}
+          {/* ── Панель цен ───────────────────────────────────────────────── */}
           <div data-hero="price" className="lg:col-span-5">
-            <div className="inv -mr-6 rounded-l-card p-5 pr-10 shadow-lift md:-mr-12 md:p-6 md:pr-16">
+            <div className="glass glass-panel rounded-card p-5 md:p-6">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-t1 font-medium text-ink-2">Цены на площадке</h2>
                 <span className="text-t1 text-ink-2">₽ / м³, с НДС</span>
@@ -157,9 +118,9 @@ export function Hero() {
                   <li key={c.id}>
                     <Link
                       href={`/catalog/?category=${c.id}`}
-                      className="group flex items-baseline justify-between gap-4 py-3 transition-colors"
+                      className="group flex items-baseline justify-between gap-4 py-3"
                     >
-                      <span className="text-t1 text-ink-2 transition-colors group-hover:text-ink">
+                      <span className="text-t1 text-ink-2 transition-colors duration-300 group-hover:text-ink">
                         {c.name}
                       </span>
                       <span className="flex shrink-0 items-baseline gap-1.5">
