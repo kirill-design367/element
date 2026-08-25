@@ -494,7 +494,9 @@ export function Motion() {
         const termsCurrent = document.querySelector<HTMLElement>('[data-terms-current]');
         if (termsStage && termsList && terms.length > 1 && window.innerWidth >= 1024) {
           termsList.classList.add('is-pinned');
-          gsap.set(terms.slice(1), { autoAlpha: 0, y: 60 });
+          // Пролёт больше высоты одного пункта: на 60 px уходящий и входящий
+          // накладывались друг на друга серединой текста.
+          gsap.set(terms.slice(1), { autoAlpha: 0, y: 120 });
           terms[0].classList.add('is-active');
 
           const tl = gsap.timeline({
@@ -528,10 +530,17 @@ export function Motion() {
           });
           terms.forEach((item, i) => {
             if (i === 0) return;
-            tl.to(terms[i - 1], { autoAlpha: 0, y: -60, duration: 0.5 }).to(
+            /* Такт — ровно единица, переход занимает чуть больше половины,
+               остальное пункт стоит на полной плотности. Без этой площадки
+               он выходил на 1,0 на мгновение и снова гас; а когда переходы
+               ставились долями (i-1)/(n-1) при длительности 0,5, они ещё и
+               налезали друг на друга. Уходящий стартует раньше входящего —
+               так между ними нет ни наложения, ни провала. */
+            const at = i - 1;
+            tl.to(terms[i - 1], { autoAlpha: 0, y: -120, duration: 0.35 }, at).to(
               item,
-              { autoAlpha: 1, y: 0, duration: 0.5 },
-              '<',
+              { autoAlpha: 1, y: 0, duration: 0.4 },
+              at + 0.15,
             );
           });
         } else {
@@ -559,7 +568,9 @@ export function Motion() {
         const processBar = document.querySelector<HTMLElement>('[data-process-bar]');
         if (stage && stepsBox && steps.length > 1) {
           stepsBox.classList.add('is-pinned');
-          gsap.set(steps.slice(1), { autoAlpha: 0, y: 60 });
+          // Пролёт больше высоты шага: на 60 px уходящий и входящий шаги
+          // читались один поверх другого — накладывались и цифры, и текст.
+          gsap.set(steps.slice(1), { autoAlpha: 0, y: 140 });
 
           // Длина прогона: чуть больше половины экрана на переход. Длиннее —
           // и страница читается как застрявшая.
@@ -584,23 +595,30 @@ export function Motion() {
              симметрично — содержимое входит чуть ниже центра и уходит чуть
              выше. Односторонний сдвиг на те же 15% уводил блок за верхнюю
              кромку задолго до последнего шага. */
+          /* Переходы строятся подряд, а не по вычисленным долям. Доли
+             (i-1)/(n-1) при длительности 0,5 накладывали переходы друг на
+             друга: на середине прогона гасли сразу два шага, и на экране не
+             читался ни один. Уходящий стартует раньше и гаснет быстрее
+             входящего — так между ними нет ни наложения, ни провала. */
+          steps.forEach((step, i) => {
+            if (i === 0) return;
+            // Такт — единица: переход и площадка, как в «Условиях».
+            const at = i - 1;
+            tl.to(steps[i - 1], { autoAlpha: 0, y: -140, duration: 0.35 }, at).to(
+              step,
+              { autoAlpha: 1, y: 0, duration: 0.4 },
+              at + 0.15,
+            );
+          });
+          // Сползание идёт ровно во всю длину собранного таймлайна.
           if (drift) {
             tl.fromTo(
               drift,
               { y: () => span() * 0.075 },
-              { y: () => -span() * 0.075, ease: 'none' },
+              { y: () => -span() * 0.075, ease: 'none', duration: tl.duration() },
               0,
             );
           }
-          steps.forEach((step, i) => {
-            if (i === 0) return;
-            const at = (i - 1) / (steps.length - 1);
-            tl.to(steps[i - 1], { autoAlpha: 0, y: -60, duration: 0.5 }, at).to(
-              step,
-              { autoAlpha: 1, y: 0, duration: 0.5 },
-              at,
-            );
-          });
         }
 
         });
@@ -749,6 +767,11 @@ export function Motion() {
     };
     const arm = () => {
       EVENTS.forEach((e) => window.addEventListener(e, kick, { once: true, passive: true }));
+      // Запасной подъём по простою — страховка на случай, когда человек
+      // открыл страницу и ничего не делает. Потолок трогать бессмысленно:
+      // requestIdleCallback срабатывает на первом же простое, а не по
+      // таймауту, — поднимали до 5 с, медиана Lighthouse не сдвинулась
+      // (89 против 89,5).
       idle =
         typeof window.requestIdleCallback === 'function'
           ? window.requestIdleCallback(kick, { timeout: 1500 })
