@@ -83,11 +83,18 @@ export function Motion() {
       // Ссылка на применение стекла: обработчик прокрутки объявлен раньше
       // самого стекла, а вызывать надо уже готовую функцию.
       let applyGlassRef: (() => void) | undefined;
+      // Сжатие шапки привязано к прокрутке на отрезке 0-160 px. Доля
+      // квантуется до 1/60: писать переменную на каждый пиксель незачем,
+      // 2,7 px прокрутки на шаг глазом не отличить, а пересчётов втрое
+      // меньше. Порог, который был здесь раньше, схлопывал панель в первый
+      // же щелчок колеса.
+      const PILL_RANGE = 160;
+      let pillStep = -1;
       const onScroll = ({ scroll }: { scroll: number }) => {
-        const on = scroll > 40;
-        if (on !== root.hasAttribute('data-scrolled')) {
-          if (on) root.setAttribute('data-scrolled', '');
-          else root.removeAttribute('data-scrolled');
+        const step = Math.round(Math.min(1, Math.max(0, scroll / PILL_RANGE)) * 60);
+        if (step !== pillStep) {
+          pillStep = step;
+          root.style.setProperty('--pill', String(step / 60));
         }
         // Пока страница едет, со стекла снимается размытие: композитор не
         // может закэшировать блюр движущейся подложки и пересчитывает его
@@ -650,7 +657,7 @@ export function Motion() {
         gsap.ticker.remove(raf);
         lenis.destroy();
         window.clearTimeout(stopTimer);
-        root.removeAttribute('data-scrolled');
+        root.style.removeProperty('--pill');
         root.removeAttribute('data-scrolling');
         document.documentElement.classList.remove('lenis-ready');
       };

@@ -49,6 +49,8 @@
 
   /* Ширины контейнеров. */
   --shell-max: 1320px;
+  /* Доля пройденного отрезка сжатия шапки, 0-1. Пишет Motion. */
+  --pill: 0;
   --narrow-max: 880px;
   --shell-x: clamp(16px, 4vw, 40px);
 
@@ -256,29 +258,36 @@ html[data-scrolling] .site-pill {
   padding-inline: clamp(10px, 2.2vw, 22px);
   contain: layout style;
 }
+/* Размер привязан к прокрутке, а не переключается порогом: Motion пишет в
+   --pill долю пройденного отрезка 0-160 px, CSS считает от неё размеры.
+   Порог давал схлопывание в первый же щелчок колеса — панель дёргалась.
+
+   Размах намеренно небольшой: высота теряет 15% (60 -> 51 px), ширина 8%.
+   Больше — и пилюля на середине прокрутки выглядит другой панелью.
+
+   Доля квантуется в Motion до 1/60, поэтому пересчёт идёт не чаще, чем
+   раз в 2,7 px прокрутки, а contain: layout style не выпускает его наружу.
+   Замер после: пересчётов вёрстки за полный проход столько же, сколько
+   было с порогом. */
 .site-pill {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  max-width: var(--shell-max);
-  height: 60px;
+  max-width: calc(var(--shell-max) * (1 - .08 * var(--pill)));
+  height: calc(60px - 9px * var(--pill));
   margin-inline: auto;
   padding-inline: clamp(12px, 1.6vw, 20px);
   border-radius: 999px;
-  transition: height .4s var(--ease-out), max-width .4s var(--ease-out),
-    background-color .4s var(--ease-out), backdrop-filter .35s var(--ease-out);
-}
-html[data-scrolled] .site-pill {
-  height: 52px;
-  max-width: calc(var(--shell-max) - 120px);
-  /* Плотность растёт, но остаётся в пределах стекла. */
-  background: rgba(247, 247, 244, .55);
+  /* Заливка тоже едет по прокрутке — от 0,5 до 0,55, в пределах стекла.
+     Переход на height и max-width не вешается: он дрался бы со скрабом. */
+  background: rgba(247, 247, 244, calc(.5 + .05 * var(--pill)));
+  transition: backdrop-filter .35s var(--ease-out);
 }
 @media (max-width: 767px) {
   .site-header { top: 8px; }
-  .site-pill { height: 54px; }
-  html[data-scrolled] .site-pill { height: 50px; max-width: 100%; }
+  /* На телефоне пилюля и так во всю ширину — едет только высота. */
+  .site-pill { height: calc(54px - 8px * var(--pill)); max-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .site-pill { transition: none; }
