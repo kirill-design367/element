@@ -30,7 +30,7 @@ LQIP_JSON = ROOT / 'lib' / 'photo-lqip.json'
 #   вертикальный hero  — 640 / 828 / 1080 (390 px при dpr 2 и 3)
 PLAN = {
     'hero-desktop': [1280, 1920, 2560],
-    'hero-mobile': [480, 640, 720],
+    'hero-mobile': [420, 560, 640],
     'park': [1280, 1920, 2200],
     'objects': [560, 840, 1120],
     'cat-shcheben': [440, 720, 1000],

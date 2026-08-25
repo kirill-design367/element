@@ -32,14 +32,13 @@ export function Motion() {
     let cleanupRail: (() => void) | undefined;
 
     const start = async () => {
-      const [{ gsap }, { ScrollTrigger }, { SplitText }, { default: Lenis }] = await Promise.all([
+      const [{ gsap }, { ScrollTrigger }, { default: Lenis }] = await Promise.all([
         import('gsap'),
         import('gsap/ScrollTrigger'),
-        import('gsap/SplitText'),
         import('lenis'),
       ]);
       if (cancelled) return;
-      gsap.registerPlugin(ScrollTrigger, SplitText);
+      gsap.registerPlugin(ScrollTrigger);
 
       /* ── 1. Прокрутка ───────────────────────────────────────────────────
          Затухание экспоненциальное: разгон мгновенный, остановка мягкая, без
@@ -80,12 +79,19 @@ export function Motion() {
          Порог 40 px и флаг на <html>: переход описан в CSS, JS только
          переключает состояние — никаких стилей в цикле прокрутки. */
       const root = document.documentElement;
+      let stopTimer = 0;
       const onScroll = ({ scroll }: { scroll: number }) => {
         const on = scroll > 40;
         if (on !== root.hasAttribute('data-scrolled')) {
           if (on) root.setAttribute('data-scrolled', '');
           else root.removeAttribute('data-scrolled');
         }
+        // Пока страница едет, со стекла снимается размытие: композитор не
+        // может закэшировать блюр движущейся подложки и пересчитывает его
+        // каждый кадр. Возвращаем через 160 мс после остановки.
+        root.setAttribute('data-scrolling', '');
+        window.clearTimeout(stopTimer);
+        stopTimer = window.setTimeout(() => root.removeAttribute('data-scrolling'), 160);
       };
       lenis.on('scroll', onScroll);
       onScroll({ scroll: window.scrollY });
@@ -106,8 +112,13 @@ export function Motion() {
 
          Полоса прогресса под лентой: ширина бегунка — доля видимой части,
          положение — доля прокрутки. Двигается transform. */
-      const rail = document.querySelector<HTMLElement>('[data-rail]');
+      // Горизонтальный Lenis нужен только там, где крутят колесом и
+      // трекпадом. На телефоне свайп родной и инерционный сам по себе —
+      // лишняя копия движка там только ест главный поток при загрузке.
+      const finePointer = window.matchMedia('(pointer: fine)').matches;
+      const rail = finePointer ? document.querySelector<HTMLElement>('[data-rail]') : null;
       const railBar = document.querySelector<HTMLElement>('[data-rail-bar]');
+      const railNative = !finePointer ? document.querySelector<HTMLElement>('[data-rail]') : null;
       let railLenis: InstanceType<typeof Lenis> | undefined;
       if (rail) {
         railLenis = new Lenis({
@@ -141,6 +152,21 @@ export function Motion() {
           railLenis?.destroy();
         };
         cleanupRail = railCleanup;
+      } else if (railNative && railBar) {
+        // Без своей копии Lenis лента крутится родной прокруткой, но полоса
+        // прогресса нужна и там.
+        const paint = () => {
+          const max = railNative.scrollWidth - railNative.clientWidth;
+          const view = railNative.clientWidth / railNative.scrollWidth;
+          const pos = max > 0 ? railNative.scrollLeft / max : 0;
+          gsap.set(railBar, {
+            scaleX: view,
+            x: (railNative.clientWidth - railNative.clientWidth * view) * pos,
+          });
+        };
+        railNative.addEventListener('scroll', paint, { passive: true });
+        paint();
+        cleanupRail = () => railNative.removeEventListener('scroll', paint);
       }
 
       /* ── 2. Появления ───────────────────────────────────────────────────
@@ -262,7 +288,15 @@ export function Motion() {
            а не при разборе страницы. */
         const splitHeads = () => {
           document.querySelectorAll<HTMLElement>('[data-lines]').forEach((head) => {
-            const play = () => {
+            const play = async () => {
+              // SplitText подгружается в момент, когда первый заголовок
+              // подходит к кадру, а не вместе с остальным движением: на
+              // первом экране размеченных заголовков нет, а 14 КБ разбора
+              // в критическом окне стоят 40 мс блокировки на мобильном
+              // процессоре Lighthouse.
+              const { SplitText } = await import('gsap/SplitText');
+              if (cancelled) return;
+              gsap.registerPlugin(SplitText);
               const split = SplitText.create(head, { type: 'lines', mask: 'lines', aria: 'auto' });
               gsap.from(split.lines, {
                 yPercent: 108,
@@ -272,8 +306,14 @@ export function Motion() {
                 onComplete: () => split.revert(),
               });
             };
-            if (head.getBoundingClientRect().top < window.innerHeight * 0.86) play();
-            else ScrollTrigger.create({ trigger: head, start: 'top 85%', once: true, onEnter: play });
+            if (head.getBoundingClientRect().top < window.innerHeight * 0.86) void play();
+            else
+              ScrollTrigger.create({
+                trigger: head,
+                start: 'top 85%',
+                once: true,
+                onEnter: () => void play(),
+              });
           });
         };
         if (document.fonts?.status === 'loaded') splitHeads();
@@ -437,21 +477,35 @@ export function Motion() {
         ctx.revert();
         gsap.ticker.remove(raf);
         lenis.destroy();
+        window.clearTimeout(stopTimer);
         root.removeAttribute('data-scrolled');
+        root.removeAttribute('data-scrolling');
         document.documentElement.classList.remove('lenis-ready');
       };
     };
 
-    // requestIdleCallback есть не везде — таймер как запасной путь.
-    const idle =
-      typeof window.requestIdleCallback === 'function'
-        ? window.requestIdleCallback(() => void start(), { timeout: 900 })
-        : window.setTimeout(() => void start(), 300);
+    /* Движение поднимается после загрузки страницы, а не в её середине.
+       Сначала ждём событие load — к этому моменту кадр первого экрана уже
+       на месте и React закончил гидратацию, — потом простоя. Так 150 мс
+       разбора gsap с Lenis не встают в очередь между первой отрисовкой и
+       готовностью к вводу: на придушенном вшестеро процессоре это давало
+       80 мс к общему времени блокировки. На живой машине простой наступает
+       через миг после load, и разницы на глаз нет. */
+    let idle = 0;
+    const schedule = () => {
+      idle =
+        typeof window.requestIdleCallback === 'function'
+          ? window.requestIdleCallback(() => void start(), { timeout: 1200 })
+          : window.setTimeout(() => void start(), 200);
+    };
+    if (document.readyState === 'complete') schedule();
+    else window.addEventListener('load', schedule, { once: true });
 
     return () => {
       cancelled = true;
-      if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle as number);
-      else window.clearTimeout(idle as number);
+      window.removeEventListener('load', schedule);
+      if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle);
+      else window.clearTimeout(idle);
       cleanup?.();
     };
   }, []);
