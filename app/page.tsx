@@ -58,11 +58,10 @@ export default function HomePage() {
         <Terms />
       </Section>
 
-      <Section id="process" width="shift" pad="normal">
-        <SectionHead
-          title="Как работаем"
-          lead="От заявки до закрывающих документов — пять шагов и ни одного лишнего согласования."
-        />
+      {/* Залипающая последовательность: шаги сменяют друг друга по мере
+          прокрутки, поэтому секция во всю ширину и без вертикального воздуха
+          снаружи — воздух держит сама сцена. */}
+      <Section id="process" width="edge" pad="none">
         <Process />
       </Section>
 

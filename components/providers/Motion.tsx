@@ -292,6 +292,50 @@ export function Motion() {
           });
         });
 
+        /* ── Как работаем: залипающая последовательность ─────────────────
+           Секция залипает, шаги сменяют друг друга по прокрутке, точки внизу
+           показывают, где человек находится. Прятать шаги заранее нельзя, но
+           здесь прятание происходит уже после того, как таймлайн собран: если
+           скрипт не выполнился, is-pinned не появится и останется обычный
+           список из пяти пунктов. */
+        const stage = document.querySelector<HTMLElement>('[data-process-stage]');
+        const stepsBox = document.querySelector<HTMLElement>('[data-process-steps]');
+        const steps = gsap.utils.toArray<HTMLElement>('[data-step]');
+        const dots = gsap.utils.toArray<HTMLElement>('[data-process-dots] li');
+        if (stage && stepsBox && steps.length > 1) {
+          stepsBox.classList.add('is-pinned');
+          gsap.set(steps.slice(1), { autoAlpha: 0, y: 44 });
+          dots[0]?.classList.add('is-on');
+
+          const tl = gsap.timeline({
+            defaults: { ease: 'power2.inOut' },
+            scrollTrigger: {
+              trigger: stage,
+              start: 'top top',
+              // По экрану с небольшим на каждый переход: слишком длинный
+              // прогон читается как «страница застряла».
+              end: () => '+=' + window.innerHeight * (steps.length - 1) * 0.9,
+              pin: stage,
+              pinSpacing: true,
+              anticipatePin: 1,
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => {
+                const i = Math.min(steps.length - 1, Math.round(self.progress * (steps.length - 1)));
+                dots.forEach((d, k) => d.classList.toggle('is-on', k === i));
+              },
+            },
+          });
+          steps.forEach((step, i) => {
+            if (i === 0) return;
+            tl.to(steps[i - 1], { autoAlpha: 0, y: -44, duration: 0.5 }).to(
+              step,
+              { autoAlpha: 1, y: 0, duration: 0.5 },
+              '<',
+            );
+          });
+        }
+
         /* ── 3. Параллакс ─────────────────────────────────────────────────
            Возит только transform. Триггером берётся ближайший предок с
            высотой, а не родитель напрямую: у кадра первого экрана родитель —
