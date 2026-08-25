@@ -25,10 +25,10 @@ export function Contacts() {
               href={`tel:${COMPANY.phone}`}
               className="group mt-6 flex items-center gap-4 rounded transition-colors duration-300 hover:text-accent"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line-strong">
+              <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line-strong sm:flex">
                 <PhoneIcon className="h-5 w-5 text-ink-3" />
               </span>
-              <span className="tnum font-black text-t4 leading-none tracking-[-.03em]">
+              <span className="font-black text-t4 leading-none tracking-[-.03em]">
                 {nbsp(COMPANY.phoneLabel)}
               </span>
             </a>

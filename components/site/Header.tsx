@@ -60,7 +60,7 @@ export function Header() {
         <div className="ml-auto flex items-center gap-2 md:gap-3">
           <a
             href={`tel:${COMPANY.phone}`}
-            className="tnum flex min-h-[44px] items-center gap-1.5 rounded-pill px-1 text-t1 font-semibold tracking-[-.01em] transition-colors duration-300 hover:text-accent md:text-t2"
+            className="flex min-h-[44px] items-center gap-1.5 rounded-pill px-1 text-t1 font-semibold tracking-[-.01em] transition-colors duration-300 hover:text-accent md:text-t2"
           >
             <PhoneIcon className="h-4 w-4 text-ink-3 md:h-[18px] md:w-[18px]" />
             <span className="whitespace-nowrap">{nbsp(COMPANY.phoneLabel)}</span>

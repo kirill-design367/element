@@ -23,7 +23,7 @@ export function Footer() {
         </p>
 
         <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <a href={`tel:${COMPANY.phone}`} className="tnum link-underline rounded font-semibold text-ink">
+          <a href={`tel:${COMPANY.phone}`} className="link-underline rounded font-semibold text-ink">
             {nbsp(COMPANY.phoneLabel)}
           </a>
           <a href={`mailto:${COMPANY.email}`} className="link-underline rounded">

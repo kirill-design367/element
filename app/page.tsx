@@ -99,7 +99,7 @@ export default function HomePage() {
               </p>
               <a
                 href={`tel:${COMPANY.phone}`}
-                className="tnum mt-6 inline-flex items-center gap-2 rounded font-black text-t3 leading-none transition-colors duration-300 hover:text-accent"
+                className="mt-6 inline-flex items-center gap-2 rounded font-black text-t3 leading-none transition-colors duration-300 hover:text-accent"
               >
                 {nbsp(COMPANY.phoneLabel)}
               </a>
