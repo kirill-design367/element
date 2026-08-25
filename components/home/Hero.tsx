@@ -4,7 +4,8 @@ import { ButtonLink } from '@/components/ui/Button';
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
 import { CATEGORIES, POSITIONS_IN_STOCK, POSITIONS_TOTAL, priceFrom } from '@/lib/catalog';
 import { num, plural } from '@/lib/format';
-import { PHOTO, asset } from '@/lib/assets';
+import { PHOTO } from '@/lib/assets';
+import { Photo } from '@/components/ui/Photo';
 
 export const FACTS = [
   { label: 'География', value: `Москва и область, до ${MAX_KM} км от МКАД` },
@@ -30,27 +31,21 @@ export function Hero() {
     <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-24 md:pb-36 md:pt-28">
       {/* Фоновый слот. Спецификация — PHOTO.hero в lib/assets.ts.
           Кадр выше блока на 48 px и поднят на 24: параллакс возит его на
-          ±20, и без этого запаса на краях показалась бы полоса фона. */}
-      <div className="absolute inset-0 -z-10 overflow-hidden bg-surface-2">
-        {PHOTO.hero.src && (
-          <picture>
-            <source
-              media="(max-width: 767px)"
-              type="image/webp"
-              srcSet={asset(PHOTO.hero.srcMobile ?? PHOTO.hero.src)}
-            />
-            <img
-              src={asset(PHOTO.hero.src)}
-              alt={PHOTO.hero.brief}
-              data-parallax="hero"
-              /* Это LCP: грузим первым и не откладываем. */
-              fetchPriority="high"
-              decoding="async"
-              className="absolute inset-x-0 -top-6 h-[calc(100%+48px)] w-full object-cover"
-            />
-          </picture>
-        )}
-      </div>
+          ±2% высоты, и без этого запаса на краях показалась бы полоса фона.
+          На узком экране идёт свой вертикальный кадр: горизонтальный на
+          390 px обрезается до полоски. */}
+      {PHOTO.hero.file && (
+        <Photo
+          file={PHOTO.hero.file}
+          mobile={PHOTO.hero.mobile}
+          alt={PHOTO.hero.brief}
+          sizes="100vw"
+          priority
+          parallax="hero"
+          className="absolute inset-0 -z-10 bg-surface-2"
+          imgClassName="absolute inset-x-0 -top-6 h-[calc(100%+48px)]"
+        />
+      )}
 
       {/* Читаемость: подложка не сплошная и не размытие — градиент от края.
           Кадр обязан остаться виден, поэтому подложки две и они разные.
@@ -68,7 +63,7 @@ export function Hero() {
           и полосой снизу, вокруг карточки цен. Раньше эта подложка начиналась
           выше секции (top: -10rem), из-за чего её прозрачный конец оказывался
           за экраном — на деле кадр был закрыт целиком и ровно. */}
-      {PHOTO.hero.src && (
+      {PHOTO.hero.file && (
         <>
           <div
             aria-hidden="true"

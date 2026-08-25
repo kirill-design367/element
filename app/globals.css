@@ -104,6 +104,39 @@ body {
    сравнивать по вертикали, — на сплошном тексте tnum разгоняет пробелы. */
 .tnum { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum' 1; }
 
+/* ── Фотография ──────────────────────────────────────────────
+   Кадр собран в трёх ширинах и двух форматах, выбор — за браузером через
+   srcset и sizes. Пока файл в пути, на его месте лежит миниатюра 24 px,
+   растянутая и размытая: несколько сотен байт прямо в разметке. Пришёл
+   кадр — подложка уходит по прозрачности за 0,6 с; анимируется только
+   opacity, размытие статично и не пересчитывается ни одного кадра.
+
+   Правила лежат в слое components, чтобы утилиты Tailwind у вызывающего
+   кода их перебивали: слоту нужно то absolute, то aspect-ratio.
+   ──────────────────────────────────────────────────────────── */
+@layer components {
+  .photo-box { position: relative; overflow: hidden; }
+  .photo-box > picture { display: block; height: 100%; }
+  .photo-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .lqip {
+    position: absolute;
+    inset: -3%;
+    z-index: 1;
+    background-size: cover;
+    background-position: center;
+    filter: blur(18px);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+/* Подложка показывается, только если скрипт есть и он сможет её снять. */
+html.js .lqip { opacity: 1; }
+html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  html.js .photo-box.is-loaded .lqip { transition: none; }
+}
+
 /* ── Счётчик ─────────────────────────────────────────────────
    Набор цифры не должен менять ширину ячейки, иначе соседний текст
    дёргается весь набор. Двойник с конечным значением лежит в той же ячейке

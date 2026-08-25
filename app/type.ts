@@ -22,13 +22,18 @@ import localFont from 'next/font/local';
  */
 
 /**
- * Весь сайт: заголовки, интерфейс, текст, все числа. Пять начертаний —
- * Light, Regular, Medium, Bold, Black. Заголовки набираются Black строчными
- * с прописной первой буквы; отдельной заголовочной гарнитуры больше нет.
+ * Весь сайт: заголовки, интерфейс, текст, все числа. Заголовки набираются
+ * Black строчными с прописной первой буквы; отдельной заголовочной гарнитуры
+ * больше нет.
+ *
+ * Начертаний подключено четыре, хотя в семействе их пять. Light (300) в
+ * разметке не встречается ни разу, а next/font предзагружает всё семейство
+ * целиком — то есть 16,7 КБ уходили в критический путь на каждой странице
+ * и делили мобильный канал с кадром первого экрана, который и есть LCP.
+ * Файл лежит в assets/fonts и подключается одной строкой, когда понадобится.
  */
 export const cofoSans = localFont({
   src: [
-    { path: '../assets/fonts/CoFoSans-Light.woff2', weight: '300', style: 'normal' },
     { path: '../assets/fonts/CoFoSans-Regular.woff2', weight: '400', style: 'normal' },
     { path: '../assets/fonts/CoFoSans-Medium.woff2', weight: '500', style: 'normal' },
     { path: '../assets/fonts/CoFoSans-Bold.woff2', weight: '700', style: 'normal' },

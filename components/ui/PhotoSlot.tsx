@@ -1,5 +1,6 @@
 import type { Category } from '@/lib/catalog';
-import { PHOTO, asset } from '@/lib/assets';
+import { PHOTO } from '@/lib/assets';
+import { Photo } from './Photo';
 
 /**
  * Место под фотографию материала.
@@ -31,13 +32,15 @@ export function PhotoSlot({
       className={`relative overflow-hidden ${className}`}
       style={{ backgroundColor: category.grain.bg }}
     >
-      {photo?.src && (
-        <img
-          src={asset(photo.src)}
+      {photo?.file && (
+        <Photo
+          file={photo.file}
           alt={photo.brief}
-          loading="lazy"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
+          /* Карточка ленты: 30% контейнера на широком экране, почти вся
+             ширина на телефоне. По этим числам браузер и выбирает файл. */
+          sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 78vw"
+          className="absolute inset-0"
+          imgClassName="photo-zoom"
         />
       )}
       {children}

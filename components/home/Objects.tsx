@@ -1,5 +1,6 @@
 import { typo, volume } from '@/lib/format';
-import { PHOTO, asset } from '@/lib/assets';
+import { PHOTO } from '@/lib/assets';
+import { Photo } from '@/components/ui/Photo';
 
 /** Заглушки: объекты вымышленные, объёмы правдоподобные. */
 const OBJECTS = [
@@ -73,14 +74,14 @@ export function Objects() {
           а сама секция обрезает вылет. */}
       <div className="lg:col-span-6">
         <div className="relative h-full min-h-[280px] overflow-hidden rounded-l-card bg-surface-2 lg:min-h-full">
-          {PHOTO.objects.src && (
-            <img
-              src={asset(PHOTO.objects.src)}
+          {PHOTO.objects.file && (
+            <Photo
+              file={PHOTO.objects.file}
               alt={PHOTO.objects.brief}
-              data-parallax="objects"
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-x-0 -top-6 h-[calc(100%+48px)] w-full object-cover"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              parallax="objects"
+              className="absolute inset-0"
+              imgClassName="absolute inset-x-0 -top-6 h-[calc(100%+48px)]"
             />
           )}
         </div>

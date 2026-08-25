@@ -1,5 +1,6 @@
 import { Counter } from './Counter';
-import { PHOTO, asset } from '@/lib/assets';
+import { PHOTO } from '@/lib/assets';
+import { Photo } from '@/components/ui/Photo';
 
 /**
  * Заглушки. Порядок величин правдоподобный для поставщика такого размера.
@@ -34,22 +35,22 @@ export function Fleet() {
       style={{ background: 'transparent' }}
     >
       <div className="absolute inset-0 -z-10 overflow-hidden bg-[#14161a]">
-        {PHOTO.fleet.src && (
-          <img
-            src={asset(PHOTO.fleet.src)}
+        {PHOTO.fleet.file && (
+          <Photo
+            file={PHOTO.fleet.file}
             alt={PHOTO.fleet.brief}
-            data-parallax="fleet"
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-x-0 -top-6 h-[calc(100%+48px)] w-full object-cover"
+            sizes="100vw"
+            parallax="fleet"
+            className="absolute inset-0"
+            imgClassName="absolute inset-x-0 -top-6 h-[calc(100%+48px)]"
           />
         )}
         {/* Читаемость: градиент от левого и нижнего краёв кадра. Не сплошная
             заливка и не размытие — правая часть снимка остаётся чистой. */}
-        {PHOTO.fleet.src && (
+        {PHOTO.fleet.file && (
           <div
             aria-hidden="true"
-            className="absolute inset-0"
+            className="absolute inset-0 z-[2]"
             style={{
               background:
                 'linear-gradient(to right, rgba(12,14,17,.92) 0%, rgba(12,14,17,.72) 34%, rgba(12,14,17,.18) 64%, rgba(12,14,17,0) 88%),' +

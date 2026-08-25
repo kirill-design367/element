@@ -6,6 +6,7 @@ import { MobileBar } from '@/components/site/MobileBar';
 import { Footer } from '@/components/site/Footer';
 import { RequestProvider } from '@/components/providers/RequestProvider';
 import { Motion } from '@/components/providers/Motion';
+import { PHOTO_SCRIPT } from '@/lib/photo-script';
 import { COMPANY } from '@/lib/company';
 
 export const metadata: Metadata = {
@@ -31,6 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru" className={`${cofoSans.variable} ${cofoMono.variable}`}>
       <body className="min-h-screen antialiased">
+        {/* Снимает размытую подложку с кадра, когда он загрузился.
+            Подробности — lib/photo-script.ts */}
+        <script dangerouslySetInnerHTML={{ __html: PHOTO_SCRIPT }} />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[100] focus:rounded-card focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
