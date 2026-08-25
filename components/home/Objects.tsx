@@ -39,8 +39,11 @@ const OBJECTS = [
  * список объектов стоит слева в узкой колонке. Высота блока меньше экрана —
  * после полноэкранного парка сюда нужен короткий блок, а не второй такой же.
  *
- * Пока снимка нет, правая половина остаётся полем в тон фона: заглушек не
- * рисуем, а перепад плотности между колонками работает и без кадра.
+ * Список и кадр связаны: при наведении на объект кадр справа меняет кроп и
+ * масштаб. Своего снимка у каждого объекта пока нет — механика заложена и
+ * работает на одном кадре, чтобы приём читался; когда придут отдельные
+ * кадры, в data-object-photo будет подставляться свой файл, а не свой кроп.
+ * Меняется только transform.
  */
 export function Objects() {
   return (
@@ -52,8 +55,14 @@ export function Objects() {
         </p>
 
         <ul className="mt-8 divide-y divide-line">
-          {OBJECTS.map((o) => (
-            <li key={o.name} data-reveal className="flex items-start justify-between gap-5 py-4">
+          {OBJECTS.map((o, i) => (
+            <li
+              key={o.name}
+              data-reveal
+              data-object={i}
+              tabIndex={0}
+              className="object-row flex items-start justify-between gap-5 rounded py-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
               <div className="min-w-0">
                 <h3 className="text-t2 font-bold leading-snug tracking-[-.015em]">{typo(o.name)}</h3>
                 <p className="mt-1 text-t1 text-ink-2">
@@ -73,7 +82,10 @@ export function Objects() {
       {/* Правая половина уходит за край экрана: у неё нет правого поля,
           а сама секция обрезает вылет. */}
       <div className="lg:col-span-6">
-        <div className="relative h-full min-h-[280px] overflow-hidden rounded-l-card bg-surface-2 lg:min-h-full">
+        <div
+          data-object-photo
+          className="relative h-full min-h-[280px] overflow-hidden rounded-l-panel bg-surface-2 lg:min-h-full"
+        >
           {PHOTO.objects.file && (
             <Photo
               file={PHOTO.objects.file}

@@ -12,7 +12,8 @@ import { Contacts } from '@/components/home/Contacts';
 import { ButtonLink } from '@/components/ui/Button';
 import { MAX_KM } from '@/lib/pricing';
 import { POSITIONS_TOTAL } from '@/lib/catalog';
-import { plural } from '@/lib/format';
+import { nbsp, plural } from '@/lib/format';
+import { COMPANY } from '@/lib/company';
 
 export default function HomePage() {
   return (
@@ -78,18 +79,40 @@ export default function HomePage() {
         <Objects />
       </Section>
 
-      <Section id="zayavka" width="narrow" pad="loose">
-        <SectionHead
-          title="Заявка на просчёт"
-          lead="Ответим ценой на материал и доставку в течение рабочего часа. Держим цену пять дней."
-        />
-        <div className="max-w-[860px]">
-          <LeadForm />
+      {/* Финальный аккорд: широкий блок с контрастным фоном во всю ширину
+          экрана. Верхние углы скруглены крупно — следующая секция наезжает
+          на предыдущую, а не встаёт с ней встык. */}
+      <Section id="zayavka" width="edge" pad="none">
+        <div className="inv rounded-t-panel py-16 md:py-24">
+          <div className="shell grid gap-10 lg:grid-cols-12 lg:gap-8">
+            <div className="lg:col-span-4">
+              <h2
+                data-lines
+                className="font-black text-t4 leading-[1.04] tracking-[-.02em]"
+              >
+                Заявка на просчёт
+              </h2>
+              <p className="mt-4 max-w-[34ch] text-t2 leading-relaxed text-ink-2">
+                Ответим ценой на материал и доставку в течение рабочего часа. Держим цену
+                пять дней.
+              </p>
+              <a
+                href={`tel:${COMPANY.phone}`}
+                className="tnum mt-8 inline-flex items-center gap-2 rounded font-black text-t3 leading-none transition-colors duration-300 hover:text-accent"
+              >
+                {nbsp(COMPANY.phoneLabel)}
+              </a>
+            </div>
+            <div className="lg:col-span-7 lg:col-start-6">
+              <LeadForm />
+            </div>
+          </div>
         </div>
       </Section>
 
-      <Section id="kontakty" tone="muted" width="shell" pad="normal">
-        <SectionHead title="Контакты" />
+      {/* Заголовок живёт внутри Contacts: телефон крупный и отдельно,
+          реквизиты в раскрывающемся блоке, карта во всю ширину экрана. */}
+      <Section id="kontakty" tone="muted" width="edge" pad="normal">
         <Contacts />
       </Section>
     </>

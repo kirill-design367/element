@@ -272,6 +272,44 @@ html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
   .narrow-left { margin-inline: 0; margin-right: auto; padding-left: max(var(--shell-x), (100% - var(--shell-max)) / 2); }
 }
 
+/* ── Объекты: строка списка и кадр ───────────────────────────
+   Наведение на строку меняет кроп кадра справа. Здесь только цвет строки —
+   сам кадр возит Motion трансформом.
+   ──────────────────────────────────────────────────────────── */
+.object-row { transition: color .3s var(--ease-out); }
+.object-row:hover, .object-row:focus-visible { color: var(--ink); }
+.object-row:hover .text-ink-2, .object-row:focus-visible .text-ink-2 { color: var(--ink-2); }
+
+/* Крупное скругление слева — у кадра «Объектов» и у панели заявки. */
+.rounded-l-panel { border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
+
+/* ── Реквизиты: раскрывающийся блок ──────────────────────────
+   Плюс/минус собран из двух линеек, чтобы не тянуть иконку ради 40 байт.
+   ──────────────────────────────────────────────────────────── */
+.requisites summary::-webkit-details-marker { display: none; }
+.requisites-mark {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.requisites-mark::before,
+.requisites-mark::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1.5px;
+  background: var(--ink);
+  transform: translateY(-50%);
+  transition: transform .3s var(--ease-out), opacity .3s var(--ease-out);
+}
+.requisites-mark::after { transform: translateY(-50%) rotate(90deg); }
+.requisites[open] .requisites-mark::after { transform: translateY(-50%) rotate(0deg); opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .requisites-mark::before, .requisites-mark::after { transition: none; }
+  .object-row { transition: none; }
+}
+
 /* ── Как работаем: залипающая последовательность ─────────────
    По умолчанию — обычный список в потоке: без скрипта и в режиме покоя пять
    шагов просто читаются сверху вниз. Класс is-pinned ставит Motion, и тогда

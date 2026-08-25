@@ -125,7 +125,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
 
   if (status === 'done') {
     return (
-      <div className="rounded-card border border-line bg-surface p-6 shadow-card md:p-8">
+      <div className="rounded-panel border border-line bg-surface-2 p-6 md:p-8">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-bg">
             <CheckIcon className="h-5 w-5" />
@@ -182,7 +182,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="rounded-card border border-line bg-surface p-5 shadow-card md:p-7"
+      className="rounded-panel border border-line bg-surface-2 p-5 md:p-7"
     >
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
@@ -368,8 +368,10 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Button type="submit" size="lg" disabled={status === 'sending'} className="w-full sm:w-auto">
+      <div className="mt-6 flex flex-col gap-3">
+        {/* Кнопка во всю ширину колонки: это последнее действие на
+            странице, сужать его незачем. */}
+        <Button type="submit" size="lg" disabled={status === 'sending'} className="w-full">
           {status === 'sending' ? 'Собираем заявку…' : 'Отправить заявку'}
         </Button>
         <p className="text-t1 leading-snug text-ink-2">

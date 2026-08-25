@@ -336,6 +336,33 @@ export function Motion() {
           });
         }
 
+        /* ── Объекты: список ведёт кадр ─────────────────────────────────
+           Наведение на строку меняет кроп и масштаб кадра справа. Своего
+           снимка у каждого объекта пока нет, поэтому приём читается сменой
+           кадрирования одного кадра — механика при этом настоящая: придут
+           отдельные файлы, поменяется источник, а не логика.
+
+           Возит transform, поверх параллакса: у параллакса свой tween на y,
+           здесь — scale и x, они не конфликтуют. */
+        const objPhoto = document.querySelector<HTMLElement>('[data-object-photo] img');
+        const rows = gsap.utils.toArray<HTMLElement>('[data-object]');
+        if (objPhoto && rows.length) {
+          const frame = (i: number) =>
+            gsap.to(objPhoto, {
+              scale: 1 + i * 0.035,
+              x: i * -14,
+              duration: 0.8,
+              ease: EASE,
+              overwrite: 'auto',
+            });
+          rows.forEach((row, i) => {
+            row.addEventListener('pointerenter', () => frame(i));
+            row.addEventListener('focus', () => frame(i));
+          });
+          const list = rows[0].parentElement;
+          list?.addEventListener('pointerleave', () => frame(0));
+        }
+
         /* ── 3. Параллакс ─────────────────────────────────────────────────
            Возит только transform. Триггером берётся ближайший предок с
            высотой, а не родитель напрямую: у кадра первого экрана родитель —
