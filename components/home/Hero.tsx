@@ -139,7 +139,7 @@ export function Hero() {
                 Самовывоз с площадки. Доставка считается отдельно —{' '}
                 <Link
                   href="/#raschet"
-                  className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+                  className="link-underline rounded text-accent"
                 >
                   в калькуляторе ниже
                 </Link>

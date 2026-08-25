@@ -159,7 +159,7 @@ export function CatalogClient() {
               <p className="mt-3 max-w-[64ch] text-t2 leading-relaxed text-ink-2">
                 {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
                 на условиях самовывоза. Стоимость доставки считается отдельно —{' '}
-                <Link href="/#raschet" className="rounded text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent">
+                <Link href="/#raschet" className="link-underline rounded text-accent">
                   в калькуляторе
                 </Link>
                 .
@@ -229,7 +229,7 @@ export function CatalogClient() {
               <button
                 type="button"
                 onClick={reset}
-                className="rounded text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+                className="link-underline rounded text-t2 text-accent"
               >
                 Сбросить фильтры
               </button>
@@ -270,7 +270,7 @@ export function CatalogClient() {
 
         <Link
           href="/#zayavka"
-          className="mt-2 inline-flex items-center gap-2 rounded text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+          className="link-underline mt-2 inline-flex items-center gap-2 rounded text-t2 text-accent"
         >
           Не нашли нужную позицию — напишите нам
           <ArrowIcon className="h-4 w-4" />

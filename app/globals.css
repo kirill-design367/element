@@ -272,6 +272,59 @@ html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
   .narrow-left { margin-inline: 0; margin-right: auto; padding-left: max(var(--shell-x), (100% - var(--shell-max)) / 2); }
 }
 
+/* ── Микровзаимодействия ─────────────────────────────────────
+   Реакция на наведение есть у всего, что можно нажать. Двигается только
+   transform, цвет меняется плотностью фона — ни тени, ни фильтры не
+   анимируются нигде.
+   ──────────────────────────────────────────────────────────── */
+
+/* Кнопка: мягкое увеличение и сдвиг стрелки. 1.02 — предел, за которым
+   рамка начинает мылить края. */
+.btn {
+  transition: transform .3s var(--ease-out), background-color .3s var(--ease-out),
+    border-color .3s var(--ease-out), color .3s var(--ease-out);
+}
+.btn:hover { transform: scale(1.02); }
+.btn:active { transform: scale(.99); }
+.btn .arrow-slide { transition: transform .3s var(--ease-out); }
+.btn:hover .arrow-slide { transform: translateX(4px); }
+
+/* Ссылка: подчёркивание вырастает от левого края, а не появляется целиком. */
+.link-underline { position: relative; }
+.link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  opacity: .55;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .3s var(--ease-out);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after { transform: scaleX(1); }
+
+/* Поле ввода: обводка нарастает, а не включается щелчком. */
+.field {
+  transition: border-color .3s var(--ease-out), box-shadow .3s var(--ease-out);
+  box-shadow: 0 0 0 0 var(--accent-soft);
+}
+.field:hover { border-color: var(--ink-3); }
+.field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn .arrow-slide, .link-underline::after, .field { transition: none; }
+  .btn:hover, .btn:active { transform: none; }
+  .btn:hover .arrow-slide { transform: none; }
+}
+
 /* ── Объекты: строка списка и кадр ───────────────────────────
    Наведение на строку меняет кроп кадра справа. Здесь только цвет строки —
    сам кадр возит Motion трансформом.

@@ -58,8 +58,7 @@ export function Calculator() {
   };
 
   const field =
-    'h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink ' +
-    'transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
+    'field h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink';
   const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   return (
@@ -281,7 +280,7 @@ export function Calculator() {
             disabled={!result}
           >
             {sent ? 'Добавлено в заявку' : 'Отправить на просчёт'}
-            <ArrowIcon className="h-4 w-4" />
+            <ArrowIcon className="arrow-slide h-4 w-4" />
           </Button>
 
           <p className="mt-3 text-t1 leading-snug text-ink-2">

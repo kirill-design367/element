@@ -49,7 +49,7 @@ export function Header() {
           <ul className="flex items-center gap-5 pl-4 text-t2 text-ink lg:gap-6">
             {NAV.map((n) => (
               <li key={n.href}>
-                <Link href={n.href} className="rounded py-2 transition-colors duration-300 hover:text-accent">
+                <Link href={n.href} className="link-underline rounded py-2 transition-colors duration-300 hover:text-accent">
                   {n.label}
                 </Link>
               </li>

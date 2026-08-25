@@ -4,10 +4,11 @@ import type { ComponentProps, ReactNode } from 'react';
 type Variant = 'primary' | 'secondary' | 'ghost';
 type Size = 'md' | 'lg';
 
+/* Переходы и увеличение на наведении описаны классом .btn в globals.css:
+   там же они выключаются в режиме покоя. */
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-card font-medium ' +
-  'transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-out ' +
-  'select-none active:translate-y-px disabled:opacity-50 disabled:pointer-events-none ' +
+  'btn inline-flex items-center justify-center gap-2 rounded-card font-medium ' +
+  'select-none disabled:opacity-50 disabled:pointer-events-none ' +
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 
 const variants: Record<Variant, string> = {

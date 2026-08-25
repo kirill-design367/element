@@ -119,8 +119,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   )}&body=${encodeURIComponent(summary)}`;
 
   const field =
-    'h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink ' +
-    'transition-colors hover:border-ink-3 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25';
+    'field h-12 w-full rounded-card border border-line-strong bg-surface px-3 text-t2 text-ink';
   const label = 'mb-1.5 block text-t1 font-medium text-ink';
 
   if (status === 'done') {
@@ -170,7 +169,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         <button
           type="button"
           onClick={() => setStatus('idle')}
-          className="mt-4 rounded text-t2 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent"
+          className="link-underline mt-4 inline-block rounded text-t2 text-accent"
         >
           Составить ещё одну заявку
         </button>
