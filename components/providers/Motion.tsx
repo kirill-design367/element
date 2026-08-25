@@ -29,6 +29,7 @@ export function Motion() {
 
     let cancelled = false;
     let cleanup: (() => void) | undefined;
+    let cleanupRail: (() => void) | undefined;
 
     const start = async () => {
       const [{ gsap }, { ScrollTrigger }, { SplitText }, { default: Lenis }] = await Promise.all([
@@ -88,6 +89,59 @@ export function Motion() {
       };
       lenis.on('scroll', onScroll);
       onScroll({ scroll: window.scrollY });
+
+      /* ── Лента материалов ──────────────────────────────────────────────
+         У ленты своя горизонтальная копия Lenis. Обе сидят на одном тикере
+         gsap, поэтому вертикальная и горизонтальная прокрутка идут в одном
+         такте: лента не отстаёт от страницы на кадр и не дёргается, когда
+         крутят и то и другое сразу.
+
+         gestureOrientation: horizontal — принципиально. При 'both' колесо над
+         лентой крутит ленту вместо страницы, и, докрутив ленту до конца,
+         человек упирается: страница под курсором стоит. Сейчас вертикальное
+         колесо всегда ведёт страницу, ленту двигают горизонтальный жест
+         трекпада, shift + колесо, свайп и клавиатура. syncTouch выключен: на
+         телефоне свайп и так инерционный, вторая инерция поверх ощущается
+         как залипание.
+
+         Полоса прогресса под лентой: ширина бегунка — доля видимой части,
+         положение — доля прокрутки. Двигается transform. */
+      const rail = document.querySelector<HTMLElement>('[data-rail]');
+      const railBar = document.querySelector<HTMLElement>('[data-rail-bar]');
+      let railLenis: InstanceType<typeof Lenis> | undefined;
+      if (rail) {
+        railLenis = new Lenis({
+          wrapper: rail,
+          content: rail,
+          orientation: 'horizontal',
+          gestureOrientation: 'horizontal',
+          duration: 0.9,
+          easing: (t: number) => 1 - Math.pow(1 - t, 4),
+          smoothWheel: true,
+          syncTouch: false,
+        });
+        const railRaf = (time: number) => railLenis?.raf(time * 1000);
+        gsap.ticker.add(railRaf);
+
+        const paint = () => {
+          if (!railBar) return;
+          const max = rail.scrollWidth - rail.clientWidth;
+          const view = rail.clientWidth / rail.scrollWidth;
+          const pos = max > 0 ? rail.scrollLeft / max : 0;
+          gsap.set(railBar, {
+            scaleX: view,
+            x: (rail.clientWidth - rail.clientWidth * view) * pos,
+          });
+        };
+        rail.addEventListener('scroll', paint, { passive: true });
+        paint();
+        const railCleanup = () => {
+          rail.removeEventListener('scroll', paint);
+          gsap.ticker.remove(railRaf);
+          railLenis?.destroy();
+        };
+        cleanupRail = railCleanup;
+      }
 
       /* ── 2. Появления ───────────────────────────────────────────────────
          Сдвиг снизу плюс проявление. Порог входа — top 85%: блок начинает
@@ -272,6 +326,7 @@ export function Motion() {
       });
 
       cleanup = () => {
+        cleanupRail?.();
         document.removeEventListener('click', onAnchor);
         ctx.revert();
         gsap.ticker.remove(raf);

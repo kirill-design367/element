@@ -11,8 +11,15 @@ import { useFlipArrival } from '@/components/providers/FlipArrival';
  * и это единственное место на сайте с горизонтальной прокруткой. Крутится
  * мышью, свайпом и клавиатурой.
  *
- * Карточки чередуют две высоты через одну: ровный ряд одинаковых плиток
- * читался бы как таблица, а не как лента.
+ * Карточки одного размера. Ступенчатость через одну читалась не как ритм, а
+ * как сбой вёрстки — особенно на планшете, где в кадре видно ровно две.
+ *
+ * Прокрутка мягкая: у ленты своя горизонтальная копия Lenis на том же тикере
+ * gsap, что и вертикальная. Из-за неё снят scroll-snap: программная инерция
+ * и снап тянут ленту в разные стороны и она дёргается на остановке.
+ *
+ * Под лентой тонкая полоса прогресса — единственный указатель на то, сколько
+ * ленты осталось.
  *
  * Этот же блок принимает обратный перелёт из каталога: плашка сворачивается
  * ровно на своё место.
@@ -37,32 +44,35 @@ export function CatalogPreview() {
   );
 
   return (
-    <div
+    <>
+      <div
       ref={gridRef}
       data-rail
       role="group"
       aria-label="Группы материалов, лента с прокруткой"
       tabIndex={0}
-      className="rail hide-rail-bar flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+      className="rail hide-rail-bar flex gap-4 overflow-x-auto overscroll-x-contain pb-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
     >
-      {/* Отбивка слева вместо padding: у контейнера с snap-mandatory
-          Chromium прокручивает левый паддинг под первый снап-элемент, и
-          лента открывалась уже сдвинутой. Распорка так не съедается.
-          Ширина в процентах от ленты, не в vw: vw включает полосу прокрутки. */}
+      {/* Отбивка слева распоркой, а не паддингом: паддинг у прокручиваемого
+          контейнера съедается при программной прокрутке. Ширина в процентах
+          от ленты, не в vw: vw включает полосу прокрутки. */}
       <div className="rail-gutter shrink-0" aria-hidden="true" />
-      {CATEGORIES.map((c, i) => (
-        <div
-          key={c.id}
-          data-rail-item
-          className={`w-[78vw] shrink-0 snap-start sm:w-[46vw] lg:w-[30%] ${
-            i % 2 === 1 ? 'lg:pt-14' : ''
-          }`}
-        >
-          <CategoryCard category={c} tall={i % 2 === 0} />
+      {CATEGORIES.map((c) => (
+        <div key={c.id} data-rail-item className="w-[78vw] shrink-0 sm:w-[46vw] lg:w-[30%]">
+          <CategoryCard category={c} />
         </div>
       ))}
       {/* Правый вылет: последняя карточка не упирается в край экрана. */}
       <div className="w-[var(--shell-x)] shrink-0" aria-hidden="true" />
-    </div>
+      </div>
+
+      {/* Полоса прогресса. Ширина бегунка — доля видимой части ленты,
+          положение — доля прокрутки. Двигается transform, не width. */}
+      <div className="shell mt-5">
+        <div className="rail-progress" aria-hidden="true">
+          <span data-rail-bar />
+        </div>
+      </div>
+    </>
   );
 }

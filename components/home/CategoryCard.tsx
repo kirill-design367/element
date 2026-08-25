@@ -18,7 +18,7 @@ import { ArrowIcon } from '@/components/site/Icons';
  * Ссылка остаётся настоящей ссылкой: работает средний клик, «открыть в новой
  * вкладке» и клавиатура. Анимация — надстройка над обычной навигацией.
  */
-export function CategoryCard({ category, tall }: { category: Category; tall?: boolean }) {
+export function CategoryCard({ category }: { category: Category }) {
   const router = useRouter();
   const plateRef = useRef<HTMLDivElement>(null);
   const href = `/catalog/?category=${category.id}`;
@@ -43,7 +43,7 @@ export function CategoryCard({ category, tall }: { category: Category; tall?: bo
         <PhotoSlot
           category={category}
           slot={categorySlot(category.id)}
-          className={`w-full ${tall ? "aspect-[3/4]" : "aspect-[4/3]"}`}
+          className="aspect-[4/3] w-full"
         >
           <span
             aria-hidden="true"
@@ -55,8 +55,10 @@ export function CategoryCard({ category, tall }: { category: Category; tall?: bo
           />
           {/* Метка лежит на градиенте от верхнего края кадра, а не на плашке:
               плашка закрывала бы фактуру прямоугольником. */}
+          {/* Пробел неразрывный: в .tnum обычный пробел подменяется широким
+              табличным (13 px против 4), и метка расходится разрядкой. */}
           <span className="absolute left-3 top-2.5 text-t1 font-medium tabular-nums text-ink">
-            {count} {plural(count, 'позиция', 'позиции', 'позиций')}
+            {`${count}\u00A0${plural(count, 'позиция', 'позиции', 'позиций')}`}
           </span>
         </PhotoSlot>
       </div>
@@ -70,13 +72,16 @@ export function CategoryCard({ category, tall }: { category: Category; tall?: bo
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-3">
           <div>
             <div className="text-t1 text-ink-2">Цена</div>
-            <div className="tnum mt-0.5 text-t3 font-bold leading-none">
-              от {rub(priceFrom(category.id))}
-              <span className="ml-1 text-t1 font-normal text-ink-2">/ м³</span>
+            <div className="mt-0.5 text-t3 font-bold leading-none">
+              <span className="text-t1 font-normal text-ink-2">от</span>{' '}
+              <span className="tnum">{rub(priceFrom(category.id))}</span>
+              <span className="ml-1.5 text-t1 font-normal text-ink-2">/ м³</span>
             </div>
           </div>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-ink-2 transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-white">
-            <ArrowIcon className="h-4 w-4" />
+          {/* Стрелка сдвигается вправо, кружок не перекрашивается: на
+              наведении анимируется только transform. */}
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line-strong text-ink">
+            <ArrowIcon className="arrow-slide h-4 w-4" />
           </span>
         </div>
       </div>

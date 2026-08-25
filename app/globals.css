@@ -272,6 +272,43 @@ html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
   .narrow-left { margin-inline: 0; margin-right: auto; padding-left: max(var(--shell-x), (100% - var(--shell-max)) / 2); }
 }
 
+/* ── Полоса прогресса ленты ──────────────────────────────────
+   Единственный указатель на то, сколько ленты осталось. Бегунок двигается
+   transform: scaleX плюс translateX, а не шириной, — вёрстка не трогается.
+   ──────────────────────────────────────────────────────────── */
+.rail-progress {
+  position: relative;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.rail-progress > span {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  border-radius: 999px;
+  background: var(--ink-3);
+  transform: scaleX(.3);
+  will-change: transform;
+}
+
+/* ── Наведение на карточку ленты ─────────────────────────────
+   Кадр внутри карточки подрастает, сама карточка стоит. Тени и фильтры не
+   анимируются вовсе: только transform.
+   ──────────────────────────────────────────────────────────── */
+.photo-zoom { transition: transform .5s var(--ease-out); }
+.group:hover .photo-zoom,
+.group:focus-visible .photo-zoom { transform: scale(1.05); }
+.arrow-slide { transition: transform .3s var(--ease-out); }
+.group:hover .arrow-slide,
+.group:focus-visible .arrow-slide { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) {
+  .photo-zoom, .arrow-slide { transition: none; }
+  .group:hover .photo-zoom { transform: none; }
+  .group:hover .arrow-slide { transform: none; }
+}
+
 /* ── Бегущая строка фактов ───────────────────────────────────
    Две одинаковые копии в ряд, лента едет влево на половину своей ширины —
    стык не виден. Двигается только transform. Вторая копия появляется
