@@ -345,7 +345,11 @@ export function Calculator() {
                     <span className={totalDigits > 6 ? 'text-t3' : 'text-t4'}>₽</span>
                   </>
                 ) : (
-                  '—'
+                  /* Прочерк ступенью t5 — это чёрточка в 128 px кегля: на
+                     тёмной панели она читается замазанной строкой, а не
+                     отсутствием числа. Когда цены нет, на её месте стоят
+                     слова, и ступенью ниже. */
+                  <span className="text-t4">{noPrice ? 'по запросу' : '—'}</span>
                 )}
               </dd>
             </dl>
@@ -465,13 +469,17 @@ export function Calculator() {
 }
 
 function Row({ label, value, note }: { label: string; value: string; note?: string }) {
+  /* Табличные цифры вешаются только на значения с цифрами. В CoFo Sans фича
+     tnum подменяет заодно пробел широким — «считаем отдельно» и «по запросу»
+     расходились разрядкой втрое шире нормальной. */
+  const numeric = /\d/.test(value);
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
         <span className="text-ink-2">{label}</span>
         {note && <p className="mt-0.5 text-t1 leading-snug text-ink-2">{note}</p>}
       </div>
-      <span className="tnum shrink-0 font-medium">{value}</span>
+      <span className={`shrink-0 font-medium ${numeric ? 'tnum' : ''}`}>{value}</span>
     </div>
   );
 }
