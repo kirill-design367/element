@@ -77,7 +77,10 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
       } else {
         const m = materialById(materialId);
-        lines.push(`Материал: ${m ? `${m.name}, ${m.fraction}` : '—'}`);
+        /* Пустое значение — это не «поле не заполнили», а выбранный пункт
+           «Подберём вместе». Прочерк на его месте читался в письме так,
+           будто человек просто пропустил вопрос. */
+        lines.push(`Материал: ${m ? `${m.name}, ${m.fraction}` : 'подберём вместе'}`);
         lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
       }
     }
