@@ -309,8 +309,13 @@ body {
 
 /* Браузер без backdrop-filter получает плотную заливку: приём пропадает,
    читаемость остаётся. */
+/* Браузер без backdrop-filter получает плотную заливку: приём пропадает,
+   читаемость остаётся. Тон заливки — по цвету текста, который на ней стоит:
+   у шапки текст тёмный, у панелей первого экрана и парка светлый. Отдать
+   панелям светлую заливку значило бы сделать белый текст нечитаемым. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass { background: rgba(247, 247, 244, .94); }
+  .site-pill { background: rgba(247, 247, 244, .94); }
+  .hero-panel .glass { background: rgba(12, 15, 20, .9); }
   .glass-dark { background: rgba(14, 16, 20, .9); }
   .glass-dark::before { display: none; }
   .hero-panel::before { display: none; }
