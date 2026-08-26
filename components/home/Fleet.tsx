@@ -67,23 +67,29 @@ export function Fleet() {
       <div className="shell grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-8">
         {/* ── Главное число ─────────────────────────────────────────────── */}
         <div className="glass-dark rounded-panel p-6 md:p-8 lg:col-span-6">
-          <p data-fleet="label" className="max-w-[24ch] text-t2 text-ink-2">
-            {typo(LEAD.note)}
-          </p>
-          {/* tracking-normal на потомках — не украшение. letter-spacing в em
+          {/* Шаблон один на весь блок: число с единицей, под ним подпись,
+              под ней уточнение. Раньше уточнение стояло НАД числом, а в сетке
+              справа число было слева от подписи — три пары читались тремя
+              разными способами. Кегль у главного числа свой (t5 против t4),
+              это единственное, чем оно отличается: оно главное в блоке.
+
+              tracking-normal на потомках — не украшение. letter-spacing в em
               наследуется вычисленным значением: −0,04em от 128 px это −5,1 px,
               и на подписи в 16 px буквы налезали друг на друга. */}
           <p
             data-fleet="lead"
-            className="mt-6 font-black text-t5 leading-[.82] tracking-[-.04em]"
+            className="font-black text-t5 leading-[.82] tracking-[-.04em]"
           >
             <Counter value={LEAD.value} />
             <span className="ml-3 text-[.28em] font-medium tracking-normal text-ink-2">
               {LEAD.unit}
             </span>
-            <span className="mt-3 block text-t2 font-medium tracking-normal text-ink-2">
-              {LEAD.label}
-            </span>
+          </p>
+          <p data-fleet="label" className="mt-3 text-t2 font-medium">
+            {LEAD.label}
+          </p>
+          <p className="mt-1.5 max-w-[34ch] text-t1 leading-snug text-ink-2">
+            {typo(LEAD.note)}
           </p>
         </div>
 
@@ -93,20 +99,25 @@ export function Fleet() {
             <div
               key={n.label}
               data-fleet="rest"
-              className="grid grid-cols-[auto_1fr] items-baseline gap-x-5 gap-y-1 border-t border-line py-4 first:border-t-0 first:pt-0 md:py-5"
+              className="flex flex-col border-t border-line py-5 first:border-t-0 first:pt-0"
             >
               {/* dt стоит перед dd — этого требует разметка списка
-                  определений; визуальный порядок задаёт order. */}
-              <dt className="order-2 text-t2 font-medium">{n.label}</dt>
-              <dd className="tnum order-1 row-span-2 shrink-0 font-black text-t4 leading-none tracking-[-.03em]">
+                  определений; визуальный порядок задаёт order. Раньше число
+                  стояло СЛЕВА от подписи и занимало две строки — у трёх пар
+                  выходило три разных выравнивания. Теперь все три стопкой от
+                  одной левой линии: число, подпись, уточнение. */}
+              <dt className="order-2 mt-3 text-t2 font-medium">{n.label}</dt>
+              <dd className="tnum order-1 font-black text-t4 leading-none tracking-[-.03em]">
                 <Counter value={n.value} />
                 {n.unit && (
-                  <span className="ml-1 text-t1 font-medium tracking-normal text-ink-2">
+                  <span className="ml-1.5 text-[.34em] font-medium tracking-normal text-ink-2">
                     {n.unit}
                   </span>
                 )}
               </dd>
-              <dd className="order-3 text-t1 leading-snug text-ink-2">{typo(n.note)}</dd>
+              <dd className="order-3 mt-1.5 max-w-[34ch] text-t1 leading-snug text-ink-2">
+                {typo(n.note)}
+              </dd>
             </div>
           ))}
         </dl>
