@@ -18,19 +18,72 @@ import { fractionLabel } from '@/lib/catalog';
 export function RequestPanel() {
   const req = useRequest();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  /** Куда вернуть фокус после закрытия — та кнопка, что панель открыла. */
+  const openerRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
+  /* Зависимость — ТОЛЬКО req.open и стабильный setOpen. Раньше в списке
+     стоял сам req, а он новый объект при каждом изменении заявки: эффект
+     перезапускался на каждое нажатие в поле объёма и уводил фокус обратно
+     на «Закрыть». Набрать в поле больше одного символа было нельзя. */
+  const setOpen = req.setOpen;
   useEffect(() => {
     if (!req.open) return;
+    openerRef.current = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
+
+    /* Панель объявлена aria-modal, но объявления мало: без ловушки обход
+       табом уходил на телефон и почту в подвале, на «К основному
+       содержанию» и во встроенный скрипт — 13 остановок из 40 за пределами
+       панели. */
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') req.setOpen(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const root = panelRef.current;
+      if (!root) return;
+      const stops = [
+        ...root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+        ),
+      ].filter((el) => el.offsetParent !== null);
+      if (!stops.length) return;
+      const first = stops[0];
+      const last = stops[stops.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !root.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [req.open, req]);
+
+    /* Прокрутка страницы под панелью останавливается. Lenis ведёт её мимо
+       штатного механизма, поэтому overflow: hidden сам по себе его не
+       трогает — нужен его же stop(). */
+    const lenis = (window as unknown as { lenis?: { stop: () => void; start: () => void } }).lenis;
+    lenis?.stop();
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      lenis?.start();
+      /* Фокус возвращается на кнопку, которая панель открыла. Иначе после
+         Escape он падал в BODY, а обход начинался с начала страницы. */
+      openerRef.current?.focus?.();
+    };
+  }, [req.open, setOpen]);
 
   if (!mounted || req.count === 0) return null;
 
@@ -80,6 +133,7 @@ export function RequestPanel() {
               за ней, а сама панель стояла. Замер: панель 0 px, страница 500.
               Человек закрывал панель и оказывался в другом месте каталога. */}
           <div
+            ref={panelRef}
             data-lenis-prevent
             className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-[14px] border-t border-line bg-bg md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[560px] md:rounded-none md:border-l md:border-t-0"
           >
