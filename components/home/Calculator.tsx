@@ -2,7 +2,14 @@
 
 import { useId, useMemo, useState } from 'react';
 import { CATEGORIES, fractionLabel, MATERIALS, materialsOf } from '@/lib/catalog';
-import { DESTINATIONS, MAX_KM, MIN_ORDER_M3, calculate, type Unit } from '@/lib/pricing';
+import {
+  DESTINATIONS,
+  MAX_KM,
+  MAX_ORDER_M3,
+  MIN_ORDER_M3,
+  calculate,
+  type Unit,
+} from '@/lib/pricing';
 import { nbsp, num, rides, rub, tons, volume, typo } from '@/lib/format';
 import { Counter } from './Counter';
 import { Button } from '@/components/ui/Button';
@@ -42,6 +49,7 @@ export function Calculator() {
   const amount = Number(amountText.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.'));
   const valid = Number.isFinite(amount) && Math.round(amount * 100) / 100 > 0;
 
+
   /* Подпись «Добавлено в заявку» относится к тому расчёту, который добавили.
      Поменяли материал, объём или единицу — в заявке лежит уже не это, и
      подпись обязана вернуться к «Отправить на просчёт». Раньше флаг
@@ -50,10 +58,18 @@ export function Calculator() {
   const [sentStamp, setSentStamp] = useState('');
   const sent = sentStamp === stamp && sentStamp !== '';
 
-  const result = useMemo(
+  const computed = useMemo(
     () => (valid ? calculate({ materialId, amount, unit, km }) : null),
     [materialId, amount, unit, km, valid],
   );
+
+  /* Потолок сравнивается с объёмом ПОСЛЕ приведения к кубам: в тоннах
+     10 000 м³ это совсем другое число, и сырое поле сравнивать нельзя.
+     Выше потолка расчёта нет вовсе — не число покрупнее, а другой разговор. */
+  const overCap = !!computed && computed.volumeM3 > MAX_ORDER_M3;
+  const result = overCap ? null : computed;
+  /** Разрядность итога — по ней выбирается ступень кегля. */
+  const totalDigits = result ? String(Math.round(result.total)).length : 0;
 
   const onDestination = (id: string) => {
     setDestinationId(id);
@@ -256,11 +272,24 @@ export function Calculator() {
           <div className="mt-4">
             <dl>
               <dt className="text-t1 font-medium text-ink-2">Итого</dt>
-              <dd data-total className="mt-1 flex items-baseline gap-2 font-black text-t5 leading-[.85] tracking-[-.04em]">
+              {/* Кегль итога ступенчатый. Ступень t5 рассчитана на пять-шесть
+                  разрядов; на семи число переставало помещаться в панель, а
+                  на 1280 разгоняло всю сетку и страница ехала вбок на 36 px.
+                  Ступеней две, обе из шкалы проекта: t5 до шести разрядов,
+                  t4 дальше. Шестой ступени этим не заводится — берутся
+                  существующие. min-w-0 на ячейке обязателен: у грид-колонки
+                  min-width по умолчанию auto, и широкое число раздвигало
+                  колонку изнутри, сколько бы кегль ни уменьшали. */}
+              <dd
+                data-total
+                className={`mt-1 flex min-w-0 items-baseline gap-2 font-black leading-[.85] tracking-[-.04em] ${
+                  totalDigits > 6 ? 'text-t4' : 'text-t5'
+                }`}
+              >
                 {result ? (
                   <>
                     <Counter value={result.total} format={(n) => num(Math.round(n))} live />
-                    <span className="text-t4">₽</span>
+                    <span className={totalDigits > 6 ? 'text-t3' : 'text-t4'}>₽</span>
                   </>
                 ) : (
                   '—'
@@ -294,6 +323,18 @@ export function Calculator() {
               }
             />
           </div>
+
+          {overCap && (
+            <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
+              {typo(
+                `Больше ${num(MAX_ORDER_M3)} м³ считаем отдельно: на таком объёме цену собираем под график отгрузки и под конкретный карьер, а не берём по прайсу.`,
+              )}{' '}
+              <a href="#zayavka" className="link-underline rounded font-medium text-accent">
+                Оставьте заявку
+              </a>
+              {typo(' — ответим ценой и сроком.')}
+            </p>
+          )}
 
           {result?.belowMinimum && (
             <p className="mt-4 rounded border-l-2 border-warn bg-warn-soft px-3 py-2 text-t1 leading-snug text-ink">
