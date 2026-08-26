@@ -95,7 +95,7 @@ export function Hero() {
             <h1 data-hero="title" className="mt-4 font-black text-t4 leading-[.95] tracking-[-.035em]">
               <span className="block">Щебень, песок и грунт</span>
               <span className="block">
-                с доставкой <span className="text-accent">на объект</span>
+                с доставкой <span className="hero-accent">на объект</span>
               </span>
             </h1>
 
