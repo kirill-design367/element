@@ -1,6 +1,6 @@
 /**
  * Иконки нарисованы вручную и встроены в разметку.
- * Отступление осознанное: их четыре штуки, а любая библиотека — это
+ * Отступление осознанное: их шесть штук, а любая библиотека — это
  * дополнительный рантайм в бандле. На сайте, где планка PageSpeed 90+
  * на мобильной, 400 байт путей выигрывают у пакета.
  */
@@ -37,6 +37,12 @@ export const CheckIcon = ({ className }: P) => (
 export const CloseIcon = ({ className }: P) => (
   <svg {...common} className={className}>
     <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);
+
+export const MenuIcon = ({ className }: P) => (
+  <svg {...common} className={className}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
   </svg>
 );
 

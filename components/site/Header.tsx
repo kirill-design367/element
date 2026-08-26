@@ -3,8 +3,10 @@ import { COMPANY } from '@/lib/company';
 import { nbsp } from '@/lib/format';
 import { ButtonLink } from '@/components/ui/Button';
 import { PhoneIcon } from './Icons';
+import { MobileNav } from './MobileNav';
 
-const NAV = [
+/** Один список на десктопное меню и на панель телефона. */
+export const NAV = [
   { href: '/catalog/', label: 'Каталог' },
   { href: '/#raschet', label: 'Расчёт' },
   { href: '/#usloviya', label: 'Условия' },
@@ -79,6 +81,10 @@ export function Header() {
           <ButtonLink href="/#zayavka" size="md" shape="pill" className="hidden shrink-0 lg:inline-flex">
             Запросить прайс
           </ButtonLink>
+          {/* Гамбургер живёт ровно там, где скрыто меню, — тот же порог md,
+              что у <nav> выше. Разметка клиентская, но остров маленький:
+              сама шапка остаётся серверной. */}
+          <MobileNav items={NAV} />
         </div>
       </div>
     </header>

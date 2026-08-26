@@ -56,6 +56,11 @@ export function Motion() {
       gsap.ticker.add(raf);
       gsap.ticker.lagSmoothing(0);
       document.documentElement.classList.add('lenis-ready');
+      /* Экземпляр выставлен наружу намеренно и ровно для одного: модальные
+         панели должны уметь остановить прокрутку страницы под собой.
+         overflow: hidden на body Lenis не останавливает — он ведёт прокрутку
+         сам, мимо штатного механизма. */
+      (window as unknown as { lenis?: unknown }).lenis = lenis;
 
       /* Якорные ссылки внутри страницы ведёт Lenis: иначе браузер прыгает
          мгновенно, а Lenis потом догоняет — получается двойное движение. */
@@ -675,6 +680,7 @@ export function Motion() {
         document.removeEventListener('click', onAnchor);
         ctx.revert();
         gsap.ticker.remove(raf);
+        delete (window as unknown as { lenis?: unknown }).lenis;
         lenis.destroy();
         window.clearInterval(revealGuard);
         root.style.removeProperty('--pill');
