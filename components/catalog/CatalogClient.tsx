@@ -157,7 +157,7 @@ export function CatalogClient() {
               </h1>
               <p className="mt-3 max-w-[64ch] text-t2 leading-relaxed text-ink-2">
                 {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
-                на условиях самовывоза. Стоимость доставки считается отдельно —{' '}
+                на условиях самовывоза. Стоимость доставки считаем отдельно —{' '}
                 <Link href="/#raschet" className="link-underline rounded text-accent">
                   в калькуляторе
                 </Link>

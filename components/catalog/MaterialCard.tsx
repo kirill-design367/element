@@ -1,7 +1,7 @@
 'use client';
 
 import { AVAILABILITY_LABEL, pricePerTon, type Material } from '@/lib/catalog';
-import { rub, typo } from '@/lib/format';
+import { num, rub, typo } from '@/lib/format';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { CheckIcon } from '@/components/site/Icons';
 import { fractionIds } from '@/lib/prefilter';
@@ -55,7 +55,11 @@ export function MaterialCard({ material }: { material: Material }) {
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-t1 text-ink-2">
         {material.strength && <Spec term="Марка" value={material.strength} />}
         {material.frost && <Spec term="Морозостойкость" value={material.frost} />}
-        <Spec term="Насыпная плотность" value={`${material.density} т/м³`} />
+        {/* Плотность через num(): запятая как десятичный разделитель и
+            неразрывный пробел перед единицей. Печаталась «1.37 т/м³» —
+            точкой, по-английски. На /fonts/ то же число уже выводилось с
+            запятой, то есть разнобой был внутри проекта. */}
+        <Spec term="Насыпная плотность" value={`${num(material.density, 2)}\u00A0т/м³`} />
       </dl>
 
       {material.note && (

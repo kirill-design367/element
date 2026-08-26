@@ -97,7 +97,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     const e: Errors = {};
     if (name.trim().length < 2) e.name = 'Как к вам обращаться?';
     const digits = (phone.match(DIGITS) || []).length;
-    if (digits < 10) e.phone = 'Нужен номер из 10 цифр — на него перезвонит менеджер';
+    if (digits < 10) e.phone = 'Нужен номер из 10 цифр — на него перезвоним';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
