@@ -13,7 +13,12 @@ import { COMPANY } from '@/lib/company';
  */
 export function Footer() {
   return (
-    <footer className="border-t border-line bg-surface-2 py-6">
+    /* Запас под нижнюю липкую панель висит на подвале, а не на <main>:
+       подвал лежит РЯДОМ с main, а не внутри, и запас на main оставлял его
+       незакрытым. Замер на 390 в самом низу страницы: панель высотой 69 px
+       ложилась на подвал высотой 121 px и закрывала 69 из них, а докрутить
+       было нечем — страница уже кончилась. */
+    <footer className="border-t border-line bg-surface-2 py-6 pb-[calc(24px+76px)] md:pb-6">
       <div className="shell flex flex-col gap-3 text-t1 text-ink-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-t2 font-black text-ink">Элемент</span>

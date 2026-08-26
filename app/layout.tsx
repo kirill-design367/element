@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RequestProvider>
           <Header />
           {/* Отступ снизу — под липкую панель телефона на мобильной. */}
-          <main id="main" className="pb-[76px] md:pb-0">
+          <main id="main">
             {children}
           </main>
           <Footer />

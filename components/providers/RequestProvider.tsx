@@ -64,10 +64,32 @@ export function RequestProvider({ children }: { children: ReactNode }) {
     setBrief((prev) => ({ ...prev, ...p }));
   }, []);
 
-  const add = useCallback((materialId: string, amount = DEFAULT_AMOUNT, unit: Unit = 'm3') => {
-    setItems((prev) =>
-      prev.some((i) => i.materialId === materialId) ? prev : [...prev, { materialId, amount, unit }],
-    );
+  /**
+   * Позиция уже в списке — обновляем объём и единицу, а не молча оставляем
+   * прежние. Раньше add() в этом случае возвращал список нетронутым: человек
+   * считал 20 м³, отправлял, менял на 60, отправлял снова, видел «Добавлено в
+   * заявку» — и в письмо менеджеру уходили те же 20. Цифра на экране и цифра
+   * в заявке расходились без единого признака.
+   *
+   * Объём и единица перезаписываются ТОЛЬКО когда их передали явно: карточка
+   * каталога зовёт add(id) без них, и её нажатие не должно затирать объём,
+   * который человек уже выставил в панели заявки.
+   */
+  const add = useCallback((materialId: string, amount?: number, unit?: Unit) => {
+    setItems((prev) => {
+      const at = prev.findIndex((i) => i.materialId === materialId);
+      if (at === -1) {
+        return [...prev, { materialId, amount: amount ?? DEFAULT_AMOUNT, unit: unit ?? 'm3' }];
+      }
+      if (amount === undefined && unit === undefined) return prev;
+      const next = [...prev];
+      next[at] = {
+        ...next[at],
+        ...(amount === undefined ? {} : { amount }),
+        ...(unit === undefined ? {} : { unit }),
+      };
+      return next;
+    });
     setOpen(true);
   }, []);
 

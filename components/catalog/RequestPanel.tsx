@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { calculate, type Unit } from '@/lib/pricing';
-import { rub, tons, volume } from '@/lib/format';
+import { plural, rub, tons, volume } from '@/lib/format';
 import { LeadForm } from '@/components/home/LeadForm';
 import { CloseIcon, ListIcon } from '@/components/site/Icons';
 
@@ -56,7 +56,7 @@ export function RequestPanel() {
             <ListIcon className="h-5 w-5 shrink-0" />
             <span className="flex-1 text-t2 font-medium">
               Заявка · {req.count}{' '}
-              {req.count === 1 ? 'позиция' : req.count < 5 ? 'позиции' : 'позиций'}
+              {plural(req.count, 'позиция', 'позиции', 'позиций')}
             </span>
             <span className="hidden text-t2 text-white/75 sm:inline">
               ≈ <span className="tnum">{rub(estimate)}</span>
@@ -78,7 +78,7 @@ export function RequestPanel() {
             <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur md:px-6">
               <h2 className="text-t3 font-bold">
                 Заявка · {req.count}{' '}
-                {req.count === 1 ? 'позиция' : req.count < 5 ? 'позиции' : 'позиций'}
+                {plural(req.count, 'позиция', 'позиции', 'позиций')}
               </h2>
               <button
                 ref={closeRef}
