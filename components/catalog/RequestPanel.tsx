@@ -6,7 +6,7 @@ import { calculate, type Unit } from '@/lib/pricing';
 import { plural, rub, tons, volume } from '@/lib/format';
 import { LeadForm } from '@/components/home/LeadForm';
 import { CloseIcon, ListIcon } from '@/components/site/Icons';
-import { fractionLabel } from '@/lib/catalog';
+import { fractionLabel, pricePerM3 } from '@/lib/catalog';
 
 /**
  * Заявка-список. Внизу висит полоса со счётчиком, она раскрывается в панель
@@ -174,7 +174,7 @@ export function RequestPanel() {
                         <div className="min-w-0">
                           <p className="text-t2 font-medium leading-snug">{material.name}</p>
                           <p className="text-t1 text-ink-2">
-                            {fractionLabel(material.fraction)} · {rub(material.pricePerM3)}/м³
+                            {fractionLabel(material.fraction)} · {rub(pricePerM3(material))}/м³
                           </p>
                         </div>
                         <button

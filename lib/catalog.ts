@@ -6,7 +6,9 @@
  * прайс компании. Обновление прайса = правка этого файла, больше нигде цифры
  * не хранятся: лендинг, калькулятор, каталог и формы читают отсюда.
  *
- * Цены — за кубометр, с НДС, на условиях самовывоза с площадки.
+ * Цены хранятся ЗА ТОННУ, с НДС, на условиях самовывоза с площадки: так их
+ * даёт заказчик. Показывает и считает сайт кубами — пересчёт через насыпную
+ * плотность позиции, функция pricePerM3().
  * Стоимость доставки считается отдельно, см. lib/pricing.ts.
  */
 
@@ -121,8 +123,21 @@ export interface Material {
   frost?: string;
   /** Насыпная плотность, т/м³ — по ней считается тоннаж и загрузка машины. */
   density: number;
-  /** Цена за кубометр, ₽, с НДС, самовывоз. */
-  pricePerM3: number;
+  /**
+   * ЦЕНА ЗА ТОННУ, ₽, с НДС, самовывоз с площадки.
+   *
+   * Единица хранения — тонна, потому что в тоннах приходит прайс. Показывает
+   * и считает сайт по-прежнему кубами: снабженец заказывает объём, и машина
+   * меряется кубами. Пересчёт — pricePerM3() ниже, через насыпную плотность
+   * этой же позиции, так что разойтись двум ценам не с чем.
+   */
+  pricePerTon: number;
+  /**
+   * Цена ориентировочная: позиции нет в присланном прайсе, число осталось от
+   * прежней заглушки. Карточка говорит об этом словами — молча выдавать
+   * заглушку за прайс нельзя.
+   */
+  estimated?: boolean;
   availability: Availability;
   /** Где применяется. Показывается в карточке каталога. */
   uses: string[];
@@ -195,7 +210,7 @@ export const MATERIALS: Material[] = [
     strength: 'М1200',
     frost: 'F300',
     density: 1.37,
-    pricePerM3: 2450,
+    pricePerTon: 3000,
     availability: 'in-stock',
     uses: ['товарный бетон', 'фундамент', 'ЖБИ'],
     note: 'Лещадность I группы. Основная фракция под бетон.',
@@ -210,7 +225,8 @@ export const MATERIALS: Material[] = [
     strength: 'М1200',
     frost: 'F300',
     density: 1.35,
-    pricePerM3: 2260,
+    pricePerTon: 1670,
+    estimated: true,
     availability: 'in-stock',
     uses: ['основание дороги', 'дренаж', 'бетон крупных конструкций'],
   },
@@ -224,7 +240,8 @@ export const MATERIALS: Material[] = [
     strength: 'М1200',
     frost: 'F300',
     density: 1.33,
-    pricePerM3: 2080,
+    pricePerTon: 1560,
+    estimated: true,
     availability: 'in-stock',
     uses: ['подушка под дорогу', 'отсыпка слабых грунтов', 'габионы'],
   },
@@ -238,7 +255,7 @@ export const MATERIALS: Material[] = [
     strength: 'М600',
     frost: 'F150',
     density: 1.3,
-    pricePerM3: 1480,
+    pricePerTon: 2400,
     availability: 'in-stock',
     uses: ['бетон низких марок', 'подсыпка', 'ландшафт'],
     note: 'Дешевле гранита, но не под нагруженные конструкции.',
@@ -253,7 +270,8 @@ export const MATERIALS: Material[] = [
     strength: 'М600',
     frost: 'F150',
     density: 1.28,
-    pricePerM3: 1340,
+    pricePerTon: 1050,
+    estimated: true,
     availability: 'in-stock',
     uses: ['отсыпка дорог', 'основание площадок', 'дренаж'],
   },
@@ -267,7 +285,8 @@ export const MATERIALS: Material[] = [
     strength: 'М400',
     frost: 'F150',
     density: 1.26,
-    pricePerM3: 1210,
+    pricePerTon: 960,
+    estimated: true,
     availability: 'in-stock',
     uses: ['временные дороги', 'отсыпка котлована'],
   },
@@ -281,7 +300,7 @@ export const MATERIALS: Material[] = [
     strength: 'М1000',
     frost: 'F200',
     density: 1.42,
-    pricePerM3: 1720,
+    pricePerTon: 2500,
     availability: 'in-stock',
     uses: ['бетон', 'фундамент частного дома', 'дренаж'],
     note: 'Компромисс между гранитом и известняком по цене и прочности.',
@@ -296,7 +315,8 @@ export const MATERIALS: Material[] = [
     strength: 'М1000',
     frost: 'F200',
     density: 1.4,
-    pricePerM3: 1610,
+    pricePerTon: 1150,
+    estimated: true,
     availability: 'on-order',
     uses: ['основание дороги', 'отсыпка', 'дренажный слой'],
   },
@@ -310,7 +330,8 @@ export const MATERIALS: Material[] = [
     strength: 'М400',
     frost: 'F50',
     density: 1.2,
-    pricePerM3: 780,
+    pricePerTon: 650,
+    estimated: true,
     availability: 'in-stock',
     uses: ['временные дороги', 'засыпка ям', 'подъездные пути'],
     note: 'Дроблёный бетонный бой. Самый дешёвый вариант под технологический проезд.',
@@ -325,7 +346,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mkr', from: 1.8, to: 2.2 },
     gost: 'ГОСТ 8736-2014',
     density: 1.55,
-    pricePerM3: 680,
+    pricePerTon: 1300,
     availability: 'in-stock',
     uses: ['обратная засыпка', 'подсыпка', 'планировка'],
     note: 'Содержит глинистые включения — не для кладочного раствора.',
@@ -338,7 +359,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
-    pricePerM3: 840,
+    pricePerTon: 560,
+    estimated: true,
     availability: 'in-stock',
     uses: ['подушка под фундамент', 'подсыпка под плитку', 'штукатурный раствор'],
   },
@@ -350,7 +372,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
-    pricePerM3: 1090,
+    pricePerTon: 730,
+    estimated: true,
     availability: 'in-stock',
     uses: ['товарный бетон', 'кладочный раствор', 'стяжка'],
     note: 'Промыт от глины и пыли. Содержание пылевидных частиц до 2 %.',
@@ -363,7 +386,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mkr', from: 2.2, to: 2.8 },
     gost: 'ГОСТ 8736-2014',
     density: 1.48,
-    pricePerM3: 1280,
+    pricePerTon: 860,
+    estimated: true,
     availability: 'on-order',
     uses: ['бетон высоких марок', 'дренаж', 'пескоструй'],
   },
@@ -377,7 +401,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mm', from: 0, to: 70 },
     gost: 'ГОСТ 23735-2014',
     density: 1.65,
-    pricePerM3: 790,
+    pricePerTon: 480,
+    estimated: true,
     availability: 'in-stock',
     uses: ['отсыпка', 'планировка участка', 'подъездные пути'],
     note: 'Содержание гравия 10–20 %, не нормируется.',
@@ -390,7 +415,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'gravel', percent: 30 },
     gost: 'ГОСТ 23735-2014',
     density: 1.7,
-    pricePerM3: 1180,
+    pricePerTon: 690,
+    estimated: true,
     availability: 'in-stock',
     uses: ['подстилающий слой дороги', 'бетон', 'основание площадки'],
   },
@@ -402,7 +428,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'gravel', percent: 50 },
     gost: 'ГОСТ 23735-2014',
     density: 1.75,
-    pricePerM3: 1420,
+    pricePerTon: 810,
+    estimated: true,
     availability: 'on-order',
     uses: ['несущее основание', 'бетон', 'дорожная одежда'],
   },
@@ -417,7 +444,8 @@ export const MATERIALS: Material[] = [
     gost: 'ГОСТ 31424-2010',
     strength: 'М1200',
     density: 1.4,
-    pricePerM3: 1150,
+    pricePerTon: 820,
+    estimated: true,
     availability: 'in-stock',
     uses: ['подсыпка под тротуарную плитку', 'дорожки', 'бетон'],
   },
@@ -430,7 +458,8 @@ export const MATERIALS: Material[] = [
     gost: 'ГОСТ 31424-2010',
     strength: 'М600',
     density: 1.32,
-    pricePerM3: 720,
+    pricePerTon: 550,
+    estimated: true,
     availability: 'in-stock',
     uses: ['отсыпка дорожек', 'подсыпка', 'благоустройство'],
   },
@@ -443,7 +472,8 @@ export const MATERIALS: Material[] = [
     gost: 'ГОСТ 31424-2010',
     strength: 'М1000',
     density: 1.45,
-    pricePerM3: 880,
+    pricePerTon: 610,
+    estimated: true,
     availability: 'on-order',
     uses: ['подсыпка', 'дренаж', 'отсыпка площадок'],
   },
@@ -457,7 +487,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 1.15,
-    pricePerM3: 1450,
+    pricePerTon: 1260,
+    estimated: true,
     availability: 'in-stock',
     uses: ['газон', 'клумбы', 'плодовые посадки'],
     note: 'Содержание гумуса от 6 %. Паспорт агрохимического анализа по запросу.',
@@ -470,7 +501,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 1.2,
-    pricePerM3: 980,
+    pricePerTon: 820,
+    estimated: true,
     availability: 'in-stock',
     uses: ['газон', 'озеленение территории', 'рекультивация'],
   },
@@ -482,7 +514,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'непросеянный' },
     gost: 'без ГОСТ',
     density: 1.25,
-    pricePerM3: 760,
+    pricePerTon: 610,
+    estimated: true,
     availability: 'in-stock',
     uses: ['выравнивание участка', 'подсыпка под газон'],
   },
@@ -494,7 +527,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 0.9,
-    pricePerM3: 1120,
+    pricePerTon: 1240,
+    estimated: true,
     availability: 'on-order',
     uses: ['теплицы', 'клумбы', 'улучшение почвы'],
   },
@@ -506,7 +540,8 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'без сортировки' },
     gost: 'без ГОСТ',
     density: 1.6,
-    pricePerM3: 390,
+    pricePerTon: 240,
+    estimated: true,
     availability: 'out',
     uses: ['вертикальная планировка', 'засыпка котлована'],
     note: 'Отгружаем с площадок в момент выемки — наличие уточняйте.',
@@ -523,10 +558,19 @@ export const MATERIALS: Material[] = [
 export const POSITIONS_TOTAL = MATERIALS.length;
 export const POSITIONS_IN_STOCK = MATERIALS.filter((m) => m.availability === 'in-stock').length;
 export const POSITIONS_ON_ORDER = MATERIALS.filter((m) => m.availability === 'on-order').length;
+/** Сколько позиций стоит с ориентировочной ценой: их нет в присланном прайсе. */
+export const POSITIONS_ESTIMATED = MATERIALS.filter((m) => m.estimated).length;
 
-/** Цена за тонну выводится из цены за куб и насыпной плотности. */
-export function pricePerTon(m: Material): number {
-  return Math.round(m.pricePerM3 / m.density / 10) * 10;
+/**
+ * Цена за кубометр выводится из цены за тонну и насыпной плотности.
+ *
+ * Направление пересчёта развёрнуто: раньше в данных лежал куб, а тонна
+ * считалась. Прайс приходит за тонну, и хранить надо то, что прислали, —
+ * иначе правка прайса превращается в арифметику на калькуляторе, а сайт
+ * показывает округление округления.
+ */
+export function pricePerM3(m: Material): number {
+  return Math.round((m.pricePerTon * m.density) / 10) * 10;
 }
 
 export function categoryById(id: CategoryId): Category {
@@ -541,7 +585,7 @@ export function materialsOf(id: CategoryId): Material[] {
 
 /** «от 1 210 ₽» для карточки категории на лендинге. */
 export function priceFrom(id: CategoryId): number {
-  return Math.min(...materialsOf(id).map((m) => m.pricePerM3));
+  return Math.min(...materialsOf(id).map((m) => pricePerM3(m)));
 }
 
 /**

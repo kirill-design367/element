@@ -7,7 +7,7 @@
  * считают по одним и тем же функциям — разойтись не могут.
  */
 
-import { MATERIALS, type Material } from './catalog';
+import { MATERIALS, pricePerM3, type Material } from './catalog';
 
 export interface Truck {
   id: string;
@@ -145,7 +145,7 @@ export function calculate(input: CalcInput): CalcResult | null {
   const km = clamp(input.km, 0, MAX_KM * 2);
 
   const { truck, rides, cost, perRideM3 } = pickTruck(Math.max(volumeM3, 0.01), material.density, km);
-  const materialCost = Math.round(volumeM3 * material.pricePerM3);
+  const materialCost = Math.round(volumeM3 * pricePerM3(material));
   const deliveryCost = volumeM3 > 0 ? Math.round(cost) : 0;
   const total = materialCost + deliveryCost;
 

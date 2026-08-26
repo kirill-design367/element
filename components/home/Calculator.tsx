@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useState } from 'react';
-import { CATEGORIES, fractionLabel, MATERIALS, materialsOf } from '@/lib/catalog';
+import { CATEGORIES, fractionLabel, MATERIALS, materialsOf, pricePerM3 } from '@/lib/catalog';
 import {
   DESTINATIONS,
   MAX_KM,
@@ -122,7 +122,7 @@ export function Calculator() {
                 <optgroup key={c.id} label={c.name}>
                   {materialsOf(c.id).map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.name}, {fractionLabel(m.fraction)} — {rub(m.pricePerM3)}/м³
+                      {m.name}, {fractionLabel(m.fraction)} — {rub(pricePerM3(m))}/м³
                     </option>
                   ))}
                 </optgroup>

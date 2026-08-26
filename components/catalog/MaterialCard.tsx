@@ -1,6 +1,6 @@
 'use client';
 
-import { AVAILABILITY_LABEL, fractionLabel, pricePerTon, type Material } from '@/lib/catalog';
+import { AVAILABILITY_LABEL, fractionLabel, pricePerM3, type Material } from '@/lib/catalog';
 import { num, rub, typo } from '@/lib/format';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { CheckIcon } from '@/components/site/Icons';
@@ -36,21 +36,32 @@ export function MaterialCard({ material }: { material: Material }) {
         <Availability material={material} />
       </div>
 
-      {/* Цены — крупно и в табличных цифрах, чтобы колонки не плясали. */}
+      {/* Цены — крупно и в табличных цифрах, чтобы колонки не плясали.
+          Цена за куб не хранится, а считается из цены за тонну и насыпной
+          плотности этой же позиции: прайс приходит за тонну. */}
       <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
         <div className="bg-surface-2 px-3 py-2.5">
           <div className="text-t1 text-ink-2">За м³</div>
           <div className="tnum mt-0.5 text-t3 font-bold leading-none">
-            {rub(material.pricePerM3)}
+            {rub(pricePerM3(material))}
           </div>
         </div>
         <div className="bg-surface-2 px-3 py-2.5">
           <div className="text-t1 text-ink-2">За тонну</div>
           <div className="tnum mt-0.5 text-t3 font-bold leading-none">
-            {rub(pricePerTon(material))}
+            {rub(material.pricePerTon)}
           </div>
         </div>
       </div>
+
+      {/* Позиции нет в присланном прайсе — число осталось от прежней
+          заглушки. Говорим об этом словами: выдавать заглушку за прайс
+          на сайте поставщика нельзя. */}
+      {material.estimated && (
+        <p className="mt-2 text-t1 leading-snug text-ink-2">
+          Цена ориентировочная — подтвердим при заявке.
+        </p>
+      )}
 
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-t1 text-ink-2">
         {material.strength && <Spec term="Марка" value={material.strength} />}

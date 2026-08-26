@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, hasFraction, inFraction, MATERIALS, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
+import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, hasFraction, inFraction, MATERIALS, POSITIONS_ESTIMATED, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
 import { RequestPanel } from './RequestPanel';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
@@ -198,13 +198,26 @@ export function CatalogClient() {
               <h1 className="font-black text-t4 leading-none tracking-[-.03em]">
                 Каталог материалов
               </h1>
+              {/* Числа считаются из данных: и позиции, и группы. «Пять групп»
+                  стояло здесь словом и разошлось бы с каталогом в тот же день,
+                  когда в нём появится шестая. */}
               <p className="mt-3 max-w-[64ch] text-t2 leading-relaxed text-ink-2">
-                {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в пяти группах. Цены за кубометр и за тонну, с НДС,
-                на условиях самовывоза. Стоимость доставки считаем отдельно —{' '}
+                {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в{' '}
+                {CATEGORIES.length}{' '}
+                {plural(CATEGORIES.length, 'группе', 'группах', 'группах')}. Цены с НДС, на условиях
+                самовывоза. Стоимость доставки считаем отдельно —{' '}
                 <Link href="/#raschet" className="link-underline rounded text-accent">
                   в калькуляторе
                 </Link>
                 .
+                {POSITIONS_ESTIMATED > 0 && (
+                  <>
+                    {' '}
+                    {typo(
+                      `У ${POSITIONS_ESTIMATED} ${plural(POSITIONS_ESTIMATED, 'позиции', 'позиций', 'позиций')} цена ориентировочная — подтвердим при заявке.`,
+                    )}
+                  </>
+                )}
               </p>
             </div>
           )}

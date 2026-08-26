@@ -3,7 +3,7 @@ import localFont from 'next/font/local';
 import Link from 'next/link';
 import { cofoSans } from '../type';
 import report from '@/lib/font-check.json';
-import { AVAILABILITY_LABEL, CATEGORIES, fractionLabel, MATERIALS, POSITIONS_TOTAL, priceFrom, pricePerTon } from '@/lib/catalog';
+import { AVAILABILITY_LABEL, CATEGORIES, fractionLabel, MATERIALS, POSITIONS_TOTAL, priceFrom, pricePerM3 } from '@/lib/catalog';
 import { calculate } from '@/lib/pricing';
 import { num, plural, rub, typo } from '@/lib/format';
 import { FLEET_NUMBERS } from '@/components/home/Fleet';
@@ -324,8 +324,8 @@ function Specimen({ pair }: { pair: Pair }) {
             <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
               {(
                 [
-                  ['За м³', rub(SAMPLE.pricePerM3)],
-                  ['За тонну', rub(pricePerTon(SAMPLE))],
+                  ['За м³', rub(pricePerM3(SAMPLE))],
+                  ['За тонну', rub(SAMPLE.pricePerTon)],
                 ] as [string, string][]
               ).map(([term, value]) => (
                 <div key={term} className="bg-surface-2 px-3 py-2">
