@@ -57,6 +57,11 @@ const TERMS = [
  * Дорожки идут в одной сетке, поэтому читаются как одно целое: «вот как
  * идёт работа и вот на каких условиях», а не как два блока подряд.
  *
+ * Условия разложены в два столбца по три. Одним столбцом на шесть пунктов
+ * читать было неудобно: колонка около 500 px, строка описания короткая, глаз
+ * прыгает, а дорожка тянется вниз мимо шагов. Поэтому ширины дорожек
+ * поменялись местами — шагам пять колонок, условиям семь.
+ *
  * Оба якоря сохранены: секция несёт id usloviya, дорожка шагов — id process.
  * Оба пункта меню продолжают работать и ведут в нужное место.
  *
@@ -77,9 +82,14 @@ export function Workflow() {
           )}
         </p>
 
-        <div className="mt-10 grid gap-x-10 gap-y-12 lg:grid-cols-12 lg:gap-y-0 md:mt-14">
+        {/* Ширины дорожек: шаги 5 колонок, условия 7. Раньше было наоборот,
+            и шести условиям доставалось около 500 px — один узкий столбец,
+            в котором строка описания получалась короткой, а блок тянулся
+            вниз мимо шагов. Условиям нужно место под два столбца по три;
+            шагам пяти колонок хватает: номер плюс строка заголовка. */}
+        <div className="mt-10 grid gap-x-10 gap-y-14 lg:grid-cols-12 lg:gap-y-0 md:mt-14">
           {/* ── Дорожка шагов ─────────────────────────────────────────── */}
-          <ol id="process" className="wf-steps lg:col-span-7">
+          <ol id="process" className="wf-steps lg:col-span-5">
             {STEPS.map((s, i) => (
               <li key={s.title} data-step className="wf-step">
                 <span
@@ -101,23 +111,27 @@ export function Workflow() {
           </ol>
 
           {/* ── Дорожка условий ───────────────────────────────────────── */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-7">
+            {/* Заголовок дорожки и вводный абзац стоят слева над сеткой и
+                ширину сетки не занимают: сетка начинается под ними. */}
             <h3 className="wf-track-title text-t3 font-black leading-[1.05] tracking-[-.02em]">
               {typo('Условия для юридических лиц')}
             </h3>
-            <p className="mt-1.5 max-w-[44ch] text-t1 leading-snug text-ink-2">
+            <p className="mt-1.5 max-w-[52ch] text-t2 leading-snug text-ink-2">
               {typo(
                 'То, ради чего снабженец меняет поставщика: документы вовремя, отсрочка и один ответственный человек.',
               )}
             </p>
 
-            <ul className="wf-terms mt-6">
+            <ul className="wf-terms mt-8 md:mt-10">
               {TERMS.map((t) => (
                 <li key={t.title} data-term className="wf-term">
                   <h4 className="text-t2 font-bold leading-snug tracking-[-.01em]">
                     {typo(t.title)}
                   </h4>
-                  <p className="mt-1 max-w-[46ch] text-t1 leading-snug text-ink-2">{typo(t.body)}</p>
+                  {/* Предел строки описания — в CSS классa .wf-term p: 60 знаков
+                      при любой ширине столбца. */}
+                  <p className="mt-1.5 text-t1 leading-snug text-ink-2">{typo(t.body)}</p>
                 </li>
               ))}
             </ul>

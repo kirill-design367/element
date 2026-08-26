@@ -668,9 +668,35 @@ select.field option { color: #17191c; background: #fff; }
 }
 
 .wf-track-title { padding-top: 2px; }
-.wf-terms { display: grid; gap: 13px; }
-.wf-term { border-top: 1px solid var(--line); padding-top: 11px; }
+
+/* Условия — два столбца по три, а не один узкий столбец на шесть пунктов.
+   Одним столбцом шесть карточек шли лентой в 500 px шириной: строка
+   описания выходила короткой, глаз прыгал, а блок тянулся вниз мимо шагов.
+
+   Поток по столбцам, а не по строкам: «два столбца по три» значит, что в
+   каждом столбце три пункта подряд, и порядок 1-2-3 / 4-5-6 читается двумя
+   короткими списками. Порядок пунктов в разметке не меняется — его задаёт
+   grid-auto-flow, а не перестановка. */
+.wf-terms {
+  display: grid;
+  gap: clamp(20px, 2vw, 26px);
+}
+@media (min-width: 1024px) {
+  .wf-terms {
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    column-gap: clamp(24px, 2.6vw, 40px);
+  }
+}
+.wf-term { border-top: 1px solid var(--line); padding-top: 14px; }
+/* Верхний пункт каждого столбца без линии: иначе сетка читается таблицей. */
 .wf-term:first-child { border-top: 0; padding-top: 0; }
+@media (min-width: 1024px) {
+  .wf-term:nth-child(4) { border-top: 0; padding-top: 0; }
+}
+/* Строка описания — не длиннее 60 знаков при любой ширине столбца. */
+.wf-term p { max-width: 60ch; }
 
 /* ── Лента: захват, стрелки, затухание по краям ──────────────
    Три подсказки о том, что листается лента, а не страница: курсор-захват,
