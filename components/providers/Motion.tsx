@@ -175,6 +175,25 @@ export function Motion() {
           else rail.scrollTo({ left: target, behavior: 'smooth' });
         };
 
+        /* Shift + колесо — один из четырёх записанных способов листать ленту,
+           и он не работал вовсе. Браузер отдаёт этот жест как deltaY с
+           поднятым shiftKey, а копия Lenis у ленты слушает
+           gestureOrientation: 'horizontal' и такого события не видит. Дальше
+           его забирал вертикальный Lenis и вёл страницу.
+
+           Перехват на самой ленте в фазе перехвата: Lenis вешает свой
+           обработчик на window в фазе всплытия, поэтому здесь мы раньше.
+           stopPropagation не даёт событию дойти до него вовсе. */
+        const onShiftWheel = (e: WheelEvent) => {
+          if (!e.shiftKey) return;
+          const delta = e.deltaY || e.deltaX;
+          if (!delta) return;
+          e.preventDefault();
+          e.stopPropagation();
+          glide(rail.scrollLeft + delta, 0.5);
+        };
+        rail.addEventListener('wheel', onShiftWheel, { passive: false, capture: true });
+
         const paint = () => {
           if (!railBar) return;
           const max = maxLeft();
@@ -290,6 +309,7 @@ export function Motion() {
         edges();
 
         cleanupRail = () => {
+          rail.removeEventListener('wheel', onShiftWheel, true);
           rail.removeEventListener('scroll', paint);
           rail.removeEventListener('scroll', edges);
           rail.removeEventListener('dragstart', onDragStart);
