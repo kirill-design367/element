@@ -46,10 +46,15 @@ export function Header() {
           {/* Пункты меню набраны основным цветом, а не вторичным: панель
                 висит над фотографией, и серый #5a5f66 над тёмным пикселем
                 кадра давал 3,6:1 при заливке 0,78. Основной даёт 9,9:1. */}
-          <ul className="flex items-center gap-5 pl-4 text-t2 text-ink lg:gap-6">
+          {/* whitespace-nowrap и более тесный шаг до lg: на 768 «Как работаем»
+              переносилось на две строки и ломало единственную строку пилюли —
+              высота пункта 58 px вместо 33, вторая строка вылезала ниже ряда
+              остальных. Пункт из двух слов обязан стоять одной строкой; места
+              для этого хватает с тех пор, как кнопка заявки ушла на lg. */}
+          <ul className="flex items-center gap-3.5 pl-4 text-t2 text-ink lg:gap-6">
             {NAV.map((n) => (
               <li key={n.href}>
-                <Link href={n.href} className="link-underline rounded py-2 transition-colors duration-300 hover:text-accent">
+                <Link href={n.href} className="link-underline whitespace-nowrap rounded py-2 transition-colors duration-300 hover:text-accent">
                   {n.label}
                 </Link>
               </li>
@@ -66,8 +71,12 @@ export function Header() {
             <span className="whitespace-nowrap">{nbsp(COMPANY.phoneLabel)}</span>
           </a>
           {/* Полная пилюля, как сама шапка: прямоугольник со скруглением
-              внутри пилюли выбивался из формы панели. */}
-          <ButtonLink href="/#zayavka" size="md" shape="pill" className="hidden shrink-0 md:inline-flex">
+              внутри пилюли выбивался из формы панели.
+
+              Порог lg, а не md: на 768-934 px кнопка в пилюлю не помещалась
+              и уезжала за правый край экрана. До lg действие даёт нижняя
+              липкая панель, и задвоения не возникает ни на одной ширине. */}
+          <ButtonLink href="/#zayavka" size="md" shape="pill" className="hidden shrink-0 lg:inline-flex">
             Запросить прайс
           </ButtonLink>
         </div>

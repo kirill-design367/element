@@ -3,12 +3,21 @@ import { COMPANY } from '@/lib/company';
 import { PhoneIcon } from './Icons';
 
 /**
- * Нижняя панель на телефоне. Телефон и заявка закреплены на экране
- * постоянно — путь до заявки с любой точки страницы равен одному касанию.
+ * Нижняя панель на телефоне и планшете. Телефон и заявка закреплены на
+ * экране постоянно — путь до заявки с любой точки страницы равен одному
+ * касанию.
+ *
+ * Порог lg, а не md, и это не косметика. Пока панель пряталась с 768, а
+ * кнопка в шапке появлялась с той же ширины, на полосе 768-934 px кнопки
+ * заявки не было НИГДЕ: в пилюле она не помещалась и уезжала за правый край
+ * экрана — на 768 за пилюлю на 155 px, за экран на 138. Полтора экрана
+ * планшетов оставались без главного действия сайта, что прямо нарушало
+ * правило 2 проекта. Теперь до lg действие даёт эта панель, с lg — кнопка
+ * в шапке, и ровно одно из двух в любой момент.
  */
 export function MobileBar() {
   return (
-    <div className="no-print fixed inset-x-0 bottom-0 z-50 border-t border-line bg-bg/95 backdrop-blur-[6px] md:hidden">
+    <div className="no-print fixed inset-x-0 bottom-0 z-50 border-t border-line bg-bg/95 backdrop-blur-[6px] lg:hidden">
       <div className="grid grid-cols-2 gap-2 px-3 py-2.5 pb-[max(10px,env(safe-area-inset-bottom))]">
         <a
           href={`tel:${COMPANY.phone}`}
