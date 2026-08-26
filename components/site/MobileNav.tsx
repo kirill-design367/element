@@ -147,7 +147,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
             role="dialog"
             aria-modal="true"
             aria-label="Разделы сайта"
-            className="glass absolute inset-x-[10px] top-[10px] rounded-panel p-4"
+            className="glass nav-sheet absolute inset-x-[10px] top-[10px] rounded-panel p-4"
             style={{
               transform: open ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(.985)',
               opacity: open ? 1 : 0,
