@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { materialById, type Material } from '@/lib/catalog';
+import { materialById, sellUnit, type Material } from '@/lib/catalog';
 import type { Unit } from '@/lib/pricing';
 
 /**
@@ -79,7 +79,12 @@ export function RequestProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const at = prev.findIndex((i) => i.materialId === materialId);
       if (at === -1) {
-        return [...prev, { materialId, amount: amount ?? DEFAULT_AMOUNT, unit: unit ?? 'm3' }];
+        /* Единица по умолчанию берётся из категории, а не ставится кубами
+           всегда: металл меряется тоннами, и позиция, добавленная из каталога
+           кнопкой «В заявку», иначе попадала бы в список как «10 м³ арматуры». */
+        const m = materialById(materialId);
+        const fallback: Unit = m && sellUnit(m) === 't' ? 't' : 'm3';
+        return [...prev, { materialId, amount: amount ?? DEFAULT_AMOUNT, unit: unit ?? fallback }];
       }
       if (amount === undefined && unit === undefined) return prev;
       const next = [...prev];

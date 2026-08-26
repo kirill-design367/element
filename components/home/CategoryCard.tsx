@@ -6,7 +6,7 @@ import { useRef, type MouseEvent } from 'react';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
 import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
-import { categorySpecLine, materialsOf, priceFrom, type Category } from '@/lib/catalog';
+import { categorySpecLine, materialsOf, priceFrom, unitLabel, type Category } from '@/lib/catalog';
 import { categorySlot } from '@/lib/assets';
 import { plural, rub, typo } from '@/lib/format';
 import { ArrowIcon } from '@/components/site/Icons';
@@ -80,7 +80,9 @@ export function CategoryCard({ category }: { category: Category }) {
                 <>
                   <span className="text-t1 font-normal text-ink-2">от</span>{' '}
                   <span className="tnum">{rub(from)}</span>
-                  <span className="ml-1.5 text-t1 font-normal text-ink-2">/м³</span>
+                  <span className="ml-1.5 text-t1 font-normal text-ink-2">
+                    /{unitLabel(category.unit)}
+                  </span>
                 </>
               )}
             </div>

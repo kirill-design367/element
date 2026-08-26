@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useState, type FormEvent } from 'react';
-import { CATEGORIES, fractionLabel, materialById, materialsOf } from '@/lib/catalog';
+import { CATEGORIES, fractionLabel, materialById, materialsOf, sellUnit, unitLabel } from '@/lib/catalog';
 import { calculate, DESTINATIONS } from '@/lib/pricing';
 import { nbsp, phoneDigits, phoneMask, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
@@ -25,10 +25,6 @@ type Errors = Partial<Record<'name' | 'phone' | 'amount', string>>;
  * @param hideItems — панель каталога уже показывает позиции со своими полями
  * объёма, и второй такой же список внутри формы только сбивает с толку.
  */
-/** Значение пункта «Металлопрокат» в списке материалов. Намеренно не
-    идентификатор каталога: в каталоге металла нет. */
-const METAL_OPTION = 'metal';
-
 export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   const uid = useId();
   const req = useRequest();
@@ -78,19 +74,20 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         );
       });
     } else {
-      if (materialId === METAL_OPTION) {
-        lines.push('Материал: металлопрокат');
-        lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
-      } else {
-        const m = materialById(materialId);
-        /* Пустое значение — это не «поле не заполнили», а выбранный пункт
-           «Подберём вместе». Прочерк на его месте читался в заявке так,
-           будто человек просто пропустил вопрос. */
-        lines.push(
-          `Материал: ${m ? `${m.name}, ${fractionLabel(m.fraction)}` : 'подберём вместе'}`,
-        );
-        lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
-      }
+      const m = materialById(materialId);
+      /* Пустое значение — это не «поле не заполнили», а выбранный пункт
+         «Подберём вместе». Прочерк на его месте читался в заявке так, будто
+         человек просто пропустил вопрос.
+
+         Отдельного пункта «Металлопрокат» здесь больше нет: металл заведён
+         в каталог шестой категорией и приходит в этот список сам, своими
+         позициями. Единица в письме — из категории: прокат меряется тоннами,
+         и «м³» против арматуры было бы неправдой. */
+      lines.push(
+        `Материал: ${m ? `${m.name}, ${fractionLabel(m.fraction)}` : 'подберём вместе'}`,
+      );
+      const u = m ? unitLabel(sellUnit(m)) : 'м³';
+      lines.push(`${m && sellUnit(m) === 't' ? 'Масса' : 'Объём'}: ${amount ? `${amount} ${u}` : '—'}`);
     }
 
     lines.push('');
@@ -363,14 +360,6 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
                     ))}
                   </optgroup>
                 ))}
-                {/* Металлопрокат стоит отдельным пунктом, а не позицией
-                    каталога: номенклатуры, марок и цен по нему ещё нет, и в
-                    lib/catalog.ts его быть не должно — оттуда считается число
-                    позиций, фильтры и калькулятор. Значение METAL_OPTION не
-                    совпадает ни с одним идентификатором каталога, поэтому
-                    materialById его не найдёт, и в текст заявки он уходит своей
-                    веткой. */}
-                <option value={METAL_OPTION}>Металлопрокат</option>
               </select>
             </div>
             <div>

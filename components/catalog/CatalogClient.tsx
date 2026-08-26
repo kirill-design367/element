@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, hasFraction, inFraction, MATERIALS, POSITIONS_ESTIMATED, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
+import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, GROUPS, groupsOf, hasFraction, inFraction, MATERIALS, POSITIONS_ESTIMATED, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
 import { RequestPanel } from './RequestPanel';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
@@ -17,9 +17,9 @@ import { PREFILTER_KEYS } from '@/lib/prefilter';
 
 const ALL = 'all';
 
-const KEYS = ['category', 'fraction', 'gost'] as const;
+const KEYS = ['category', 'fraction', 'gost', 'group'] as const;
 type Filters = Record<(typeof KEYS)[number], string>;
-const EMPTY: Filters = { category: ALL, fraction: ALL, gost: ALL };
+const EMPTY: Filters = { category: ALL, fraction: ALL, gost: ALL, group: ALL };
 
 function readUrl(): Filters {
   if (typeof window === 'undefined') return EMPTY;
@@ -32,6 +32,7 @@ function readUrl(): Filters {
     category: valid('category', sp.get('category')),
     fraction: valid('fraction', sp.get('fraction')),
     gost: valid('gost', sp.get('gost')),
+    group: valid('group', sp.get('group')),
   };
 }
 
@@ -43,7 +44,9 @@ function valid(key: (typeof KEYS)[number], raw: string | null): string {
       ? CATEGORIES.some((c) => c.id === raw)
       : key === 'fraction'
         ? FRACTION_FILTERS.some((f) => f.id === raw)
-        : GOST_FILTERS.includes(raw);
+        : key === 'group'
+          ? GROUPS.some((g) => g.id === raw)
+          : GOST_FILTERS.includes(raw);
   return ok ? raw : ALL;
 }
 
@@ -83,9 +86,7 @@ export function CatalogClient() {
     const sync = () => {
       const next = readUrl();
       setFilters((prev) =>
-        prev.category === next.category && prev.fraction === next.fraction && prev.gost === next.gost
-          ? prev
-          : next,
+        KEYS.every((k) => prev[k] === next[k]) ? prev : next,
       );
     };
     sync();
@@ -93,8 +94,8 @@ export function CatalogClient() {
     return () => window.removeEventListener('popstate', sync);
   });
 
-  const { category, fraction, gost } = filters;
-  const active = category !== ALL || fraction !== ALL || gost !== ALL;
+  const { category, fraction, gost, group } = filters;
+  const active = KEYS.some((k) => filters[k] !== ALL);
   const activeCategory =
     category !== ALL ? CATEGORIES.find((c) => c.id === (category as CategoryId)) : undefined;
 
@@ -124,20 +125,30 @@ export function CatalogClient() {
         if (category !== ALL && m.categoryId !== category) return false;
         if (fraction !== ALL && !inFraction(m, fraction)) return false;
         if (gost !== ALL && m.gost !== gost) return false;
+        if (group !== ALL && m.group !== group) return false;
         return true;
       }),
-    [category, fraction, gost],
+    [category, fraction, gost, group],
   );
 
   /* Сколько позиций выбранная категория скрывает не потому, что не подошли,
      а потому, что фракции не имеют. Показывается только при выбранной
      фракции: без неё они и так все на месте. */
   const withoutFraction = useMemo(() => {
-    if (fraction === ALL) return 0;
-    return MATERIALS.filter(
+    if (fraction === ALL) return { count: 0, names: '' };
+    const hidden = MATERIALS.filter(
       (m) => !hasFraction(m) && (category === ALL || m.categoryId === category),
-    ).length;
+    );
+    /* Названия категорий берутся из тех позиций, что реально скрыты. Пока
+       здесь стояло слово «Грунты», строка врала бы в тот же день, когда
+       появилась вторая безфракционная категория, — металл. */
+    const names = [...new Set(hidden.map((m) => categoryById(m.categoryId).name))].join(' и ');
+    return { count: hidden.length, names };
   }, [category, fraction]);
+
+  /* Группы показываются только у выбранной категории: без неё в одной строке
+     оказались бы виды проката рядом с ничем. */
+  const groups = activeCategory ? groupsOf(activeCategory.id) : [];
 
   const backHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -243,6 +254,28 @@ export function CatalogClient() {
             ))}
           </FilterRow>
 
+          {/* Вид проката. Строка появляется только там, где делить есть на
+              что: у инертных групп внутри категории нет. Это не «спрятанный
+              за кнопку фильтр» — строки просто не существует, пока не
+              выбрана категория с группами. */}
+          {groups.length > 0 && (
+            <FilterRow label={activeCategory?.groupLabel ?? 'Вид'}>
+              <Chip chip="group:all" active={group === ALL} onClick={() => setParam('group', ALL)}>
+                Любой
+              </Chip>
+              {groups.map((g) => (
+                <Chip
+                  key={g.id}
+                  chip={`group:${g.id}`}
+                  active={group === g.id}
+                  onClick={() => setParam('group', g.id)}
+                >
+                  {g.name}
+                </Chip>
+              ))}
+            </FilterRow>
+          )}
+
           <FilterRow label="Фракция">
             <Chip chip="fraction:all" active={fraction === ALL} onClick={() => setParam('fraction', ALL)}>
               Любая
@@ -263,10 +296,10 @@ export function CatalogClient() {
               сортируют — фракции у них нет, и при выбранной фракции они
               пропадают не потому, что не подошли. Без этой строки человек
               решал бы, что нужного грунта у нас просто не бывает. */}
-          {withoutFraction > 0 && (
+          {withoutFraction.count > 0 && (
             <p className="mt-3 text-t1 leading-snug text-ink-2">
               {typo(
-                `Грунты в подборе по фракции не участвуют: по размеру зерна их не сортируют. Сейчас так скрыто ${withoutFraction} ${plural(withoutFraction, 'позиция', 'позиции', 'позиций')} —`,
+                `${withoutFraction.names} в подборе по фракции не участвуют: по размеру зерна такой товар не сортируют. Сейчас так скрыто ${withoutFraction.count} ${plural(withoutFraction.count, 'позиция', 'позиции', 'позиций')} —`,
               )}{' '}
               <button
                 type="button"

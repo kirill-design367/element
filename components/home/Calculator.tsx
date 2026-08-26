@@ -1,7 +1,16 @@
 'use client';
 
 import { useId, useMemo, useState } from 'react';
-import { CATEGORIES, fractionLabel, MATERIALS, materialsOf, pricePerM3 } from '@/lib/catalog';
+import {
+  CATEGORIES,
+  fractionLabel,
+  materialById,
+  MATERIALS,
+  materialsOf,
+  priceOf,
+  sellUnit,
+  unitLabel,
+} from '@/lib/catalog';
 import {
   DESTINATIONS,
   MAX_KM,
@@ -30,6 +39,14 @@ export function Calculator() {
   const [materialId, setMaterialId] = useState(MATERIALS[0].id);
   const [amountText, setAmountText] = useState('20');
   const [unit, setUnit] = useState<Unit>('m3');
+  /* Единица не хранится дважды. У металла она не выбирается вовсе: прокат
+     считают тоннами, и кубометр проката не значит ничего. Поэтому единица
+     выводится из материала, а состояние держит только выбор человека для
+     инертных — иначе пришлось бы синхронизировать их эффектом и ловить
+     кадр, в котором они разошлись. */
+  const material = materialById(materialId);
+  const forcedUnit: Unit | null = material && sellUnit(material) === 't' ? 't' : null;
+  const effUnit: Unit = forcedUnit ?? unit;
   const [destinationId, setDestinationId] = useState('mkad');
   const [km, setKm] = useState(0);
   /* Отдельно от числа хранится набранный текст. Пока поле было привязано
@@ -54,13 +71,13 @@ export function Calculator() {
      Поменяли материал, объём или единицу — в заявке лежит уже не это, и
      подпись обязана вернуться к «Отправить на просчёт». Раньше флаг
      выставлялся один раз и не сбрасывался никогда. */
-  const stamp = `${materialId}|${amountText}|${unit}`;
+  const stamp = `${materialId}|${amountText}|${effUnit}`;
   const [sentStamp, setSentStamp] = useState('');
   const sent = sentStamp === stamp && sentStamp !== '';
 
   const computed = useMemo(
-    () => (valid ? calculate({ materialId, amount, unit, km }) : null),
-    [materialId, amount, unit, km, valid],
+    () => (valid ? calculate({ materialId, amount, unit: effUnit, km }) : null),
+    [materialId, amount, effUnit, km, valid],
   );
 
   /* Потолок сравнивается с объёмом ПОСЛЕ приведения к кубам: в тоннах
@@ -68,12 +85,17 @@ export function Calculator() {
      Выше потолка расчёта нет вовсе — не число покрупнее, а другой разговор. */
   const overCap = !!computed && computed.volumeM3 > MAX_ORDER_M3;
   const result = overCap ? null : computed;
-  /** Разрядность итога — по ней выбирается ступень кегля. */
-  const totalDigits = result?.total != null ? String(Math.round(result.total)).length : 0;
   /* Позиция без цены: считать нечего, и подставлять ноль нельзя. Расчёт
      показывает доставку — она от цены не зависит, — а вместо итога говорит,
      что цену уточняем, и ведёт в заявку. */
   const noPrice = result?.blocked === 'no-price';
+  /* Металл: стоимость проката считается точно, доставки нет — тарифа под
+     него в проекте не заведено, и выдумывать его нельзя. Итога с доставкой у
+     металла поэтому не бывает, и крупным числом стоит стоимость материала. */
+  const noDelivery = result?.blocked === 'no-delivery';
+  const headline = noDelivery ? (result?.materialCost ?? null) : (result?.total ?? null);
+  /** Разрядность крупного числа — по ней выбирается ступень кегля. */
+  const totalDigits = headline != null ? String(Math.round(headline)).length : 0;
 
   const onDestination = (id: string) => {
     setDestinationId(id);
@@ -94,7 +116,7 @@ export function Calculator() {
 
   const toRequest = () => {
     if (!result) return;
-    req.add(materialId, amount, unit);
+    req.add(materialId, amount, effUnit);
     req.patchBrief({ address, km, destinationId });
     setSentStamp(stamp);
     document.getElementById('zayavka')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -127,9 +149,9 @@ export function Calculator() {
                   {materialsOf(c.id).map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.name}, {fractionLabel(m.fraction)} —{' '}
-                      {pricePerM3(m) === null
+                      {priceOf(m) === null
                         ? 'цена по запросу'
-                        : `${rub(pricePerM3(m) as number)}/м³`}
+                        : `${rub(priceOf(m) as number)}/${unitLabel(c.unit)}`}
                     </option>
                   ))}
                 </optgroup>
@@ -139,7 +161,7 @@ export function Calculator() {
 
           <div>
             <label className={label} htmlFor={`${uid}-amount`}>
-              Объём
+              {forcedUnit ? 'Масса' : 'Объём'}
             </label>
             <div className="flex gap-2">
               <input
@@ -159,23 +181,34 @@ export function Calculator() {
               />
               <fieldset className="field flex shrink-0 rounded-card p-1">
                 <legend className="sr-only">Единица измерения</legend>
-                {(['m3', 't'] as Unit[]).map((u) => (
-                  <label
-                    key={u}
-                    className={`flex h-10 cursor-pointer items-center justify-center rounded px-3 text-t2 font-medium transition-colors ${
-                      unit === u ? 'bg-accent text-white' : 'text-ink-2 hover:text-ink'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={`${uid}-unit`}
-                      className="sr-only"
-                      checked={unit === u}
-                      onChange={() => setUnit(u)}
-                    />
-                    {u === 'm3' ? 'м³' : 'т'}
-                  </label>
-                ))}
+                {/* У металла выбора нет: кубометр проката не значит ничего.
+                    Кнопка «м³» при этом не исчезает, а гаснет — место под
+                    переключатель не меняется ни на пиксель. */}
+                {(['m3', 't'] as Unit[]).map((u) => {
+                  const off = forcedUnit !== null && forcedUnit !== u;
+                  return (
+                    <label
+                      key={u}
+                      className={`flex h-10 items-center justify-center rounded px-3 text-t2 font-medium transition-colors ${
+                        off
+                          ? 'cursor-not-allowed text-ink-3 opacity-45'
+                          : effUnit === u
+                            ? 'cursor-pointer bg-accent text-white'
+                            : 'cursor-pointer text-ink-2 hover:text-ink'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`${uid}-unit`}
+                        className="sr-only"
+                        disabled={off}
+                        checked={effUnit === u}
+                        onChange={() => setUnit(u)}
+                      />
+                      {u === 'm3' ? 'м³' : 'т'}
+                    </label>
+                  );
+                })}
               </fieldset>
             </div>
             {!valid && (
@@ -190,11 +223,11 @@ export function Calculator() {
                   type="button"
                   onClick={() => {
                     setAmountText(String(q));
-                    setUnit('m3');
+                    if (!forcedUnit) setUnit('m3');
                   }}
                   className="tnum inline-flex h-9 items-center rounded-pill border border-line px-3 text-t1 text-ink-2 transition-colors hover:border-accent hover:text-accent"
                 >
-                  {`${q}\u00A0м³`}
+                  {`${q}\u00A0${unitLabel(effUnit === 't' ? 't' : 'm3')}`}
                 </button>
               ))}
             </div>
@@ -278,7 +311,11 @@ export function Calculator() {
               двойник внутри Counter. */}
           <div className="mt-4">
             <dl>
-              <dt className="text-t1 font-medium text-ink-2">Итого</dt>
+              {/* У металла итога с доставкой не бывает — крупным числом
+                  стоит стоимость проката, и подпись говорит об этом. */}
+              <dt className="text-t1 font-medium text-ink-2">
+                {noDelivery ? 'Материал, без доставки' : 'Итого'}
+              </dt>
               {/* Кегль итога ступенчатый. Ступень t5 рассчитана на пять-шесть
                   разрядов; на семи число переставало помещаться в панель, а
                   на 1280 разгоняло всю сетку и страница ехала вбок на 36 px.
@@ -293,9 +330,9 @@ export function Calculator() {
                   totalDigits > 6 ? 'text-t4' : 'text-t5'
                 }`}
               >
-                {result && result.total !== null ? (
+                {headline !== null ? (
                   <>
-                    <Counter value={result.total} format={(n) => num(Math.round(n))} live />
+                    <Counter value={headline} format={(n) => num(Math.round(n))} live />
                     <span className={totalDigits > 6 ? 'text-t3' : 'text-t4'}>₽</span>
                   </>
                 ) : (
@@ -316,15 +353,21 @@ export function Calculator() {
               объясняет цифру, а не подводит к ней. */}
           <div className="mt-5 space-y-3 border-t border-line pt-4 text-t2" aria-live="polite">
             <Row
-              label="Объём"
-              value={result ? nbsp(`${volume(result.volumeM3)} · ${tons(result.massT)}`) : '—'}
+              label={noDelivery ? 'Масса' : 'Объём'}
+              value={
+                result
+                  ? noDelivery
+                    ? tons(result.massT)
+                    : nbsp(`${volume(result.volumeM3)} · ${tons(result.massT)}`)
+                  : '—'
+              }
             />
             <Row label="Материал" value={result ? rubOr(result.materialCost) : '—'} />
             <Row
               label="Доставка"
-              value={result ? rub(result.deliveryCost) : '—'}
+              value={result ? (noDelivery ? 'считаем отдельно' : rubOr(result.deliveryCost)) : '—'}
               note={
-                result
+                result && result.truck
                   ? typo(`${rides(result.rides)} · ${result.truck.name} · до ${volume(result.perRideM3)} за рейс`)
                   : undefined
               }
@@ -340,6 +383,18 @@ export function Calculator() {
                 Оставьте заявку
               </a>
               {typo(' — ответим ценой и сроком.')}
+            </p>
+          )}
+
+          {noDelivery && (
+            <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
+              {typo(
+                'Металл возят не самосвалом, и тарифа на его доставку у нас на странице нет — считаем отдельно, под адрес и объём.',
+              )}{' '}
+              <a href="#zayavka" className="link-underline rounded font-medium text-accent">
+                Оставьте заявку
+              </a>
+              {typo(' — назовём доставку и срок.')}
             </p>
           )}
 

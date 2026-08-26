@@ -386,9 +386,9 @@ function Specimen({ pair }: { pair: Pair }) {
                   ['Материал', rubOr(CALC.materialCost)],
                   [
                     typo(
-                      `Доставка · ${CALC.truck.name} × ${CALC.rides} ${plural(CALC.rides, 'рейс', 'рейса', 'рейсов')}`,
+                      `Доставка · ${CALC.truck?.name ?? ''} × ${CALC.rides} ${plural(CALC.rides, 'рейс', 'рейса', 'рейсов')}`,
                     ),
-                    rub(CALC.deliveryCost),
+                    rubOr(CALC.deliveryCost),
                   ],
                   ['За кубометр на объекте', rubOr(CALC.totalPerM3)],
                 ] as [string, string][]

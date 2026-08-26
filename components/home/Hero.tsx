@@ -130,8 +130,11 @@ export function Hero() {
                 <span className="text-t1 text-ink">{nbsp('₽/м³, с НДС')}</span>
               </div>
 
+              {/* В панели только то, что считается кубами. Металл продаётся
+                  тоннами, и строка «от 59 500 ₽» под шапкой «₽/м³» соврала бы
+                  про единицу; у него своя карточка ниже по странице. */}
               <ul className="mt-4 divide-y divide-ink/12">
-                {CATEGORIES.map((c) => (
+                {CATEGORIES.filter((c) => c.unit === 'm3').map((c) => (
                   <li key={c.id}>
                     <Link
                       href={`/catalog/?category=${c.id}`}

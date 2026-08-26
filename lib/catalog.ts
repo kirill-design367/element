@@ -14,10 +14,37 @@
 
 import { num } from './format';
 
-export type CategoryId = 'shcheben' | 'pesok' | 'pgs' | 'otsev' | 'grunt';
+export type CategoryId = 'shcheben' | 'pesok' | 'pgs' | 'otsev' | 'grunt' | 'metall';
 
-/** Наличие. Влияет на цвет метки в карточке и на текст в заявке. */
-export type Availability = 'in-stock' | 'on-order' | 'out';
+/**
+ * Единица, в которой категория продаётся и показывается.
+ *
+ * Инертные считаются кубами: снабженец заказывает объём, и машина меряется
+ * кубами. Металл считается тоннами — кубометр проката не значит ничего.
+ */
+export type SaleUnit = 'm3' | 't';
+
+/**
+ * Группа внутри категории. Пока есть только у металла: четыре вида проката.
+ * Заведена не признаком позиции, а списком, потому что по ней работает
+ * фильтр, а значения фильтра берутся из данных.
+ */
+export type GroupId = 'armatura' | 'ugolok' | 'shveller' | 'truba';
+
+export const GROUPS: { id: GroupId; categoryId: CategoryId; name: string }[] = [
+  { id: 'armatura', categoryId: 'metall', name: 'Арматура' },
+  { id: 'ugolok', categoryId: 'metall', name: 'Уголок' },
+  { id: 'shveller', categoryId: 'metall', name: 'Швеллер' },
+  { id: 'truba', categoryId: 'metall', name: 'Труба профильная' },
+];
+
+/**
+ * Наличие. Влияет на метку в карточке и на текст в заявке.
+ *
+ * 'unknown' — наличие неизвестно: в прайсе металла его нет, а выдумывать
+ * «в наличии» на сайте поставщика нельзя. Метка так и говорит.
+ */
+export type Availability = 'in-stock' | 'on-order' | 'out' | 'unknown';
 
 export interface Category {
   id: CategoryId;
@@ -32,11 +59,10 @@ export interface Category {
   summary: string;
   /** Для чего берут. Короткие формулировки без маркетинга. */
   uses: string[];
-  /**
-   * Заглушка фактуры. Фотографий нет, поэтому карточка рисует
-   * гранулометрию: размер точки пропорционален фракции.
-   */
-  grain: { bg: string; tint: string; tint2: string; dot: number; step: number; rot: number };
+  /** В чём считается и показывается цена. */
+  unit: SaleUnit;
+  /** Подпись строки фильтра по группам. Есть только там, где группы есть. */
+  groupLabel?: string;
 }
 
 /**
@@ -112,17 +138,23 @@ export interface Material {
   categoryId: CategoryId;
   /** Полное торговое название. */
   name: string;
+  /** Группа внутри категории. Есть только у металла. */
+  group?: GroupId;
   /** Разновидность: гранитный, известняковый, мытый… */
   kind: string;
   /** Зерновой состав. Подпись и диапазон для фильтра выводятся отсюда. */
   fraction: Fraction;
-  gost: string;
+  /** ГОСТ или ТУ. У металла его нет: в прайсе не указан, выдумывать нельзя. */
+  gost?: string;
   /** Марка прочности, если нормируется. */
   strength?: string;
   /** Морозостойкость. */
   frost?: string;
-  /** Насыпная плотность, т/м³ — по ней считается тоннаж и загрузка машины. */
-  density: number;
+  /**
+   * Насыпная плотность, т/м³ — по ней считается тоннаж, загрузка машины и
+   * цена за куб. У металла её нет: кубами прокат не возят и не считают.
+   */
+  density?: number;
   /**
    * ЦЕНА ЗА ТОННУ, ₽, с НДС, самовывоз с площадки.
    *
@@ -159,7 +191,7 @@ export const CATEGORIES: Category[] = [
          стояло «от М300 до М1400» при фактических М400…М1200. */
       'Подбираем под нагрузку на основание: чем выше марка, тем прочнее щебень под бетон и дорожную одежду.',
     uses: ['бетон', 'основание дороги', 'дренаж', 'отсыпка площадок'],
-    grain: { bg: '#dedbd6', tint: '#978e86', tint2: '#b5aca3', dot: 5, step: 17, rot: -6 },
+    unit: 'm3',
   },
   {
     id: 'pesok',
@@ -171,7 +203,7 @@ export const CATEGORIES: Category[] = [
          categorySpec() из позиций. */
       'Карьерный на подсыпку и обратную засыпку, мытый — под кладочный и бетонный раствор.',
     uses: ['подушка под фундамент', 'раствор', 'обратная засыпка', 'благоустройство'],
-    grain: { bg: '#ece2cd', tint: '#c2a26a', tint2: '#dbc79c', dot: 1.5, step: 5.5, rot: 4 },
+    unit: 'm3',
   },
   {
     id: 'pgs',
@@ -180,7 +212,7 @@ export const CATEGORIES: Category[] = [
     summary:
       'Песчано-гравийная смесь: природная для отсыпки и планировки, обогащённая — с нормированным содержанием гравия под бетон.',
     uses: ['отсыпка', 'планировка участка', 'подстилающий слой', 'бетон'],
-    grain: { bg: '#e4ded2', tint: '#a1947c', tint2: '#c6bca6', dot: 3.4, step: 12.5, rot: -11 },
+    unit: 'm3',
   },
   {
     id: 'otsev',
@@ -189,7 +221,7 @@ export const CATEGORIES: Category[] = [
     summary:
       'Побочный продукт дробления. Дешевле песка на отсыпке, плотно трамбуется — берут под тротуарную плитку и дорожки.',
     uses: ['подсыпка под плитку', 'дорожки', 'антигололёдная посыпка', 'отсыпка'],
-    grain: { bg: '#e6e3de', tint: '#a29c94', tint2: '#bdb8b0', dot: 1.15, step: 4.4, rot: 7 },
+    unit: 'm3',
   },
   {
     id: 'grunt',
@@ -198,7 +230,21 @@ export const CATEGORIES: Category[] = [
     summary:
       'Плодородные грунты под озеленение и планировочный грунт под вертикальную планировку. Отбираем по агрохимическому анализу.',
     uses: ['газон', 'озеленение', 'вертикальная планировка', 'рекультивация'],
-    grain: { bg: '#cdc5b8', tint: '#6b5f51', tint2: '#8d7f6d', dot: 2.6, step: 9, rot: -3 },
+    unit: 'm3',
+  },
+  {
+    id: 'metall',
+    name: 'Металлопрокат',
+    genitive: 'металлопроката',
+    /* Ни марок стали, ни ГОСТов, ни сроков: в присланном прайсе их нет, а
+       выдумывать характеристики товара на сайте поставщика нельзя. */
+    /* Виды проката не перечисляются: их и так выводит categorySpec() из
+       позиций, и в плашке категории строка шла дважды подряд. */
+    summary:
+      'Цены за тонну. Марку стали, наличие и срок в присланном прайсе не указаны — называем их по заявке.',
+    uses: ['армирование бетона', 'металлоконструкции', 'каркасы', 'ограждения'],
+    unit: 't',
+    groupLabel: 'Вид проката',
   },
 ];
 
@@ -547,6 +593,241 @@ export const MATERIALS: Material[] = [
     uses: ['вертикальная планировка', 'засыпка котлована'],
     note: 'Отгружаем с площадок в момент выемки — наличие уточняйте.',
   },
+
+  // ── Металлопрокат ─────────────────────────────────────────────────────────
+  // Цены из прайса заказчика, за тонну. Марок стали, ГОСТов, сроков и
+  // минимальной партии в прайсе нет — и здесь их нет тоже.
+  {
+    id: 'arm-10',
+    categoryId: 'metall',
+    group: 'armatura',
+    name: 'Арматура рифлёная',
+    kind: 'арматура',
+    fraction: { kind: 'none', label: '⌀\u00A010\u00A0мм' },
+    pricePerTon: 78000,
+    availability: 'unknown',
+    uses: ['армирование бетона', 'фундамент', 'монолит'],
+  },
+  {
+    id: 'arm-12',
+    categoryId: 'metall',
+    group: 'armatura',
+    name: 'Арматура рифлёная',
+    kind: 'арматура',
+    fraction: { kind: 'none', label: '⌀\u00A012\u00A0мм' },
+    pricePerTon: 75000,
+    availability: 'unknown',
+    uses: ['армирование бетона', 'фундамент', 'монолит'],
+  },
+  {
+    id: 'arm-14',
+    categoryId: 'metall',
+    group: 'armatura',
+    name: 'Арматура рифлёная',
+    kind: 'арматура',
+    fraction: { kind: 'none', label: '⌀\u00A014\u00A0мм' },
+    pricePerTon: 74500,
+    availability: 'unknown',
+    uses: ['армирование бетона', 'фундамент', 'монолит'],
+  },
+  {
+    id: 'arm-16',
+    categoryId: 'metall',
+    group: 'armatura',
+    name: 'Арматура рифлёная',
+    kind: 'арматура',
+    fraction: { kind: 'none', label: '⌀\u00A016\u00A0мм' },
+    pricePerTon: 74500,
+    availability: 'unknown',
+    uses: ['армирование бетона', 'фундамент', 'монолит'],
+  },
+  {
+    id: 'ugol-40x40-4',
+    categoryId: 'metall',
+    group: 'ugolok',
+    name: 'Уголок',
+    kind: 'уголок',
+    fraction: { kind: 'none', label: '40×40×4\u00A0мм' },
+    pricePerTon: 101000,
+    availability: 'unknown',
+    uses: ['металлоконструкции', 'обвязка', 'усиление узлов'],
+  },
+  {
+    id: 'ugol-50x50-5',
+    categoryId: 'metall',
+    group: 'ugolok',
+    name: 'Уголок',
+    kind: 'уголок',
+    fraction: { kind: 'none', label: '50×50×5\u00A0мм' },
+    pricePerTon: 85000,
+    availability: 'unknown',
+    uses: ['металлоконструкции', 'обвязка', 'усиление узлов'],
+  },
+  {
+    id: 'ugol-63x63-6',
+    categoryId: 'metall',
+    group: 'ugolok',
+    name: 'Уголок',
+    kind: 'уголок',
+    fraction: { kind: 'none', label: '63×63×6\u00A0мм' },
+    pricePerTon: 81000,
+    availability: 'unknown',
+    uses: ['металлоконструкции', 'обвязка', 'усиление узлов'],
+  },
+  {
+    id: 'ugol-75x75-6',
+    categoryId: 'metall',
+    group: 'ugolok',
+    name: 'Уголок',
+    kind: 'уголок',
+    fraction: { kind: 'none', label: '75×75×6\u00A0мм' },
+    pricePerTon: 92000,
+    availability: 'unknown',
+    uses: ['металлоконструкции', 'обвязка', 'усиление узлов'],
+  },
+  {
+    id: 'shveller-10',
+    categoryId: 'metall',
+    group: 'shveller',
+    name: 'Швеллер',
+    kind: 'швеллер',
+    fraction: { kind: 'none', label: '№\u00A010' },
+    pricePerTon: 102000,
+    availability: 'unknown',
+    uses: ['перемычки', 'балки', 'рамы'],
+  },
+  {
+    id: 'shveller-12',
+    categoryId: 'metall',
+    group: 'shveller',
+    name: 'Швеллер',
+    kind: 'швеллер',
+    fraction: { kind: 'none', label: '№\u00A012' },
+    pricePerTon: 106000,
+    availability: 'unknown',
+    uses: ['перемычки', 'балки', 'рамы'],
+  },
+  {
+    id: 'shveller-14',
+    categoryId: 'metall',
+    group: 'shveller',
+    name: 'Швеллер',
+    kind: 'швеллер',
+    fraction: { kind: 'none', label: '№\u00A014' },
+    pricePerTon: 107000,
+    availability: 'unknown',
+    uses: ['перемычки', 'балки', 'рамы'],
+  },
+  {
+    id: 'shveller-16',
+    categoryId: 'metall',
+    group: 'shveller',
+    name: 'Швеллер',
+    kind: 'швеллер',
+    fraction: { kind: 'none', label: '№\u00A016' },
+    pricePerTon: 105000,
+    availability: 'unknown',
+    uses: ['перемычки', 'балки', 'рамы'],
+  },
+  {
+    id: 'truba-40x20-2',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '40×20×2\u00A0мм' },
+    pricePerTon: 70000,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-40x25-2',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '40×25×2\u00A0мм' },
+    pricePerTon: 63000,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-40x40-2',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '40×40×2\u00A0мм' },
+    pricePerTon: 62500,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-50x50-2',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '50×50×2\u00A0мм' },
+    pricePerTon: 75000,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-60x40-2',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '60×40×2\u00A0мм' },
+    pricePerTon: 69000,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-60x60-2',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '60×60×2\u00A0мм' },
+    pricePerTon: 62500,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-80x40-3',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '80×40×3\u00A0мм' },
+    pricePerTon: 60000,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-80x80-3',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '80×80×3\u00A0мм' },
+    pricePerTon: 59500,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
+  {
+    id: 'truba-100x100-3',
+    categoryId: 'metall',
+    group: 'truba',
+    name: 'Труба профильная',
+    kind: 'труба профильная',
+    fraction: { kind: 'none', label: '100×100×3\u00A0мм' },
+    pricePerTon: 59500,
+    availability: 'unknown',
+    uses: ['каркасы', 'навесы', 'ограждения'],
+  },
 ];
 
 // ── Производные и помощники ─────────────────────────────────────────────────
@@ -573,8 +854,28 @@ export const POSITIONS_ON_REQUEST = MATERIALS.filter((m) => m.pricePerTon === nu
  * показывает округление округления.
  */
 export function pricePerM3(m: Material): number | null {
-  if (m.pricePerTon === null) return null;
+  if (m.pricePerTon === null || m.density === undefined) return null;
   return Math.round((m.pricePerTon * m.density) / 10) * 10;
+}
+
+/** В чём позиция продаётся: инертные кубами, металл тоннами. */
+export function sellUnit(m: Material): SaleUnit {
+  return categoryById(m.categoryId).unit;
+}
+
+/** Цена в той единице, в которой позиция продаётся. */
+export function priceOf(m: Material): number | null {
+  return sellUnit(m) === 't' ? m.pricePerTon : pricePerM3(m);
+}
+
+/** Подпись единицы цены: «/м³» или «/т». */
+export function unitLabel(u: SaleUnit): string {
+  return u === 't' ? 'т' : 'м³';
+}
+
+/** Группы выбранной категории. Пусто — значит делить нечего. */
+export function groupsOf(id: CategoryId): { id: GroupId; name: string }[] {
+  return GROUPS.filter((g) => g.categoryId === id);
 }
 
 /** Есть ли у позиции цена вообще. */
@@ -601,7 +902,7 @@ export function materialsOf(id: CategoryId): Material[] {
  */
 export function priceFrom(id: CategoryId): number | null {
   const prices = materialsOf(id)
-    .map((m) => pricePerM3(m))
+    .map((m) => priceOf(m))
     .filter((x): x is number => x !== null);
   return prices.length ? Math.min(...prices) : null;
 }
@@ -713,10 +1014,18 @@ export function inFraction(m: Material, id: string): boolean {
   return mm[0] < f.to && mm[1] > f.from;
 }
 
-export const GOST_FILTERS: string[] = Array.from(new Set(MATERIALS.map((m) => m.gost))).sort();
+/* ГОСТ есть не у всего: у металла в прайсе его нет вовсе. Пустое значение в
+   список фильтра не идёт — иначе в выпадающем списке появился бы пункт ни о
+   чём, а выбор по нему прятал бы весь металл молча. */
+export const GOST_FILTERS: string[] = Array.from(
+  new Set(MATERIALS.map((m) => m.gost).filter((g): g is string => !!g)),
+).sort();
 
 export const AVAILABILITY_LABEL: Record<Availability, string> = {
   'in-stock': 'В наличии',
   'on-order': 'Под заказ',
   out: 'Нет в наличии',
+  /* Не «нет» и не «есть»: про металл в прайсе не сказано ничего, и сайт
+     говорит ровно это. */
+  unknown: 'Наличие уточняем',
 };

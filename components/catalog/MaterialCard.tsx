@@ -1,6 +1,6 @@
 'use client';
 
-import { AVAILABILITY_LABEL, fractionLabel, pricePerM3, type Material } from '@/lib/catalog';
+import { AVAILABILITY_LABEL, fractionLabel, pricePerM3, sellUnit, type Material } from '@/lib/catalog';
 import { num, rub, typo } from '@/lib/format';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { CheckIcon } from '@/components/site/Icons';
@@ -14,15 +14,20 @@ export function MaterialCard({ material }: { material: Material }) {
   const req = useRequest();
   const inList = req.has(material.id);
   const out = material.availability === 'out';
-  /* Цена за куб считается из цены за тонну; null значит, что цены нет вовсе. */
+  /* Цена за куб считается из цены за тонну; null значит, что цены нет вовсе
+     или что позиция кубами не меряется — это металл. */
   const perM3 = pricePerM3(material);
+  const perTon = material.pricePerTon;
+  /* Металл продаётся тоннами: колонки «за м³» у него не бывает. */
+  const byTon = sellUnit(material) === 't';
 
   return (
     <article
       data-reveal
       data-cat={material.categoryId}
       data-fr={fractionIds(material)}
-      data-gost={material.gost}
+      data-gost={material.gost ?? ''}
+      data-group={material.group ?? ''}
       className="flex flex-col rounded-card border border-line bg-surface p-4 shadow-card transition-transform duration-300 ease-out will-change-transform hover:-translate-y-1 md:p-5"
     >
       <div className="flex items-start justify-between gap-3">
@@ -31,8 +36,11 @@ export function MaterialCard({ material }: { material: Material }) {
             {typo(material.name)}
           </h3>
           {/* Маркировка партии — единственное место моноширинного. */}
+          {/* Маркировка партии: у инертных это фракция и ГОСТ, у металла —
+              типоразмер. ГОСТа у металла в прайсе нет, и точки-разделителя
+              без второй половины быть не должно. */}
           <p className="mark mt-1.5 text-t1 text-ink-2">
-            {fractionLabel(material.fraction)} · {material.gost}
+            {[fractionLabel(material.fraction), material.gost].filter(Boolean).join(' · ')}
           </p>
         </div>
         <Availability material={material} />
@@ -41,10 +49,9 @@ export function MaterialCard({ material }: { material: Material }) {
       {/* Цены — крупно и в табличных цифрах, чтобы колонки не плясали.
           Цена за куб не хранится, а считается из цены за тонну и насыпной
           плотности этой же позиции: прайс приходит за тонну. */}
-      {perM3 === null ? (
+      {perTon === null ? (
         /* Цены нет — так и написано. Ноль на месте цены читался бы как
-           «бесплатно», прочерк — как незаполненное поле. Место занимает тот
-           же блок той же высоты, поэтому в сетке карточки ничего не едет. */
+           «бесплатно», прочерк — как незаполненное поле. */
         <div className="mt-4 overflow-hidden rounded border border-line bg-surface-2 px-3 py-2.5">
           <div className="text-t1 text-ink-2">Цена</div>
           <div className="mt-0.5 text-t3 font-bold leading-none">По запросу</div>
@@ -52,17 +59,22 @@ export function MaterialCard({ material }: { material: Material }) {
             В прайсе против этой позиции числа нет — назовём цену в ответ на заявку.
           </p>
         </div>
+      ) : byTon ? (
+        /* Металл: одна колонка. Кубометр проката не значит ничего, и
+           показывать его — врать про единицу отгрузки. */
+        <div className="mt-4 overflow-hidden rounded border border-line bg-surface-2 px-3 py-2.5">
+          <div className="text-t1 text-ink-2">За тонну</div>
+          <div className="tnum mt-0.5 text-t3 font-bold leading-none">{rub(perTon)}</div>
+        </div>
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
           <div className="bg-surface-2 px-3 py-2.5">
             <div className="text-t1 text-ink-2">За м³</div>
-            <div className="tnum mt-0.5 text-t3 font-bold leading-none">{rub(perM3)}</div>
+            <div className="tnum mt-0.5 text-t3 font-bold leading-none">{rub(perM3 as number)}</div>
           </div>
           <div className="bg-surface-2 px-3 py-2.5">
             <div className="text-t1 text-ink-2">За тонну</div>
-            <div className="tnum mt-0.5 text-t3 font-bold leading-none">
-              {rub(material.pricePerTon as number)}
-            </div>
+            <div className="tnum mt-0.5 text-t3 font-bold leading-none">{rub(perTon)}</div>
           </div>
         </div>
       )}
@@ -83,7 +95,9 @@ export function MaterialCard({ material }: { material: Material }) {
             неразрывный пробел перед единицей. Печаталась «1.37 т/м³» —
             точкой, по-английски. На /fonts/ то же число уже выводилось с
             запятой, то есть разнобой был внутри проекта. */}
-        <Spec term="Насыпная плотность" value={`${num(material.density, 2)}\u00A0т/м³`} />
+        {material.density !== undefined && (
+          <Spec term="Насыпная плотность" value={`${num(material.density, 2)}\u00A0т/м³`} />
+        )}
       </dl>
 
       {material.note && (
@@ -122,12 +136,14 @@ export function MaterialCard({ material }: { material: Material }) {
 
 function Availability({ material }: { material: Material }) {
   const label = AVAILABILITY_LABEL[material.availability];
+  /* Красным отмечается только «нет в наличии». «Под заказ» и «наличие
+     уточняем» — нейтральные состояния, а не ошибка. */
   const style =
     material.availability === 'in-stock'
       ? 'border-line-strong bg-surface-2 text-ink'
-      : material.availability === 'on-order'
-        ? 'border-line bg-surface-2 text-ink-2'
-        : 'border-warn/30 bg-warn-soft text-warn';
+      : material.availability === 'out'
+        ? 'border-warn/30 bg-warn-soft text-warn'
+        : 'border-line bg-surface-2 text-ink-2';
   return (
     <span
       className={`shrink-0 whitespace-nowrap rounded-pill border px-2.5 py-1 text-t1 font-medium ${style}`}

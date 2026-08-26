@@ -7,7 +7,7 @@
  * считают по одним и тем же функциям — разойтись не могут.
  */
 
-import { MATERIALS, pricePerM3, type Material } from './catalog';
+import { MATERIALS, pricePerM3, sellUnit, type Material } from './catalog';
 
 export interface Truck {
   id: string;
@@ -96,8 +96,13 @@ export interface CalcInput {
  * стоит. Доставку в этом случае посчитать всё равно можно — она зависит от
  * объёма и плотности, а не от цены, — и она показывается: это честная часть
  * ответа. Итога нет, и подставлять на его место ноль нельзя.
+ *
+ * 'no-delivery' — металл. Стоимость проката считается точно, тоннаж на цену
+ * за тонну, а доставки нет: возят его не самосвалом, и тарифа под это в
+ * lib/pricing.ts не заведено. Выдумывать тариф нельзя, поэтому итога с
+ * доставкой у металла не бывает — расчёт честно доводит до заявки.
  */
-export type CalcBlock = null | 'no-price';
+export type CalcBlock = null | 'no-price' | 'no-delivery';
 
 export interface CalcResult {
   material: Material;
@@ -106,14 +111,15 @@ export interface CalcResult {
   volumeM3: number;
   /** Масса — её спрашивают на въезде на объект. */
   massT: number;
-  /** Подобранная машина и число рейсов. */
-  truck: Truck;
+  /** Подобранная машина и число рейсов. null у металла: самосвал ему не нужен. */
+  truck: Truck | null;
   rides: number;
   /** Сколько кубов реально влезает в один рейс с учётом тоннажа. */
   perRideM3: number;
   /** null, если цены у позиции нет. */
   materialCost: number | null;
-  deliveryCost: number;
+  /** null, если тарифа на перевозку этого товара нет (металл). */
+  deliveryCost: number | null;
   /** null, если цены у позиции нет: ноль на месте итога — это неправда. */
   total: number | null;
   /** Цена одного куба «на объекте» — по ней сравнивают поставщиков. */
@@ -155,11 +161,37 @@ export function calculate(input: CalcInput): CalcResult | null {
   if (!material) return null;
 
   const amount = Number.isFinite(input.amount) ? Math.max(0, input.amount) : 0;
-  const volumeM3 = round2(toM3(amount, input.unit, material.density));
-  const massT = round2(volumeM3 * material.density);
+
+  /* Металл считается только в тоннах: кубометр проката не значит ничего, и
+     плотности у него в данных нет. Машину под него не подбираем — тарифа на
+     перевозку металла в проекте нет, и придумывать его нельзя. */
+  if (sellUnit(material) === 't') {
+    const tons = round2(amount);
+    const perTon = material.pricePerTon;
+    return {
+      material,
+      blocked: 'no-delivery',
+      volumeM3: 0,
+      massT: tons,
+      truck: null,
+      rides: 0,
+      perRideM3: 0,
+      materialCost: perTon === null ? null : Math.round(tons * perTon),
+      deliveryCost: null,
+      total: null,
+      totalPerM3: null,
+      belowMinimum: false,
+      beyondRange: false,
+      estimated: !!material.estimated,
+    };
+  }
+
+  const density = material.density as number;
+  const volumeM3 = round2(toM3(amount, input.unit, density));
+  const massT = round2(volumeM3 * density);
   const km = clamp(input.km, 0, MAX_KM * 2);
 
-  const { truck, rides, cost, perRideM3 } = pickTruck(Math.max(volumeM3, 0.01), material.density, km);
+  const { truck, rides, cost, perRideM3 } = pickTruck(Math.max(volumeM3, 0.01), density, km);
   const perM3 = pricePerM3(material);
   const materialCost = perM3 === null ? null : Math.round(volumeM3 * perM3);
   const deliveryCost = volumeM3 > 0 ? Math.round(cost) : 0;

@@ -6,7 +6,7 @@ import { calculate, type Unit } from '@/lib/pricing';
 import { plural, rub, tons, volume } from '@/lib/format';
 import { LeadForm } from '@/components/home/LeadForm';
 import { CloseIcon, ListIcon } from '@/components/site/Icons';
-import { fractionLabel, pricePerM3 } from '@/lib/catalog';
+import { fractionLabel, priceOf, sellUnit, unitLabel } from '@/lib/catalog';
 
 /**
  * Заявка-список. Внизу висит полоса со счётчиком, она раскрывается в панель
@@ -90,8 +90,11 @@ export function RequestPanel() {
 
   if (!mounted || req.count === 0) return null;
 
-  /* Позиции без цены в сумму не входят — складывать с ними нечего. Их число
-     считается отдельно и говорится словами: молча занизить итог нельзя. */
+  /* Позиции, у которых итога с доставкой нет, в сумму не входят: складывать
+     с ними нечего. Причин две — цены нет вовсе, и это металл, которому у нас
+     нет тарифа на доставку. Их число считается тут же и говорится словами:
+     молча занизить итог нельзя. */
+  let outside = 0;
   const estimate = req.detailed.reduce((sum, { item }) => {
     const c = calculate({
       materialId: item.materialId,
@@ -99,9 +102,9 @@ export function RequestPanel() {
       unit: item.unit,
       km: req.brief.km,
     });
+    if (c && c.total === null) outside += 1;
     return sum + (c?.total ?? 0);
   }, 0);
-  const onRequest = req.detailed.filter(({ material }) => material.pricePerTon === null).length;
 
   return (
     <>
@@ -178,9 +181,9 @@ export function RequestPanel() {
                           <p className="text-t2 font-medium leading-snug">{material.name}</p>
                           <p className="text-t1 text-ink-2">
                             {fractionLabel(material.fraction)} ·{' '}
-                            {pricePerM3(material) === null
+                            {priceOf(material) === null
                               ? 'цена по запросу'
-                              : `${rub(pricePerM3(material) as number)}/м³`}
+                              : `${rub(priceOf(material) as number)}/${unitLabel(sellUnit(material))}`}
                           </p>
                         </div>
                         <button
@@ -230,30 +233,55 @@ export function RequestPanel() {
                           }
                           className="field tnum h-10 w-24 rounded-card px-2.5 text-t2"
                         />
+                        {/* У металла выбора единицы нет: кубометр проката не
+                            значит ничего. Кнопка не исчезает, а гаснет —
+                            ширина блока не меняется. */}
                         <div className="field flex rounded-card p-0.5">
-                          {(['m3', 't'] as Unit[]).map((u) => (
-                            <button
-                              key={u}
-                              type="button"
-                              onClick={() => req.setUnit(item.materialId, u)}
-                              aria-pressed={item.unit === u}
-                              className={`h-9 rounded px-3 text-t1 font-medium transition-colors ${
-                                item.unit === u ? 'bg-accent text-white' : 'text-ink-2 hover:text-ink'
-                              }`}
-                            >
-                              {u === 'm3' ? 'м³' : 'т'}
-                            </button>
-                          ))}
+                          {(['m3', 't'] as Unit[]).map((u) => {
+                            const off = sellUnit(material) === 't' && u === 'm3';
+                            return (
+                              <button
+                                key={u}
+                                type="button"
+                                disabled={off}
+                                onClick={() => req.setUnit(item.materialId, u)}
+                                aria-pressed={item.unit === u}
+                                className={`h-9 rounded px-3 text-t1 font-medium transition-colors ${
+                                  off
+                                    ? 'cursor-not-allowed text-ink-3 opacity-45'
+                                    : item.unit === u
+                                      ? 'bg-accent text-white'
+                                      : 'text-ink-2 hover:text-ink'
+                                }`}
+                              >
+                                {u === 'm3' ? 'м³' : 'т'}
+                              </button>
+                            );
+                          })}
                         </div>
                         <span className="ml-auto text-right text-t2 text-ink-2">
                           {calc ? (
                             <>
+                              {/* Пересчёт в другую единицу показывается только
+                                  там, где он есть: у металла второй единицы
+                                  нет, и «0 м³» было бы неправдой. */}
                               <span className="tnum">
-                                {item.unit === 'm3' ? tons(calc.massT) : volume(calc.volumeM3)}
+                                {calc.blocked === 'no-delivery'
+                                  ? ''
+                                  : item.unit === 'm3'
+                                    ? tons(calc.massT)
+                                    : volume(calc.volumeM3)}
                               </span>
                               <span className="ml-2 font-medium text-ink">
                                 {calc.total === null ? (
-                                  'по запросу'
+                                  calc.materialCost === null ? (
+                                    'по запросу'
+                                  ) : (
+                                    <>
+                                      ≈ <span className="tnum">{rub(calc.materialCost)}</span>{' '}
+                                      <span className="font-normal text-ink-2">без доставки</span>
+                                    </>
+                                  )
                                 ) : (
                                   <>
                                     ≈ <span className="tnum">{rub(calc.total)}</span>
@@ -277,8 +305,8 @@ export function RequestPanel() {
               </p>
               <p className="mt-1 text-t1 leading-snug text-ink-2">
                 Доставку посчитали на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.
-                {onRequest > 0 &&
-                  ` В сумму не вошли ${onRequest} ${plural(onRequest, 'позиция', 'позиции', 'позиций')} с ценой по запросу — назовём её в ответ на заявку.`}
+                {outside > 0 &&
+                  ` В сумму не ${outside === 1 ? 'вошла' : 'вошли'} ${outside} ${plural(outside, 'позиция', 'позиции', 'позиций')}: цену или доставку по ним считаем отдельно и назовём в ответ на заявку.`}
               </p>
 
               <div className="mt-6">

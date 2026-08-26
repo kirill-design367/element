@@ -16,13 +16,14 @@ import {
   CATEGORIES,
   FRACTION_FILTERS,
   GOST_FILTERS,
+  GROUPS,
   hasFraction,
   inFraction,
   MATERIALS,
   type Material,
 } from './catalog';
 
-export const PREFILTER_KEYS = ['category', 'fraction', 'gost'] as const;
+export const PREFILTER_KEYS = ['category', 'fraction', 'gost', 'group'] as const;
 
 /**
  * Идентификаторы фракций, под которые подходит позиция.
@@ -58,6 +59,12 @@ export function prefilterCss(): string {
   FRACTION_FILTERS.forEach((f) => pair('fraction', f.id, `article[data-fr]:not([data-fr~="${f.id}"])`));
   GOST_FILTERS.forEach((g) =>
     pair('gost', g, `article[data-gost]:not([data-gost="${g.replace(/"/g, '\\"')}"])`),
+  );
+  /* Вид проката. Атрибут стоит у КАЖДОЙ карточки, у инертных пустой: без
+     этого правило «не такой группы» не задевало бы их вовсе, и при ссылке с
+     группой они остались бы на экране до гидратации. */
+  GROUPS.forEach((g) =>
+    pair('group', g.id, `article[data-group]:not([data-group="${g.id}"])`),
   );
 
   // Счётчик найденного до гидратации соврал бы — прячем его на этот миг.
