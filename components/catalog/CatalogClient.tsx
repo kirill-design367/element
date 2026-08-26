@@ -149,7 +149,7 @@ export function CatalogClient() {
                   видимого H1: elementFromPoint в точке заголовка возвращал IMG.
                   У карточек категорий на лендинге того же не было — там дети
                   сами absolute и стоят в разметке после кадра. */}
-              <div className="relative z-10 w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
+              <div className="relative z-10 w-full bg-gradient-to-t from-white/95 via-white/90 to-white/40 p-4 md:p-6">
                 <h1 className="font-black text-t4 leading-none tracking-[-.03em]">
                   {activeCategory.name}
                 </h1>
