@@ -547,12 +547,25 @@ html.js .photo-box.is-loaded .lqip { opacity: 0; transition: opacity .6s ease; }
   box-shadow: 0 0 0 0 rgba(23, 63, 166, 0);
 }
 .field:hover { background: var(--field-bg-hover); }
+/* Кольцо фокуса у полей — штатное кольцо проекта, то же самое, что у
+   кнопок и ссылок.
+
+   Мягкое кольцо, которое здесь стояло, фокус фактически не показывало:
+   --accent-soft #e8ecf8 против белой карточки это 1,18:1, против фона
+   1,07:1; рамка поля rgba(23,63,166,.35) — 1,88:1 против заливки поля.
+   Порог видимого индикатора 3:1 не брал ни один из двух признаков.
+   Штатное кольцо даёт 9,14:1. Мягкость принесена в жертву видимости —
+   решение заказчика.
+
+   Мягкая тень оставлена ПОД кольцом: она даёт нарастание за 0,2 с и не
+   мешает кольцу, потому что рисуется за его пределами. */
 .field:focus,
 .field:focus-visible {
   background: var(--field-bg-hover);
-  border-color: rgba(23, 63, 166, .35);
+  border-color: var(--accent);
   box-shadow: 0 0 0 4px var(--accent-soft);
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .field::placeholder { color: var(--ink-2); }
 .field[aria-invalid='true'], .field.is-error { border-color: var(--warn); }
