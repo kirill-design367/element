@@ -20,8 +20,13 @@ const variants: Record<Variant, string> = {
      карточкой с обычными токенами, и кнопка в нём белая по глубокому
      акценту, как на всей остальной странице. */
   primary:
+    /* Внутри .inv текст кнопки тёмный: акцент там поднят по светлоте до
+       #9db4f2, и белым по нему нельзя — контраст падает до 2:1.
+       На панелях первого экрана было то же исключение, пока акцент там был
+       светлым (#7c9bf0). Теперь он глубокий #2e62e5, и тёмный текст на нём
+       даёт 3,48:1 — исключение снято, кнопка берёт белый и 5,26:1. */
     'bg-accent text-white [.inv_&]:text-surface ' +
-    '[.hero-panel_&]:text-surface hover:bg-accent-hover shadow-[0_1px_0_rgba(0,0,0,.04)]',
+    'hover:bg-accent-hover shadow-[0_1px_0_rgba(0,0,0,.04)]',
   secondary:
     'btn-secondary bg-surface text-ink border border-line-strong hover:border-ink hover:bg-white',
   ghost: 'text-accent hover:bg-accent-soft',
