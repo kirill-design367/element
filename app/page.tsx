@@ -10,7 +10,7 @@ import { Objects } from '@/components/home/Objects';
 import { LeadForm } from '@/components/home/LeadForm';
 import { Contacts } from '@/components/home/Contacts';
 import { ButtonLink } from '@/components/ui/Button';
-import { MAX_KM, PRICE_HOLD_DAYS } from '@/lib/pricing';
+import { MAX_KM } from '@/lib/pricing';
 import { POSITIONS_TOTAL } from '@/lib/catalog';
 import { nbsp, plural } from '@/lib/format';
 import { COMPANY } from '@/lib/company';
@@ -109,9 +109,9 @@ export default function HomePage() {
               <h2 data-reveal className="font-black text-t4 leading-[1.02] tracking-[-.02em]">
                 Заявка на просчёт
               </h2>
-              <p className="mt-3 max-w-[32ch] text-t2 leading-relaxed text-ink-2">
-                {`Ответим ценой на материал и доставку. Держим цену ${PRICE_HOLD_DAYS} дней.`}
-              </p>
+              {/* Абзац про срок брони цены убран решением заказчика. Отбивка
+                  телефона оставлена прежней: 24 px от заголовка — обычный шаг
+                  проекта, дырой не читается. */}
               <a
                 href={`tel:${COMPANY.phone}`}
                 className="mt-6 inline-flex items-center gap-2 rounded font-black text-t3 leading-none transition-colors duration-300 hover:text-accent"

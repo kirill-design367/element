@@ -1,4 +1,4 @@
-import { COMPANY, CONTACTS_ARE_PLACEHOLDER } from '@/lib/company';
+import { COMPANY } from '@/lib/company';
 import { nbsp, typo } from '@/lib/format';
 import { PhoneIcon } from '@/components/site/Icons';
 import { PHOTO } from '@/lib/assets';
@@ -51,17 +51,6 @@ export function Contacts() {
               <Line term="Часы отгрузки" value={COMPANY.hoursShipping} />
               <Line term="География" value={COMPANY.geo} />
             </dl>
-
-            {/* Пока контакты демонстрационные, страница говорит об этом на
-                виду, а не внутри свёрнутых реквизитов: телефон и почта здесь
-                тоже ненастоящие, и человек должен узнать это до звонка. */}
-            {CONTACTS_ARE_PLACEHOLDER && (
-              <p className="mt-6 text-t1 leading-snug text-ink-2">
-                {typo(
-                  'Телефон и адрес — рабочие. Почту и реквизиты привели для примера и заменим перед запуском.',
-                )}
-              </p>
-            )}
           </div>
 
           {/* ── Реквизиты ─────────────────────────────────────────────── */}

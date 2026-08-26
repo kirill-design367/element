@@ -34,7 +34,6 @@ export function Footer() {
           <a href={`mailto:${COMPANY.email}`} className="nav-zoom rounded">
             {COMPANY.email}
           </a>
-          <span>Цены на сайте не являются публичной офертой</span>
         </p>
       </div>
     </footer>
