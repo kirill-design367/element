@@ -12,13 +12,26 @@
  * возьмёт управление, атрибуты снимаются и правила перестают действовать.
  */
 
-import { CATEGORIES, FRACTION_FILTERS, GOST_FILTERS, MATERIALS, type Material } from './catalog';
+import {
+  CATEGORIES,
+  FRACTION_FILTERS,
+  GOST_FILTERS,
+  hasFraction,
+  inFraction,
+  MATERIALS,
+  type Material,
+} from './catalog';
 
 export const PREFILTER_KEYS = ['category', 'fraction', 'gost'] as const;
 
-/** Идентификаторы фракций, под которые подходит позиция. */
+/**
+ * Идентификаторы фракций, под которые подходит позиция.
+ *
+ * У безфракционных позиций строка пустая — и это не пробел в данных: грунты
+ * по размеру зерна не сортируют, и ни в одну корзину они не попадают.
+ */
 export function fractionIds(m: Material): string {
-  return FRACTION_FILTERS.filter((f) => f.test(m))
+  return FRACTION_FILTERS.filter((f) => inFraction(m, f.id))
     .map((f) => f.id)
     .join(' ');
 }
@@ -55,5 +68,11 @@ export function prefilterCss(): string {
   return rules.join('');
 }
 
-/** Проверка целостности: у каждой позиции должна найтись хотя бы одна фракция. */
-export const PREFILTER_COVERAGE = MATERIALS.every((m) => fractionIds(m).length > 0);
+/**
+ * Проверка целостности: каждая позиция, у которой фракция ЕСТЬ, обязана
+ * попадать хотя бы в одну корзину. Безфракционные из проверки выведены —
+ * им не попадать никуда правильно.
+ */
+export const PREFILTER_COVERAGE = MATERIALS.filter(hasFraction).every(
+  (m) => fractionIds(m).length > 0,
+);

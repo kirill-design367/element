@@ -3,14 +3,7 @@ import localFont from 'next/font/local';
 import Link from 'next/link';
 import { cofoSans } from '../type';
 import report from '@/lib/font-check.json';
-import {
-  CATEGORIES,
-  MATERIALS,
-  POSITIONS_TOTAL,
-  AVAILABILITY_LABEL,
-  priceFrom,
-  pricePerTon,
-} from '@/lib/catalog';
+import { AVAILABILITY_LABEL, CATEGORIES, fractionLabel, MATERIALS, POSITIONS_TOTAL, priceFrom, pricePerTon } from '@/lib/catalog';
 import { calculate } from '@/lib/pricing';
 import { num, plural, rub, typo } from '@/lib/format';
 import { FLEET_NUMBERS } from '@/components/home/Fleet';
@@ -326,7 +319,7 @@ function Specimen({ pair }: { pair: Pair }) {
               </span>
             </div>
             <p style={body} className="mt-1 text-[13px] text-ink-2">
-              {SAMPLE.fraction} · {SAMPLE.gost}
+              {fractionLabel(SAMPLE.fraction)} · {SAMPLE.gost}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
               {(

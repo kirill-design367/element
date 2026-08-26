@@ -10,6 +10,8 @@
  * Стоимость доставки считается отдельно, см. lib/pricing.ts.
  */
 
+import { num } from './format';
+
 export type CategoryId = 'shcheben' | 'pesok' | 'pgs' | 'otsev' | 'grunt';
 
 /** Наличие. Влияет на цвет метки в карточке и на текст в заявке. */
@@ -34,6 +36,74 @@ export interface Category {
   grain: { bg: string; tint: string; tint2: string; dot: number; step: number; rot: number };
 }
 
+/**
+ * ЗЕРНОВОЙ СОСТАВ ПОЗИЦИИ.
+ *
+ * Подпись для карточки и диапазон для фильтра выводятся ОТСЮДА хелперами
+ * ниже — руками подпись больше не пишут. Раньше рядом лежали строка
+ * `fraction` и пара чисел `fractionMm`, не связанные ничем: правка одной не
+ * задевала другую, и разойтись они могли молча.
+ *
+ * Вариантов четыре, потому что четыре разные вещи и нормируются. Щебень и
+ * отсев — фракцией в миллиметрах. Песок — модулем крупности. Обогащённая
+ * ПГС — долей гравия. Грунты не нормируются по размеру зерна вовсе, и это
+ * не «неизвестная фракция», а её отсутствие: подгонять их под корзины
+ * фильтра значило бы врать про товар.
+ */
+export type Fraction =
+  /** Фракция в миллиметрах: щебень, отсев, природная ПГС. */
+  | { kind: 'mm'; from: number; to: number }
+  /** Модуль крупности песка. В миллиметрах любой песок это 0–5. */
+  | { kind: 'mkr'; from: number; to: number }
+  /** Обогащённая ПГС: нормируется доля гравия. Сама смесь той же крупности,
+      что природная, — 0–70 мм. */
+  | { kind: 'gravel'; percent: number }
+  /** Фракции нет. Подпись говорит про обработку («просеянный», «без
+      сортировки»), а не про размер зерна. */
+  | { kind: 'none'; label: string };
+
+/**
+ * Как фракция пишется в карточке и в накладной.
+ *
+ * Пробел перед единицей неразрывный: подпись стоит в классе `.mark`, а он
+ * включает табличные цифры, и обычный пробел там подменяется широким.
+ */
+export function fractionLabel(f: Fraction): string {
+  switch (f.kind) {
+    case 'mm':
+      return `${num(f.from)}–${num(f.to)}\u00A0мм`;
+    case 'mkr':
+      return `Мкр\u00A0${num(f.from, 1)}–${num(f.to, 1)}`;
+    case 'gravel':
+      return `гравий ${num(f.percent)}\u00A0%`;
+    case 'none':
+      return f.label;
+  }
+}
+
+/**
+ * Диапазон в миллиметрах — по нему работает фильтр.
+ * `null` означает, что фракции у позиции нет и ни в одну корзину она не
+ * попадает: это честный ответ, а не промах подбора.
+ */
+export function fractionMm(f: Fraction): [number, number] | null {
+  switch (f.kind) {
+    case 'mm':
+      return [f.from, f.to];
+    case 'mkr':
+      return [0, 5];
+    case 'gravel':
+      return [0, 70];
+    case 'none':
+      return null;
+  }
+}
+
+/** Позиция вообще участвует в подборе по фракции. */
+export function hasFraction(m: Material): boolean {
+  return m.fraction.kind !== 'none';
+}
+
 export interface Material {
   id: string;
   categoryId: CategoryId;
@@ -41,10 +111,8 @@ export interface Material {
   name: string;
   /** Разновидность: гранитный, известняковый, мытый… */
   kind: string;
-  /** Фракция как пишут в накладной. */
-  fraction: string;
-  /** Числовой диапазон в мм — по нему работает фильтр и рисуется фактура. */
-  fractionMm: [number, number];
+  /** Зерновой состав. Подпись и диапазон для фильтра выводятся отсюда. */
+  fraction: Fraction;
   gost: string;
   /** Марка прочности, если нормируется. */
   strength?: string;
@@ -120,8 +188,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень гранитный',
     kind: 'гранитный',
-    fraction: '5–20 мм',
-    fractionMm: [5, 20],
+    fraction: { kind: 'mm', from: 5, to: 20 },
     gost: 'ГОСТ 8267-93',
     strength: 'М1200',
     frost: 'F300',
@@ -136,8 +203,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень гранитный',
     kind: 'гранитный',
-    fraction: '20–40 мм',
-    fractionMm: [20, 40],
+    fraction: { kind: 'mm', from: 20, to: 40 },
     gost: 'ГОСТ 8267-93',
     strength: 'М1200',
     frost: 'F300',
@@ -151,8 +217,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень гранитный',
     kind: 'гранитный',
-    fraction: '40–70 мм',
-    fractionMm: [40, 70],
+    fraction: { kind: 'mm', from: 40, to: 70 },
     gost: 'ГОСТ 8267-93',
     strength: 'М1200',
     frost: 'F300',
@@ -166,8 +231,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень известняковый',
     kind: 'известняковый',
-    fraction: '5–20 мм',
-    fractionMm: [5, 20],
+    fraction: { kind: 'mm', from: 5, to: 20 },
     gost: 'ГОСТ 8267-93',
     strength: 'М600',
     frost: 'F150',
@@ -182,8 +246,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень известняковый',
     kind: 'известняковый',
-    fraction: '20–40 мм',
-    fractionMm: [20, 40],
+    fraction: { kind: 'mm', from: 20, to: 40 },
     gost: 'ГОСТ 8267-93',
     strength: 'М600',
     frost: 'F150',
@@ -197,8 +260,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень известняковый',
     kind: 'известняковый',
-    fraction: '40–70 мм',
-    fractionMm: [40, 70],
+    fraction: { kind: 'mm', from: 40, to: 70 },
     gost: 'ГОСТ 8267-93',
     strength: 'М400',
     frost: 'F150',
@@ -212,8 +274,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень гравийный',
     kind: 'гравийный',
-    fraction: '5–20 мм',
-    fractionMm: [5, 20],
+    fraction: { kind: 'mm', from: 5, to: 20 },
     gost: 'ГОСТ 8267-93',
     strength: 'М1000',
     frost: 'F200',
@@ -228,8 +289,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень гравийный',
     kind: 'гравийный',
-    fraction: '20–40 мм',
-    fractionMm: [20, 40],
+    fraction: { kind: 'mm', from: 20, to: 40 },
     gost: 'ГОСТ 8267-93',
     strength: 'М1000',
     frost: 'F200',
@@ -243,8 +303,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'shcheben',
     name: 'Щебень вторичный',
     kind: 'вторичный',
-    fraction: '20–40 мм',
-    fractionMm: [20, 40],
+    fraction: { kind: 'mm', from: 20, to: 40 },
     gost: 'ТУ 5711-006',
     strength: 'М400',
     frost: 'F50',
@@ -261,8 +320,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pesok',
     name: 'Песок карьерный',
     kind: 'карьерный',
-    fraction: 'Мкр 1,8–2,2',
-    fractionMm: [0, 3],
+    fraction: { kind: 'mkr', from: 1.8, to: 2.2 },
     gost: 'ГОСТ 8736-2014',
     density: 1.55,
     pricePerM3: 680,
@@ -275,8 +333,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pesok',
     name: 'Песок карьерный сеяный',
     kind: 'сеяный',
-    fraction: 'Мкр 2,0–2,5',
-    fractionMm: [0, 3],
+    fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
     pricePerM3: 840,
@@ -288,8 +345,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pesok',
     name: 'Песок мытый',
     kind: 'мытый',
-    fraction: 'Мкр 2,0–2,5',
-    fractionMm: [0, 3],
+    fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
     pricePerM3: 1090,
@@ -302,8 +358,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pesok',
     name: 'Песок речной намывной',
     kind: 'речной',
-    fraction: 'Мкр 2,2–2,8',
-    fractionMm: [0, 3],
+    fraction: { kind: 'mkr', from: 2.2, to: 2.8 },
     gost: 'ГОСТ 8736-2014',
     density: 1.48,
     pricePerM3: 1280,
@@ -317,8 +372,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pgs',
     name: 'ПГС природная',
     kind: 'природная',
-    fraction: '0–70 мм',
-    fractionMm: [0, 70],
+    fraction: { kind: 'mm', from: 0, to: 70 },
     gost: 'ГОСТ 23735-2014',
     density: 1.65,
     pricePerM3: 790,
@@ -331,8 +385,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pgs',
     name: 'ПГС обогащённая',
     kind: 'обогащённая',
-    fraction: 'гравий 30 %',
-    fractionMm: [0, 70],
+    fraction: { kind: 'gravel', percent: 30 },
     gost: 'ГОСТ 23735-2014',
     density: 1.7,
     pricePerM3: 1180,
@@ -344,8 +397,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pgs',
     name: 'ПГС обогащённая',
     kind: 'обогащённая',
-    fraction: 'гравий 50 %',
-    fractionMm: [0, 70],
+    fraction: { kind: 'gravel', percent: 50 },
     gost: 'ГОСТ 23735-2014',
     density: 1.75,
     pricePerM3: 1420,
@@ -359,8 +411,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'otsev',
     name: 'Отсев гранитный',
     kind: 'гранитный',
-    fraction: '0–5 мм',
-    fractionMm: [0, 5],
+    fraction: { kind: 'mm', from: 0, to: 5 },
     gost: 'ГОСТ 31424-2010',
     strength: 'М1200',
     density: 1.4,
@@ -373,8 +424,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'otsev',
     name: 'Отсев известняковый',
     kind: 'известняковый',
-    fraction: '0–5 мм',
-    fractionMm: [0, 5],
+    fraction: { kind: 'mm', from: 0, to: 5 },
     gost: 'ГОСТ 31424-2010',
     strength: 'М600',
     density: 1.32,
@@ -387,8 +437,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'otsev',
     name: 'Отсев гравийный',
     kind: 'гравийный',
-    fraction: '0–10 мм',
-    fractionMm: [0, 10],
+    fraction: { kind: 'mm', from: 0, to: 10 },
     gost: 'ГОСТ 31424-2010',
     strength: 'М1000',
     density: 1.45,
@@ -403,8 +452,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'grunt',
     name: 'Чернозём',
     kind: 'чернозём',
-    fraction: 'просеянный',
-    fractionMm: [0, 20],
+    fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 1.15,
     pricePerM3: 1450,
@@ -417,8 +465,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'grunt',
     name: 'Грунт плодородный',
     kind: 'плодородный',
-    fraction: 'просеянный',
-    fractionMm: [0, 20],
+    fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 1.2,
     pricePerM3: 980,
@@ -430,8 +477,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'grunt',
     name: 'Грунт растительный',
     kind: 'растительный',
-    fraction: 'непросеянный',
-    fractionMm: [0, 40],
+    fraction: { kind: 'none', label: 'непросеянный' },
     gost: 'без ГОСТ',
     density: 1.25,
     pricePerM3: 760,
@@ -443,8 +489,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'grunt',
     name: 'Торфогрунт',
     kind: 'торфяной',
-    fraction: 'просеянный',
-    fractionMm: [0, 20],
+    fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 0.9,
     pricePerM3: 1120,
@@ -456,8 +501,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'grunt',
     name: 'Грунт планировочный',
     kind: 'планировочный',
-    fraction: 'без сортировки',
-    fractionMm: [0, 70],
+    fraction: { kind: 'none', label: 'без сортировки' },
     gost: 'без ГОСТ',
     density: 1.6,
     pricePerM3: 390,
@@ -503,12 +547,38 @@ export function materialById(id: string): Material | undefined {
 }
 
 /** Значения фильтров собираются из данных, а не пишутся руками. */
+/**
+ * Корзины подбора по фракции. Сами корзины прежние — менялось только
+ * условие попадания.
+ *
+ * Последняя открыта сверху: она значит «40 мм и крупнее», а не строго
+ * 40–70. Отдельной корзины под более крупное в проекте нет.
+ */
 export const FRACTION_FILTERS = [
-  { id: '0-5', label: '0–5 мм', test: (m: Material) => m.fractionMm[1] <= 5 },
-  { id: '5-20', label: '5–20 мм', test: (m: Material) => m.fractionMm[0] >= 5 && m.fractionMm[1] <= 20 },
-  { id: '20-40', label: '20–40 мм', test: (m: Material) => m.fractionMm[0] >= 20 && m.fractionMm[1] <= 40 },
-  { id: '40-70', label: '40–70 мм', test: (m: Material) => m.fractionMm[1] > 40 },
+  { id: '0-5', label: '0–5 мм', from: 0, to: 5 },
+  { id: '5-20', label: '5–20 мм', from: 5, to: 20 },
+  { id: '20-40', label: '20–40 мм', from: 20, to: 40 },
+  { id: '40-70', label: '40–70 мм', from: 40, to: Infinity },
 ] as const;
+
+/**
+ * Попадание — по ПЕРЕСЕЧЕНИЮ диапазонов, а не по вложенности.
+ *
+ * Раньше требовалось, чтобы диапазон позиции влез в корзину целиком, и это
+ * врало в обе стороны. Мимо всех корзин проходило пять позиций, у которых
+ * диапазон начинается с нуля. А корзина «40–70 мм» ловила смеси 0–70,
+ * которые в неё «влезали» верхней границей, — и при этом не показывала их
+ * в корзинах помельче, куда они подходят ничуть не меньше.
+ *
+ * Сравнение строгое с обеих сторон: диапазоны, соприкасающиеся в одной
+ * точке (щебень 5–20 и корзина 0–5), пересечением не считаются.
+ */
+export function inFraction(m: Material, id: string): boolean {
+  const f = FRACTION_FILTERS.find((x) => x.id === id);
+  const mm = fractionMm(m.fraction);
+  if (!f || !mm) return false;
+  return mm[0] < f.to && mm[1] > f.from;
+}
 
 export const GOST_FILTERS: string[] = Array.from(new Set(MATERIALS.map((m) => m.gost))).sort();
 

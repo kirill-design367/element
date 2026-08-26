@@ -1,6 +1,6 @@
 'use client';
 
-import { AVAILABILITY_LABEL, pricePerTon, type Material } from '@/lib/catalog';
+import { AVAILABILITY_LABEL, fractionLabel, pricePerTon, type Material } from '@/lib/catalog';
 import { num, rub, typo } from '@/lib/format';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { CheckIcon } from '@/components/site/Icons';
@@ -30,7 +30,7 @@ export function MaterialCard({ material }: { material: Material }) {
           </h3>
           {/* Маркировка партии — единственное место моноширинного. */}
           <p className="mark mt-1.5 text-t1 text-ink-2">
-            {material.fraction} · {material.gost}
+            {fractionLabel(material.fraction)} · {material.gost}
           </p>
         </div>
         <Availability material={material} />

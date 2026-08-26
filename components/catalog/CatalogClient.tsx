@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   CATEGORIES,
+  categoryById,
   FRACTION_FILTERS,
   GOST_FILTERS,
+  hasFraction,
+  inFraction,
   MATERIALS,
   POSITIONS_TOTAL,
-  categoryById,
   type CategoryId,
 } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
@@ -20,7 +22,7 @@ import { useFlipArrival } from '@/components/providers/FlipArrival';
 import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
 import { ArrowIcon } from '@/components/site/Icons';
-import { plural } from '@/lib/format';
+import { plural, typo } from '@/lib/format';
 import { PREFILTER_KEYS } from '@/lib/prefilter';
 
 const ALL = 'all';
@@ -94,15 +96,26 @@ export function CatalogClient() {
 
   const reset = useCallback(() => apply(EMPTY), [apply]);
 
-  const items = useMemo(() => {
-    const fr = FRACTION_FILTERS.find((f) => f.id === fraction);
-    return MATERIALS.filter((m) => {
-      if (category !== ALL && m.categoryId !== category) return false;
-      if (fr && !fr.test(m)) return false;
-      if (gost !== ALL && m.gost !== gost) return false;
-      return true;
-    });
-  }, [category, fraction, gost]);
+  const items = useMemo(
+    () =>
+      MATERIALS.filter((m) => {
+        if (category !== ALL && m.categoryId !== category) return false;
+        if (fraction !== ALL && !inFraction(m, fraction)) return false;
+        if (gost !== ALL && m.gost !== gost) return false;
+        return true;
+      }),
+    [category, fraction, gost],
+  );
+
+  /* Сколько позиций выбранная категория скрывает не потому, что не подошли,
+     а потому, что фракции не имеют. Показывается только при выбранной
+     фракции: без неё они и так все на месте. */
+  const withoutFraction = useMemo(() => {
+    if (fraction === ALL) return 0;
+    return MATERIALS.filter(
+      (m) => !hasFraction(m) && (category === ALL || m.categoryId === category),
+    ).length;
+  }, [category, fraction]);
 
   const backHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -210,6 +223,26 @@ export function CatalogClient() {
               </Chip>
             ))}
           </FilterRow>
+
+          {/* Честная оговорка вместо молчания. Грунты по размеру зерна не
+              сортируют — фракции у них нет, и при выбранной фракции они
+              пропадают не потому, что не подошли. Без этой строки человек
+              решал бы, что нужного грунта у нас просто не бывает. */}
+          {withoutFraction > 0 && (
+            <p className="mt-3 text-t1 leading-snug text-ink-2">
+              {typo(
+                `Грунты в подборе по фракции не участвуют: по размеру зерна их не сортируют. Сейчас так скрыто ${withoutFraction} ${plural(withoutFraction, 'позиция', 'позиции', 'позиций')} —`,
+              )}{' '}
+              <button
+                type="button"
+                onClick={() => setParam('fraction', ALL)}
+                className="link-underline rounded text-accent"
+              >
+                снимите фракцию
+              </button>
+              , чтобы их увидеть.
+            </p>
+          )}
 
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
             <label htmlFor="gost" className="text-t1 font-medium">

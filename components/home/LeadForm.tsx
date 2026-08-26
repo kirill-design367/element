@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useState, type FormEvent } from 'react';
-import { CATEGORIES, materialsOf, materialById } from '@/lib/catalog';
+import { CATEGORIES, fractionLabel, materialById, materialsOf } from '@/lib/catalog';
 import { calculate, DESTINATIONS } from '@/lib/pricing';
 import { nbsp, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
@@ -67,7 +67,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         });
         const qty = item.unit === 'm3' ? volume(item.amount) : tons(item.amount);
         lines.push(
-          `${i + 1}. ${material.name}, ${material.fraction} — ${qty}` +
+          `${i + 1}. ${material.name}, ${fractionLabel(material.fraction)} — ${qty}` +
             (calc ? ` · ориентировочно ${rub(calc.total)} с доставкой` : ''),
         );
       });
@@ -80,7 +80,9 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         /* Пустое значение — это не «поле не заполнили», а выбранный пункт
            «Подберём вместе». Прочерк на его месте читался в письме так,
            будто человек просто пропустил вопрос. */
-        lines.push(`Материал: ${m ? `${m.name}, ${m.fraction}` : 'подберём вместе'}`);
+        lines.push(
+          `Материал: ${m ? `${m.name}, ${fractionLabel(m.fraction)}` : 'подберём вместе'}`,
+        );
         lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
       }
     }
@@ -316,7 +318,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-t2 font-medium">{material.name}</p>
                     <p className="text-t1 text-ink-2">
-                      {material.fraction} · {material.gost}
+                      {fractionLabel(material.fraction)} · {material.gost}
                     </p>
                   </div>
                   <span className="tnum shrink-0 text-t2">
@@ -354,7 +356,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
                   <optgroup key={c.id} label={c.name}>
                     {materialsOf(c.id).map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.name}, {m.fraction}
+                        {m.name}, {fractionLabel(m.fraction)}
                       </option>
                     ))}
                   </optgroup>
