@@ -99,46 +99,63 @@ export function Motion() {
       onScroll({ scroll: window.scrollY });
 
       /* ── Лента материалов ──────────────────────────────────────────────
-         У ленты своя горизонтальная копия Lenis. Обе сидят на одном тикере
-         gsap, поэтому вертикальная и горизонтальная прокрутка идут в одном
-         такте: лента не отстаёт от страницы на кадр и не дёргается, когда
-         крутят и то и другое сразу.
+         Лента обязана листаться всеми способами, и ни один из них не имеет
+         права зависеть от того, какой у человека указатель. Раньше зависел:
+         вся обвязка стояла под условием `pointer: fine`, и на ноутбуке с
+         сенсорным экраном — а это обычный ноутбук, не планшет — медиа-запрос
+         отдаёт coarse, обвязка не поднималась вовсе. Замер на таком экране:
+         кнопка-стрелка двигала ленту на 0 px, тяга мышью на 0 px. Лента
+         стояла колом при полностью рабочей мыши.
+
+         Теперь под указателем стоит ровно одна вещь — горизонтальная копия
+         Lenis. Она нужна только там, где крутят колесом и трекпадом; на
+         телефоне свайп родной и инерционный, и вторая инерция поверх
+         ощущается как залипание. Всё остальное — тяга, стрелки, полоса
+         прогресса — поднимается всегда, а на телефоне тяга пропускает
+         касания: там их ведёт родная прокрутка.
 
          gestureOrientation: horizontal — принципиально. При 'both' колесо над
          лентой крутит ленту вместо страницы, и, докрутив ленту до конца,
          человек упирается: страница под курсором стоит. Сейчас вертикальное
          колесо всегда ведёт страницу, ленту двигают горизонтальный жест
-         трекпада, shift + колесо, свайп и клавиатура. syncTouch выключен: на
-         телефоне свайп и так инерционный, вторая инерция поверх ощущается
-         как залипание.
+         трекпада, shift + колесо, свайп, клавиатура и кнопки.
 
          Полоса прогресса под лентой: ширина бегунка — доля видимой части,
          положение — доля прокрутки. Двигается transform. */
-      // Горизонтальный Lenis нужен только там, где крутят колесом и
-      // трекпадом. На телефоне свайп родной и инерционный сам по себе —
-      // лишняя копия движка там только ест главный поток при загрузке.
-      const finePointer = window.matchMedia('(pointer: fine)').matches;
-      const rail = finePointer ? document.querySelector<HTMLElement>('[data-rail]') : null;
+      const rail = document.querySelector<HTMLElement>('[data-rail]');
       const railBar = document.querySelector<HTMLElement>('[data-rail-bar]');
-      const railNative = !finePointer ? document.querySelector<HTMLElement>('[data-rail]') : null;
       let railLenis: InstanceType<typeof Lenis> | undefined;
       if (rail) {
-        railLenis = new Lenis({
-          wrapper: rail,
-          content: rail,
-          orientation: 'horizontal',
-          gestureOrientation: 'horizontal',
-          duration: 0.9,
-          easing: (t: number) => 1 - Math.pow(1 - t, 4),
-          smoothWheel: true,
-          syncTouch: false,
-        });
-        const railRaf = (time: number) => railLenis?.raf(time * 1000);
-        gsap.ticker.add(railRaf);
+        const finePointer = window.matchMedia('(pointer: fine)').matches;
+        let railRaf: ((time: number) => void) | undefined;
+        if (finePointer) {
+          railLenis = new Lenis({
+            wrapper: rail,
+            content: rail,
+            orientation: 'horizontal',
+            gestureOrientation: 'horizontal',
+            duration: 0.9,
+            easing: (t: number) => 1 - Math.pow(1 - t, 4),
+            smoothWheel: true,
+            syncTouch: false,
+          });
+          railRaf = (time: number) => railLenis?.raf(time * 1000);
+          gsap.ticker.add(railRaf);
+        }
+
+        /* Доводка до позиции: через Lenis, если он есть, иначе родной
+           плавной прокруткой. Без запасного пути кнопки и инерция молчали
+           бы везде, где копия Lenis не поднимается. */
+        const maxLeft = () => Math.max(0, rail.scrollWidth - rail.clientWidth);
+        const glide = (to: number, duration: number) => {
+          const target = Math.max(0, Math.min(maxLeft(), to));
+          if (railLenis) railLenis.scrollTo(target, { duration });
+          else rail.scrollTo({ left: target, behavior: 'smooth' });
+        };
 
         const paint = () => {
           if (!railBar) return;
-          const max = rail.scrollWidth - rail.clientWidth;
+          const max = maxLeft();
           const view = rail.clientWidth / rail.scrollWidth;
           const pos = max > 0 ? rail.scrollLeft / max : 0;
           gsap.set(railBar, {
@@ -149,28 +166,58 @@ export function Motion() {
         rail.addEventListener('scroll', paint, { passive: true });
         paint();
 
+        /* Родной drag-and-drop уводил жест у тяги. Картинка внутри карточки
+           и сама ссылка перетаскиваемы по умолчанию (img.draggable и
+           a.draggable равны true), dragstart никто не отменял — браузер на
+           первом же движении начинал тащить картинку, присылал
+           pointercancel, и тяга обрывалась, не сдвинув ленту. Синтетическая
+           мышь этого не воспроизводит, поэтому в прогонах тяга «работала», а
+           у человека нет. Отменяем dragstart на ленте целиком. */
+        const onDragStart = (e: Event) => e.preventDefault();
+        rail.addEventListener('dragstart', onDragStart);
+
         /* Перетаскивание мышью. Пока тянут, Lenis выключен и позиция
            пишется напрямую; на отпускании остаток скорости уходит в
-           lenis.scrollTo — лента доезжает по инерции, а не встаёт колом. */
+           доводку — лента доезжает по инерции, а не встаёт колом.
+           Касания пропускаем: там ведёт родная прокрутка.
+
+           Захват указателя берётся НЕ на нажатии, а только когда смещение
+           перешло порог. Это не тонкость: пока захват брался на
+           pointerdown, элементом клика становилась сама лента, а не ссылка
+           под курсором, — карточка переставала открывать каталог. Замер:
+           клик по карточке оставлял адрес на «/» вместо
+           «/catalog/?category=shcheben». Захват нужен только тяге — чтобы
+           жест не рвался, когда курсор ушёл за пределы ленты, — а тяга к
+           этому моменту уже отличена от клика. */
+        const DRAG_THRESHOLD = 5;
+        let pressed = false;
         let dragging = false;
         let startX = 0;
         let startLeft = 0;
         let lastX = 0;
         let lastT = 0;
+        let moved = 0;
         let velocity = 0;
         const onDown = (e: PointerEvent) => {
-          if (e.button !== 0) return;
-          dragging = true;
+          if (e.button !== 0 || e.pointerType === 'touch') return;
+          pressed = true;
+          dragging = false;
           startX = lastX = e.clientX;
           startLeft = rail.scrollLeft;
           lastT = performance.now();
+          moved = 0;
           velocity = 0;
-          railLenis?.stop();
-          rail.classList.add('is-dragging');
-          rail.setPointerCapture(e.pointerId);
         };
         const onMove = (e: PointerEvent) => {
-          if (!dragging) return;
+          if (!pressed) return;
+          moved = Math.max(moved, Math.abs(e.clientX - startX));
+          if (!dragging) {
+            if (moved <= DRAG_THRESHOLD) return;
+            dragging = true;
+            railLenis?.stop();
+            rail.classList.add('is-dragging');
+            rail.setPointerCapture(e.pointerId);
+          }
           const now = performance.now();
           const dt = Math.max(1, now - lastT);
           velocity = (e.clientX - lastX) / dt;
@@ -179,78 +226,61 @@ export function Motion() {
           rail.scrollLeft = startLeft - (e.clientX - startX);
         };
         const onUp = (e: PointerEvent) => {
+          if (!pressed) return;
+          pressed = false;
           if (!dragging) return;
           dragging = false;
           rail.classList.remove('is-dragging');
-          rail.releasePointerCapture?.(e.pointerId);
+          if (rail.hasPointerCapture?.(e.pointerId)) rail.releasePointerCapture(e.pointerId);
           railLenis?.start();
           // 260 — во столько раз догоняет остаток жеста; подобрано так,
           // чтобы бросок пальцем проходил примерно карточку.
-          const throwTo = rail.scrollLeft - velocity * 260;
-          railLenis?.scrollTo(Math.max(0, Math.min(rail.scrollWidth - rail.clientWidth, throwTo)), {
-            duration: 1.1,
-          });
+          glide(rail.scrollLeft - velocity * 260, 1.1);
         };
         rail.addEventListener('pointerdown', onDown);
         rail.addEventListener('pointermove', onMove);
         rail.addEventListener('pointerup', onUp);
         rail.addEventListener('pointercancel', onUp);
         // Клик по карточке после протаскивания открывал бы каталог.
-        rail.addEventListener(
-          'click',
-          (e) => {
-            if (Math.abs(lastX - startX) > 6) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          },
-          true,
-        );
+        // Порог тот же: сдвинулись меньше чем на 5 px — это клик.
+        const onClick = (e: MouseEvent) => {
+          if (moved > DRAG_THRESHOLD) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        };
+        rail.addEventListener('click', onClick, true);
 
         /* Стрелки: листают на ширину карточки и гаснут на краях. */
         const prev = document.querySelector<HTMLButtonElement>('[data-rail-prev]');
         const next = document.querySelector<HTMLButtonElement>('[data-rail-next]');
         const step = () => (rail.querySelector<HTMLElement>('[data-rail-item]')?.offsetWidth ?? 320) + 16;
-        const go = (dir: number) =>
-          railLenis?.scrollTo(
-            Math.max(0, Math.min(rail.scrollWidth - rail.clientWidth, rail.scrollLeft + dir * step())),
-            { duration: 0.9 },
-          );
-        prev?.addEventListener('click', () => go(-1));
-        next?.addEventListener('click', () => go(1));
+        const goPrev = () => glide(rail.scrollLeft - step(), 0.9);
+        const goNext = () => glide(rail.scrollLeft + step(), 0.9);
+        prev?.addEventListener('click', goPrev);
+        next?.addEventListener('click', goNext);
         const edges = () => {
-          const max = rail.scrollWidth - rail.clientWidth;
+          const max = maxLeft();
           if (prev) prev.disabled = rail.scrollLeft < 4;
           if (next) next.disabled = rail.scrollLeft > max - 4;
         };
         rail.addEventListener('scroll', edges, { passive: true });
         edges();
-        const railCleanup = () => {
+
+        cleanupRail = () => {
           rail.removeEventListener('scroll', paint);
           rail.removeEventListener('scroll', edges);
+          rail.removeEventListener('dragstart', onDragStart);
           rail.removeEventListener('pointerdown', onDown);
           rail.removeEventListener('pointermove', onMove);
           rail.removeEventListener('pointerup', onUp);
           rail.removeEventListener('pointercancel', onUp);
-          gsap.ticker.remove(railRaf);
+          rail.removeEventListener('click', onClick, true);
+          prev?.removeEventListener('click', goPrev);
+          next?.removeEventListener('click', goNext);
+          if (railRaf) gsap.ticker.remove(railRaf);
           railLenis?.destroy();
         };
-        cleanupRail = railCleanup;
-      } else if (railNative && railBar) {
-        // Без своей копии Lenis лента крутится родной прокруткой, но полоса
-        // прогресса нужна и там.
-        const paint = () => {
-          const max = railNative.scrollWidth - railNative.clientWidth;
-          const view = railNative.clientWidth / railNative.scrollWidth;
-          const pos = max > 0 ? railNative.scrollLeft / max : 0;
-          gsap.set(railBar, {
-            scaleX: view,
-            x: (railNative.clientWidth - railNative.clientWidth * view) * pos,
-          });
-        };
-        railNative.addEventListener('scroll', paint, { passive: true });
-        paint();
-        cleanupRail = () => railNative.removeEventListener('scroll', paint);
       }
 
       /* ── Стекло в движении ──────────────────────────────────────────

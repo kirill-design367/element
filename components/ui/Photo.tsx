@@ -94,6 +94,10 @@ export function Photo({
           loading={priority ? 'eager' : 'lazy'}
           fetchPriority={priority ? 'high' : 'auto'}
           decoding="async"
+          /* Картинка перетаскиваема по умолчанию, и в ленте материалов это
+             уводило жест в родной drag-and-drop: браузер начинал тащить
+             снимок, присылал pointercancel, и тяга ленты обрывалась. */
+          draggable={false}
           className={`photo-img ${imgClassName}`}
         />
       </picture>
