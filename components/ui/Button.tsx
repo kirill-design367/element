@@ -15,10 +15,13 @@ const base =
 const variants: Record<Variant, string> = {
   /* На тёмных подложках акцент поднят по светлоте, и белым по нему писать
      нельзя: контраст падает до 2:1. Там текст кнопки берёт тёмный --surface.
-     Подложек две — .inv (парк, панель расчёта) и .lead-band (блок заявки). */
+     Подложек три — .inv (парк, панель расчёта), .lead-band (блок заявки) и
+     .hero-panel (тёмное стекло первого экрана). */
   primary:
-    'bg-accent text-white [.inv_&]:text-surface [.lead-band_&]:text-surface hover:bg-accent-hover shadow-[0_1px_0_rgba(0,0,0,.04)]',
-  secondary: 'bg-surface text-ink border border-line-strong hover:border-ink hover:bg-white',
+    'bg-accent text-white [.inv_&]:text-surface [.lead-band_&]:text-surface ' +
+    '[.hero-panel_&]:text-surface hover:bg-accent-hover shadow-[0_1px_0_rgba(0,0,0,.04)]',
+  secondary:
+    'btn-secondary bg-surface text-ink border border-line-strong hover:border-ink hover:bg-white',
   ghost: 'text-accent hover:bg-accent-soft',
 };
 

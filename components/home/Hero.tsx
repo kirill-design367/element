@@ -64,7 +64,7 @@ export function Hero() {
       <div className="shell row-start-2 w-full">
         <div className="grid items-start gap-[clamp(10px,2.5vw,25px)] lg:grid-cols-[1.618fr_1fr]">
           {/* ── Панель заголовка ─────────────────────────────────────────── */}
-          <div data-hero="panel" data-glass-parallax className="hero-shade">
+          <div data-hero="panel" data-glass-parallax className="hero-panel">
           <div
             className="glass glass-panel rounded-panel p-5 md:p-7 lg:p-9"
           >
@@ -115,7 +115,7 @@ export function Hero() {
 
           {/* ── Панель цен ───────────────────────────────────────────────── */}
           <div data-hero="price">
-            <div data-glass-parallax className="hero-shade">
+            <div data-glass-parallax className="hero-panel">
             <div className="glass glass-panel rounded-panel p-5 md:p-6">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-t1 font-medium text-ink">Цены на площадке</h2>
