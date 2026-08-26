@@ -141,7 +141,15 @@ export function CatalogClient() {
               slot={categorySlot(activeCategory.id)}
               className="flex min-h-[132px] items-end rounded-card border border-line md:min-h-[168px]"
             >
-              <div className="w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
+              {/* relative z-10 обязателен. Внутри PhotoSlot кадр лежит
+                  absolute inset-0, а этот блок — обычный поток: позиционированный
+                  элемент рисуется ПОВЕРХ непозиционированного при равном
+                  z-index, и фотография закрывала заголовок категории целиком.
+                  На отфильтрованном каталоге страница открывалась без единого
+                  видимого H1: elementFromPoint в точке заголовка возвращал IMG.
+                  У карточек категорий на лендинге того же не было — там дети
+                  сами absolute и стоят в разметке после кадра. */}
+              <div className="relative z-10 w-full bg-gradient-to-t from-white/90 via-white/70 to-transparent p-4 md:p-6">
                 <h1 className="font-black text-t4 leading-none tracking-[-.03em]">
                   {activeCategory.name}
                 </h1>
