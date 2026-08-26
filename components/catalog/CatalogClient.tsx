@@ -201,7 +201,14 @@ export function CatalogClient() {
                 <h1 className="font-black text-t4 leading-none tracking-[-.03em]">
                   {activeCategory.name}
                 </h1>
-                <p className="mt-2 max-w-[62ch] text-t2 text-ink-2">
+                {/* Строка характеристик набрана ОСНОВНЫМ цветом, а не
+                    вторичным. Вторичный даёт 5,84:1 даже по чистому белому, а
+                    здесь под ним кадр, пробивающийся сквозь градиент: замер по
+                    маске глифов на 390 давал 3,86:1 у грунта и 4,13 у металла
+                    — ниже порога. Уплотнять градиент ради этого нельзя,
+                    иначе кадр под плашкой смывается в белое; иерархию тут и
+                    так держат кегль и вес. */}
+                <p className="mt-2 max-w-[62ch] text-t2 text-ink">
                   {categorySpecLine(activeCategory.id)} · {activeCategory.summary}
                 </p>
               </div>
