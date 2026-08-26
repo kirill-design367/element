@@ -74,7 +74,14 @@ export function RequestPanel() {
             onClick={() => req.setOpen(false)}
             className="absolute inset-0 bg-ink/35 backdrop-blur-[2px]"
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-[14px] border-t border-line bg-bg md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[560px] md:rounded-none md:border-l md:border-t-0">
+          {/* data-lenis-prevent: Lenis перехватывает wheel по всему документу,
+              и без этого атрибута колесо над открытой панелью уводило страницу
+              за ней, а сама панель стояла. Замер: панель 0 px, страница 500.
+              Человек закрывал панель и оказывался в другом месте каталога. */}
+          <div
+            data-lenis-prevent
+            className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-[14px] border-t border-line bg-bg md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[560px] md:rounded-none md:border-l md:border-t-0"
+          >
             <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur md:px-6">
               <h2 className="text-t3 font-bold">
                 Заявка · {req.count}{' '}
