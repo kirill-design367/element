@@ -781,19 +781,30 @@ select.field option { color: #17191c; background: #fff; }
 }
 
 /* ── Наведение на карточку ленты ─────────────────────────────
-   Кадр внутри карточки подрастает, сама карточка стоит. Тени и фильтры не
-   анимируются вовсе: только transform.
+   Кадр внутри карточки подрастает на 5%, сама карточка стоит: рамка, тень и
+   размеры не меняются. Анимируется только transform — тени и фильтры не
+   трогаем, они стоят пересчёта. Кадр не вылезает за карточку: у неё
+   overflow: hidden.
+
+   Наведение отделено от фокуса и закрыто @media (hover: hover). На
+   тач-устройствах :hover залипает после касания — карточка оставалась
+   увеличенной до следующего тапа по другому месту. Замер это подтверждал:
+   в контексте с hasTouch трансформа после касания оставалась scale(1.05).
+   Клавиатурный :focus-visible работает везде: там залипания нет, состояние
+   снимается уходом фокуса.
    ──────────────────────────────────────────────────────────── */
-.photo-zoom { transition: transform .5s var(--ease-out); }
-.group:hover .photo-zoom,
-.group:focus-visible .photo-zoom { transform: scale(1.05); }
+.photo-zoom { transition: transform .4s var(--ease-out); }
 .arrow-slide { transition: transform .3s var(--ease-out); }
-.group:hover .arrow-slide,
+@media (hover: hover) {
+  .group:hover .photo-zoom { transform: scale(1.05); }
+  .group:hover .arrow-slide { transform: translateX(3px); }
+}
+.group:focus-visible .photo-zoom { transform: scale(1.05); }
 .group:focus-visible .arrow-slide { transform: translateX(3px); }
 @media (prefers-reduced-motion: reduce) {
   .photo-zoom, .arrow-slide { transition: none; }
-  .group:hover .photo-zoom { transform: none; }
-  .group:hover .arrow-slide { transform: none; }
+  .group:hover .photo-zoom, .group:focus-visible .photo-zoom { transform: none; }
+  .group:hover .arrow-slide, .group:focus-visible .arrow-slide { transform: none; }
 }
 
 /* ── Бегущая строка фактов ───────────────────────────────────
