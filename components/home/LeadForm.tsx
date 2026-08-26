@@ -3,14 +3,14 @@
 import { useId, useMemo, useState, type FormEvent } from 'react';
 import { CATEGORIES, materialsOf, materialById } from '@/lib/catalog';
 import { calculate, DESTINATIONS } from '@/lib/pricing';
-import { rub, tons, volume } from '@/lib/format';
+import { nbsp, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { COMPANY } from '@/lib/company';
 import { CheckIcon, CloseIcon } from '@/components/site/Icons';
 
 type Status = 'idle' | 'sending' | 'done';
-type Errors = Partial<Record<'name' | 'phone', string>>;
+type Errors = Partial<Record<'name' | 'phone' | 'amount', string>>;
 
 const DIGITS = /\d/g;
 
@@ -93,19 +93,34 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     return lines.join('\n');
   }, [name, phone, company, materialId, amount, deadline, comment, listMode, req.detailed, req.brief]);
 
-  const validate = (): boolean => {
+  /** Возвращает найденные ошибки, а не булево: они же нужны, чтобы увести
+      фокус в первое сломанное поле. */
+  const validate = (): Errors => {
     const e: Errors = {};
     if (name.trim().length < 2) e.name = 'Как к вам обращаться?';
     const digits = (phone.match(DIGITS) || []).length;
     if (digits < 10) e.phone = 'Нужен номер из 10 цифр — на него перезвоним';
+    /* Объём проверяется здесь, а не браузером. Пока поле было type="number",
+       нечисловое в него просто не вводилось; после перевода на type="text"
+       ради запятой в дробях эта защита пропала, и «абвгд» уходило в письмо
+       строкой «Объём: абвгд м³». */
+    if (amount.trim()) {
+      const n = Number(amount.replace(',', '.'));
+      if (!Number.isFinite(n) || n <= 0) e.amount = 'Объём числом, например 20 или 12,5';
+    }
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return e;
   };
 
   const onSubmit = (ev: FormEvent) => {
     ev.preventDefault();
-    if (!validate()) {
-      document.getElementById(`${uid}-name`)?.focus();
+    const found = validate();
+    if (Object.keys(found).length > 0) {
+      /* Фокус — в первое поле с ошибкой, а не всегда в «Имя». Иначе курсор
+         прыгал в правильно заполненное поле, а текст ошибки, привязанный
+         через aria-describedby к другому, скринридером не читался. */
+      const first = (['name', 'phone', 'amount'] as const).find((k) => found[k]) ?? 'name';
+      document.getElementById(`${uid}-${first}`)?.focus();
       return;
     }
     setStatus('sending');
@@ -133,7 +148,17 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
 
   if (status === 'done') {
     return (
-      <div className="rounded-panel bg-surface-2 p-5 md:p-7">
+      /* role="status" и tabIndex={-1}: форма целиком заменяется этим блоком,
+         кнопка, на которой стоял фокус, размонтируется, и фокус уходил в
+         BODY. Человек с клавиатуры и со скринридером не узнавал, что заявка
+         собрана, и продолжал Tab с начала страницы. */
+      <div
+        ref={(el) => el?.focus()}
+        role="status"
+        aria-live="polite"
+        tabIndex={-1}
+        className="rounded-panel bg-surface-2 p-5 outline-none md:p-7"
+      >
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-bg">
             <CheckIcon className="h-5 w-5" />
@@ -164,7 +189,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             href={`tel:${COMPANY.phone}`}
             className="btn inline-flex h-12 flex-1 items-center justify-center rounded-card border border-line bg-surface px-5 text-t2 font-medium"
           >
-            Позвонить {COMPANY.phoneLabel}
+            Позвонить {nbsp(COMPANY.phoneLabel)}
           </a>
           <button
             type="button"
@@ -236,7 +261,9 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             inputMode="tel"
             autoComplete="tel"
             placeholder="+7 (___) ___-__-__"
-            className={`${field} tnum ${errors.phone ? 'is-error' : ''}`}
+            /* Без .tnum: у номера нет колонки, а фича разгоняет заодно дефисы —
+               «160-78-78» превращается в «160 - 78 - 78». Правило 8. */
+            className={`${field} ${errors.phone ? 'is-error' : ''}`}
             value={phone}
             onChange={(e) => {
               setPhone(e.target.value);
@@ -343,13 +370,24 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
               <input
                 id={`${uid}-amount`}
                 /* type="text" по той же причине, что в калькуляторе:
-                   числовое поле молча съедает запятую. */
+                   числовое поле молча съедает запятую. Проверку числа при
+                   этом делает validate(): браузер её больше не делает. */
                 type="text"
                 inputMode="decimal"
-                className={`${field} tnum`}
+                className={`${field} tnum ${errors.amount ? 'is-error' : ''}`}
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                aria-invalid={errors.amount ? true : undefined}
+                aria-describedby={errors.amount ? `${uid}-amount-err` : undefined}
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  if (errors.amount) setErrors((p) => ({ ...p, amount: undefined }));
+                }}
               />
+              {errors.amount && (
+                <p id={`${uid}-amount-err`} className="mt-1.5 text-t1 text-warn">
+                  {errors.amount}
+                </p>
+              )}
             </div>
           </>
         )}
