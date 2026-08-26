@@ -535,6 +535,33 @@ export function Motion() {
 
            Наведение на строку осталось, но трогает только строку — подсветку
            делает CSS, скрипт в этом не участвует. */
+        /* Кадр анонса металла едет тем же приёмом и с тем же размахом, что
+           и кадр объектов: ±5% своей высоты внутри неподвижной рамки, то
+           есть 10% за проход блока. Один рецепт на оба кадра — заводить для
+           нового блока своё движение незачем. */
+        const metalPhoto = document.querySelector<HTMLElement>('[data-metal-photo] img');
+        const metalBox = document.querySelector<HTMLElement>('[data-metal-photo]');
+        if (metalPhoto && metalBox) {
+          gsap.fromTo(
+            metalPhoto,
+            { yPercent: -5 },
+            {
+              yPercent: 5,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: metalBox,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.5,
+                invalidateOnRefresh: true,
+                onToggle: (self) => {
+                  metalPhoto.style.willChange = self.isActive ? 'transform' : '';
+                },
+              },
+            },
+          );
+        }
+
         const objPhoto = document.querySelector<HTMLElement>('[data-object-photo] img');
         const objBox = document.querySelector<HTMLElement>('[data-object-photo]');
         if (objPhoto && objBox) {

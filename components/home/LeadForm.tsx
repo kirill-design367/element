@@ -26,6 +26,10 @@ const DIGITS = /\d/g;
  * @param hideItems — панель каталога уже показывает позиции со своими полями
  * объёма, и второй такой же список внутри формы только сбивает с толку.
  */
+/** Значение пункта «Металлопрокат» в списке материалов. Намеренно не
+    идентификатор каталога: в каталоге металла нет. */
+const METAL_OPTION = 'metal';
+
 export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   const uid = useId();
   const req = useRequest();
@@ -68,9 +72,14 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         );
       });
     } else {
-      const m = materialById(materialId);
-      lines.push(`Материал: ${m ? `${m.name}, ${m.fraction}` : '—'}`);
-      lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
+      if (materialId === METAL_OPTION) {
+        lines.push('Материал: металлопрокат');
+        lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
+      } else {
+        const m = materialById(materialId);
+        lines.push(`Материал: ${m ? `${m.name}, ${m.fraction}` : '—'}`);
+        lines.push(`Объём: ${amount ? `${amount} м³` : '—'}`);
+      }
     }
 
     lines.push('');
@@ -313,6 +322,14 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
                     ))}
                   </optgroup>
                 ))}
+                {/* Металлопрокат стоит отдельным пунктом, а не позицией
+                    каталога: номенклатуры, марок и цен по нему ещё нет, и в
+                    lib/catalog.ts его быть не должно — оттуда считается число
+                    позиций, фильтры и калькулятор. Значение METAL_OPTION не
+                    совпадает ни с одним идентификатором каталога, поэтому
+                    materialById его не найдёт, и в письмо он уходит своей
+                    веткой. */}
+                <option value={METAL_OPTION}>Металлопрокат</option>
               </select>
             </div>
             <div>

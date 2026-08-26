@@ -3,6 +3,7 @@ import { Hero } from '@/components/home/Hero';
 import { FactsStrip } from '@/components/home/FactsStrip';
 import { Calculator } from '@/components/home/Calculator';
 import { CatalogPreview } from '@/components/home/CatalogPreview';
+import { Metal } from '@/components/home/Metal';
 import { Workflow } from '@/components/home/Workflow';
 import { Fleet } from '@/components/home/Fleet';
 import { Objects } from '@/components/home/Objects';
@@ -67,19 +68,18 @@ export default function HomePage() {
           страница стояла. Закрепления нет, секция едет вместе со страницей и
           слегка сползает по прокрутке. Оба якоря на месте: usloviya на
           секции, process на дорожке шагов. */}
-      {/* Верхний отступ увеличен на величину наезда ленты. Секция «Материалы»
-          выше стоит с отрицательным нижним полем (-mb-20 md:-mb-28), карточки
-          ленты заходят сюда, и штатные py-24 съедались этим наездом целиком:
-          замер давал −2 px между низом ленты и верхом заголовка на 1920 и
-          −11 px на 390, то есть заголовок лежал на ленте. У соседних секций
-          отступ заголовка от верха 97 px, и здесь он теперь такой же. */}
-      <Section
-        id="usloviya"
-        tone="muted"
-        width="edge"
-        pad="normal"
-        className="pt-36 md:pt-52"
-      >
+      {/* Анонс металлопроката. Стоит сразу под лентой, поэтому именно он
+          принимает на себя наезд карточек: секция «Материалы» выше стоит с
+          отрицательным нижним полем (-mb-20 md:-mb-28), и штатный верхний
+          отступ съедался бы этим наездом целиком. pt-36 md:pt-52 — ровно на
+          величину наезда плюс обычный воздух. */}
+      <Section id="metall" width="edge" pad="normal" className="pt-36 md:pt-52">
+        <Metal />
+      </Section>
+
+      {/* Порядок работы и условия. Наезд ленты сюда больше не доходит —
+          между ними стоит анонс металла, — поэтому воздух обычный. */}
+      <Section id="usloviya" tone="muted" width="edge" pad="normal">
         <Workflow />
       </Section>
 
