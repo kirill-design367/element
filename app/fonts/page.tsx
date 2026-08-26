@@ -214,8 +214,12 @@ function PairSection({ pair, index }: { pair: Pair; index: number }) {
         <div className="shrink-0 md:max-w-[38ch] md:text-right">
           <p className="text-[14px] font-medium">{pair.license}</p>
           <p className="mt-1 text-[14px] text-ink-2">{pair.price}</p>
+          {/* Ссылка ведёт наружу — в новую вкладку: страница сравнения нужна
+              открытой, пока смотришь словолитню. */}
           <a
             href={pair.buyHref}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-2 inline-block rounded text-[14px] text-accent underline underline-offset-2 hover:text-accent-hover"
           >
             {pair.buyLabel}

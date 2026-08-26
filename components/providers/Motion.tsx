@@ -70,7 +70,24 @@ export function Motion() {
         const target = document.querySelector(hash);
         if (!target) return;
         e.preventDefault();
-        lenis.scrollTo(target as HTMLElement, { offset: -96, duration: 1.1 });
+        lenis.scrollTo(target as HTMLElement, {
+          offset: -96,
+          duration: 1.1,
+          /* Фокус переносится на цель, иначе он остаётся на ссылке. Для
+             обычного пункта меню это мелочь, а для ссылки «К основному
+             содержанию» — весь её смысл: она обязана пропустить шапку, а
+             перехват тут отменял штатное поведение браузера и фокус не
+             двигался вовсе. tabIndex ставится на время и снимается по
+             уходу фокуса, чтобы цель не появилась в обходе табом. */
+          onComplete: () => {
+            const el = target as HTMLElement;
+            if (!el.hasAttribute('tabindex')) {
+              el.setAttribute('tabindex', '-1');
+              el.addEventListener('blur', () => el.removeAttribute('tabindex'), { once: true });
+            }
+            el.focus({ preventScroll: true });
+          },
+        });
         history.replaceState(null, '', hash);
       };
       document.addEventListener('click', onAnchor);
