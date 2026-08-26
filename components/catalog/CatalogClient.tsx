@@ -3,17 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import {
-  CATEGORIES,
-  categoryById,
-  FRACTION_FILTERS,
-  GOST_FILTERS,
-  hasFraction,
-  inFraction,
-  MATERIALS,
-  POSITIONS_TOTAL,
-  type CategoryId,
-} from '@/lib/catalog';
+import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, hasFraction, inFraction, MATERIALS, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
 import { RequestPanel } from './RequestPanel';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
@@ -167,7 +157,7 @@ export function CatalogClient() {
                   {activeCategory.name}
                 </h1>
                 <p className="mt-2 max-w-[62ch] text-t2 text-ink-2">
-                  {activeCategory.fractionsLine} · {activeCategory.summary}
+                  {categorySpecLine(activeCategory.id)} · {activeCategory.summary}
                 </p>
               </div>
             </PhotoSlot>

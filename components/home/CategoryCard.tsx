@@ -6,7 +6,7 @@ import { useRef, type MouseEvent } from 'react';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
 import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
-import { priceFrom, materialsOf, type Category } from '@/lib/catalog';
+import { categorySpecLine, materialsOf, priceFrom, type Category } from '@/lib/catalog';
 import { categorySlot } from '@/lib/assets';
 import { plural, rub, typo } from '@/lib/format';
 import { ArrowIcon } from '@/components/site/Icons';
@@ -66,7 +66,7 @@ export function CategoryCard({ category }: { category: Category }) {
         <h3 className="card-title text-t3 font-bold leading-tight tracking-[-.015em]">
           {typo(category.name)}
         </h3>
-        <p className="mt-1.5 text-t1 leading-snug text-ink-2">{typo(category.fractionsLine)}</p>
+        <p className="mt-1.5 text-t1 leading-snug text-ink-2">{typo(categorySpecLine(category.id))}</p>
 
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-line/70 pt-3">
           <div>
