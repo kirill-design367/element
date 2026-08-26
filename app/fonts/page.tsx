@@ -285,7 +285,7 @@ function Specimen({ pair }: { pair: Pair }) {
               <span style={head} className="text-[13px] font-semibold uppercase tracking-[.08em]">
                 Цены на площадке
               </span>
-              <span className="text-[12px] text-ink-2">₽ за м³, с НДС</span>
+              <span className="text-[12px] text-ink-2">₽/м³, с НДС</span>
             </div>
             <ul className="mt-2 divide-y divide-line">
               {CATEGORIES.map((c) => (

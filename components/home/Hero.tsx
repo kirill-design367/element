@@ -3,7 +3,7 @@ import { ButtonLink } from '@/components/ui/Button';
 
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
 import { CATEGORIES, POSITIONS_IN_STOCK, POSITIONS_TOTAL, priceFrom } from '@/lib/catalog';
-import { num, plural } from '@/lib/format';
+import { nbsp, num, plural } from '@/lib/format';
 import { PHOTO } from '@/lib/assets';
 import { Photo } from '@/components/ui/Photo';
 
@@ -123,7 +123,7 @@ export function Hero() {
             <div className="glass glass-panel rounded-panel p-5 md:p-6">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-t1 font-medium text-ink">Цены на площадке</h2>
-                <span className="text-t1 text-ink">₽ / м³, с НДС</span>
+                <span className="text-t1 text-ink">{nbsp('₽/м³, с НДС')}</span>
               </div>
 
               <ul className="mt-4 divide-y divide-ink/12">

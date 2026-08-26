@@ -74,7 +74,7 @@ export function CategoryCard({ category }: { category: Category }) {
             <div className="mt-0.5 text-t3 font-bold leading-none">
               <span className="text-t1 font-normal text-ink-2">от</span>{' '}
               <span className="tnum">{rub(priceFrom(category.id))}</span>
-              <span className="ml-1.5 text-t1 font-normal text-ink-2">/ м³</span>
+              <span className="ml-1.5 text-t1 font-normal text-ink-2">/м³</span>
             </div>
           </div>
           {/* Стрелка сдвигается вправо, кружок не перекрашивается: на
