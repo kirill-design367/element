@@ -108,7 +108,10 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
        ради запятой в дробях эта защита пропала, и «абвгд» уходило в письмо
        строкой «Объём: абвгд м³». */
     if (amount.trim()) {
-      const n = Number(amount.replace(',', '.'));
+      /* Пробелы выбрасываются той же логикой, что в калькуляторе: сайт сам
+         печатает объёмы разрядкой («1 000 м³»), и скопированное из своей же
+         строки поле не должно отвергаться. */
+      const n = Number(amount.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.'));
       if (!Number.isFinite(n) || n <= 0) e.amount = 'Объём числом, например 20 или 12,5';
     }
     setErrors(e);

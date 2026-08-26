@@ -141,7 +141,15 @@ export function RequestPanel() {
                           inputMode="decimal"
                           value={item.amount}
                           onChange={(e) =>
-                            req.setAmount(item.materialId, Math.max(0, Number(e.target.value.replace(',', '.')) || 0))
+                            req.setAmount(
+                              item.materialId,
+                              Math.max(
+                                0,
+                                Number(
+                                  e.target.value.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.'),
+                                ) || 0,
+                              ),
+                            )
                           }
                           className="field tnum h-10 w-24 rounded-card px-2.5 text-t2"
                         />
