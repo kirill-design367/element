@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/Button';
 
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
-import { CATEGORIES, POSITIONS_IN_STOCK, POSITIONS_TOTAL, priceFrom } from '@/lib/catalog';
-import { nbsp, num, plural } from '@/lib/format';
+import { CATEGORIES, priceFrom } from '@/lib/catalog';
+import { nbsp, num, typo } from '@/lib/format';
 import { PHOTO } from '@/lib/assets';
 import { Photo } from '@/components/ui/Photo';
 
@@ -99,11 +99,15 @@ export function Hero() {
               </span>
             </h1>
 
+            {/* Лид говорит про работу, а не пересказывает каталог: числа
+                позиций стоят строкой ниже, в панели цен, и повторять их
+                здесь незачем. typo() подтягивает предлоги и последнее слово:
+                на всех девяти ширинах последняя строка кончается парой
+                «до звонка.», одиночного висячего слова нет нигде. */}
             <p data-hero="lead" className="mt-5 max-w-[46ch] text-t2 leading-relaxed text-ink">
-              Пять групп материалов, {POSITIONS_TOTAL}{' '}
-              {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}, из них{' '}
-              {POSITIONS_IN_STOCK} на площадке сегодня. Считаем стоимость с доставкой прямо на
-              странице — до звонка.
+              {typo(
+                'Подаём машину под ваш график работ, а не под свой. Цену с доставкой видите до звонка.',
+              )}
             </p>
 
             <div data-hero="cta" className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
