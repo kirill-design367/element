@@ -11,6 +11,7 @@ export function SectionHead({
   aside,
   id,
   stacked,
+  wideTitle,
 }: {
   title: string;
   lead?: string;
@@ -18,6 +19,10 @@ export function SectionHead({
   id?: string;
   /** Заголовок и пояснение столбиком, а не в строку с aside. */
   stacked?: boolean;
+  /** Снять ограничение ширины с заголовка: длинный заголовок обязан встать
+      в одну строку на десктопе. Пояснение под ним ширину не меняет — у него
+      свой предел в 54 знака. */
+  wideTitle?: boolean;
 }) {
   return (
     <div
@@ -27,7 +32,7 @@ export function SectionHead({
           : 'mb-8 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between'
       }
     >
-      <div className="max-w-[720px]">
+      <div className={wideTitle ? 'max-w-[1100px]' : 'max-w-[720px]'}>
         <h2 id={id} data-reveal className="font-black text-t4 leading-[1.04] tracking-[-.02em]">
           {typo(title)}
         </h2>
