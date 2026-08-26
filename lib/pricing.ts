@@ -137,8 +137,6 @@ export interface CalcResult {
   belowMinimum: boolean;
   /** Расстояние вне зоны — цена ориентировочная. */
   beyondRange: boolean;
-  /** Цена позиции ориентировочная: её нет в прайсе заказчика. */
-  estimated: boolean;
 }
 
 /** Сколько кубов данного материала влезает в машину: кузов или тоннаж. */
@@ -191,7 +189,6 @@ export function calculate(input: CalcInput): CalcResult | null {
       totalPerM3: null,
       belowMinimum: false,
       beyondRange: false,
-      estimated: !!material.estimated,
     };
   }
 
@@ -220,7 +217,6 @@ export function calculate(input: CalcInput): CalcResult | null {
     totalPerM3: total !== null && volumeM3 > 0 ? Math.round(total / volumeM3) : null,
     belowMinimum: volumeM3 > 0 && volumeM3 < MIN_ORDER_M3,
     beyondRange: km > MAX_KM,
-    estimated: !!material.estimated,
   };
 }
 

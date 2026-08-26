@@ -1,7 +1,7 @@
 'use client';
 
 import { AVAILABILITY_LABEL, fractionLabel, pricePerM3, sellUnit, type Material } from '@/lib/catalog';
-import { num, rub, typo } from '@/lib/format';
+import { num, ON_REQUEST, rub, typo } from '@/lib/format';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { CheckIcon } from '@/components/site/Icons';
 import { fractionIds } from '@/lib/prefilter';
@@ -50,14 +50,13 @@ export function MaterialCard({ material }: { material: Material }) {
           Цена за куб не хранится, а считается из цены за тонну и насыпной
           плотности этой же позиции: прайс приходит за тонну. */}
       {perTon === null ? (
-        /* Цены нет — так и написано. Ноль на месте цены читался бы как
-           «бесплатно», прочерк — как незаполненное поле. */
+        /* Цены нет — так и написано, одной формулировкой на весь сайт.
+           Ноль читался бы как «бесплатно», прочерк — как незаполненное поле,
+           а число из прежней заглушки — как прайс. Пояснения под строкой нет:
+           сама строка и есть пояснение. */
         <div className="mt-4 overflow-hidden rounded border border-line bg-surface-2 px-3 py-2.5">
           <div className="text-t1 text-ink-2">Цена</div>
-          <div className="mt-0.5 text-t3 font-bold leading-none">По запросу</div>
-          <p className="mt-1.5 text-t1 leading-snug text-ink-2">
-            В прайсе против этой позиции числа нет — назовём цену в ответ на заявку.
-          </p>
+          <div className="mt-0.5 text-t3 font-bold leading-snug">{ON_REQUEST}</div>
         </div>
       ) : byTon ? (
         /* Металл: одна колонка. Кубометр проката не значит ничего, и
@@ -77,15 +76,6 @@ export function MaterialCard({ material }: { material: Material }) {
             <div className="tnum mt-0.5 text-t3 font-bold leading-none">{rub(perTon)}</div>
           </div>
         </div>
-      )}
-
-      {/* Позиции нет в присланном прайсе — число осталось от прежней
-          заглушки. Говорим об этом словами: выдавать заглушку за прайс
-          на сайте поставщика нельзя. */}
-      {material.estimated && (
-        <p className="mt-2 text-t1 leading-snug text-ink-2">
-          Цена ориентировочная — подтвердим при заявке.
-        </p>
       )}
 
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-t1 text-ink-2">

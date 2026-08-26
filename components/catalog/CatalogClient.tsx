@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, GROUPS, groupsOf, hasFraction, inFraction, MATERIALS, POSITIONS_ESTIMATED, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
+import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, GROUPS, groupsOf, hasFraction, inFraction, MATERIALS, POSITIONS_ON_REQUEST, POSITIONS_PRICED, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
 import { RequestPanel } from './RequestPanel';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
@@ -12,7 +12,7 @@ import { useFlipArrival } from '@/components/providers/FlipArrival';
 import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
 import { ArrowIcon } from '@/components/site/Icons';
-import { plural, typo } from '@/lib/format';
+import { ON_REQUEST, plural, typo } from '@/lib/format';
 import { PREFILTER_KEYS } from '@/lib/prefilter';
 
 const ALL = 'all';
@@ -218,23 +218,23 @@ export function CatalogClient() {
               <h1 className="font-black text-t4 leading-none tracking-[-.03em]">
                 Каталог материалов
               </h1>
-              {/* Числа считаются из данных: и позиции, и группы. «Пять групп»
-                  стояло здесь словом и разошлось бы с каталогом в тот же день,
-                  когда в нём появится шестая. */}
+              {/* Все числа считаются из данных: позиции, группы и то, у
+                  скольких позиций цена есть. Набранные словом, они разошлись
+                  бы с каталогом в тот же день, когда прайс дополнят. */}
               <p className="mt-3 max-w-[64ch] text-t2 leading-relaxed text-ink-2">
                 {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в{' '}
                 {CATEGORIES.length}{' '}
                 {plural(CATEGORIES.length, 'группе', 'группах', 'группах')}. Цены с НДС, на условиях
-                самовывоза. Стоимость доставки считаем отдельно —{' '}
+                самовывоза; стоимость доставки считаем отдельно,{' '}
                 <Link href="/#raschet" className="link-underline rounded text-accent">
                   в калькуляторе
                 </Link>
                 .
-                {POSITIONS_ESTIMATED > 0 && (
+                {POSITIONS_ON_REQUEST > 0 && (
                   <>
                     {' '}
                     {typo(
-                      `У ${POSITIONS_ESTIMATED} ${plural(POSITIONS_ESTIMATED, 'позиции', 'позиций', 'позиций')} цена ориентировочная — подтвердим при заявке.`,
+                      `Цена из прайса стоит у ${POSITIONS_PRICED} ${plural(POSITIONS_PRICED, 'позиции', 'позиций', 'позиций')}, остальные ${POSITIONS_ON_REQUEST} ${ON_REQUEST}.`,
                     )}
                   </>
                 )}

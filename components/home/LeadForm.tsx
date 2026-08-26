@@ -3,7 +3,7 @@
 import { useId, useMemo, useState, type FormEvent } from 'react';
 import { CATEGORIES, fractionLabel, materialById, materialsOf, sellUnit, unitLabel } from '@/lib/catalog';
 import { calculate, DESTINATIONS } from '@/lib/pricing';
-import { nbsp, phoneDigits, phoneMask, rub, tons, volume } from '@/lib/format';
+import { nbsp, ON_REQUEST, phoneDigits, phoneMask, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { COMPANY } from '@/lib/company';
@@ -66,13 +66,13 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           km: req.brief.km,
         });
         const qty = item.unit === 'm3' ? volume(item.amount) : tons(item.amount);
-        /* Позиция без цены уходит в письмо честно: «цена по запросу», а не
-           сумма одной доставки и не ноль. */
+        /* Позиция без цены уходит в письмо честно: той же формулировкой,
+           что на сайте, а не суммой одной доставки и не нулём. */
         const money =
           calc === null
             ? ''
             : calc.total === null
-              ? ' · цена по запросу'
+              ? ` · цена ${ON_REQUEST}`
               : ` · ориентировочно ${rub(calc.total)} с доставкой`;
         lines.push(
           `${i + 1}. ${material.name}, ${fractionLabel(material.fraction)} — ${qty}${money}`,

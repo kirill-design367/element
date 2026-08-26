@@ -3,7 +3,7 @@ import { ButtonLink } from '@/components/ui/Button';
 
 import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
 import { CATEGORIES, priceFrom } from '@/lib/catalog';
-import { nbsp, num, typo } from '@/lib/format';
+import { nbsp, num, ON_REQUEST, typo } from '@/lib/format';
 import { PHOTO } from '@/lib/assets';
 import { Photo } from '@/components/ui/Photo';
 
@@ -145,7 +145,7 @@ export function Hero() {
                       </span>
                       <span className="flex shrink-0 items-baseline gap-1.5">
                         {priceFrom(c.id) === null ? (
-                          <span className="text-t1 text-ink">по запросу</span>
+                          <span className="text-t1 text-ink">{ON_REQUEST}</span>
                         ) : (
                           <>
                             <span className="text-t1 text-ink">от</span>

@@ -168,12 +168,6 @@ export interface Material {
    * такая позиция не идёт и в минимум по категории не попадает.
    */
   pricePerTon: number | null;
-  /**
-   * Цена ориентировочная: позиции нет в присланном прайсе, число осталось от
-   * прежней заглушки. Карточка говорит об этом словами — молча выдавать
-   * заглушку за прайс нельзя.
-   */
-  estimated?: boolean;
   availability: Availability;
   /** Где применяется. Показывается в карточке каталога. */
   uses: string[];
@@ -275,8 +269,7 @@ export const MATERIALS: Material[] = [
     strength: 'М1200',
     frost: 'F300',
     density: 1.35,
-    pricePerTon: 1670,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['основание дороги', 'дренаж', 'бетон крупных конструкций'],
   },
@@ -290,8 +283,7 @@ export const MATERIALS: Material[] = [
     strength: 'М1200',
     frost: 'F300',
     density: 1.33,
-    pricePerTon: 1560,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['подушка под дорогу', 'отсыпка слабых грунтов', 'габионы'],
   },
@@ -377,8 +369,7 @@ export const MATERIALS: Material[] = [
     strength: 'М400',
     frost: 'F50',
     density: 1.2,
-    pricePerTon: 650,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['временные дороги', 'засыпка ям', 'подъездные пути'],
     note: 'Дроблёный бетонный бой. Самый дешёвый вариант под технологический проезд.',
@@ -406,8 +397,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
-    pricePerTon: 560,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['подушка под фундамент', 'подсыпка под плитку', 'штукатурный раствор'],
   },
@@ -419,8 +409,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
-    pricePerTon: 730,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['товарный бетон', 'кладочный раствор', 'стяжка'],
     note: 'Промыт от глины и пыли. Содержание пылевидных частиц до 2 %.',
@@ -433,8 +422,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mkr', from: 2.2, to: 2.8 },
     gost: 'ГОСТ 8736-2014',
     density: 1.48,
-    pricePerTon: 860,
-    estimated: true,
+    pricePerTon: null,
     availability: 'on-order',
     uses: ['бетон высоких марок', 'дренаж', 'пескоструй'],
   },
@@ -448,8 +436,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'mm', from: 0, to: 70 },
     gost: 'ГОСТ 23735-2014',
     density: 1.65,
-    pricePerTon: 480,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['отсыпка', 'планировка участка', 'подъездные пути'],
     note: 'Содержание гравия 10–20 %, не нормируется.',
@@ -462,8 +449,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'gravel', percent: 30 },
     gost: 'ГОСТ 23735-2014',
     density: 1.7,
-    pricePerTon: 690,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['подстилающий слой дороги', 'бетон', 'основание площадки'],
   },
@@ -475,8 +461,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'gravel', percent: 50 },
     gost: 'ГОСТ 23735-2014',
     density: 1.75,
-    pricePerTon: 810,
-    estimated: true,
+    pricePerTon: null,
     availability: 'on-order',
     uses: ['несущее основание', 'бетон', 'дорожная одежда'],
   },
@@ -491,8 +476,7 @@ export const MATERIALS: Material[] = [
     gost: 'ГОСТ 31424-2010',
     strength: 'М1200',
     density: 1.4,
-    pricePerTon: 820,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['подсыпка под тротуарную плитку', 'дорожки', 'бетон'],
   },
@@ -505,8 +489,7 @@ export const MATERIALS: Material[] = [
     gost: 'ГОСТ 31424-2010',
     strength: 'М600',
     density: 1.32,
-    pricePerTon: 550,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['отсыпка дорожек', 'подсыпка', 'благоустройство'],
   },
@@ -519,8 +502,7 @@ export const MATERIALS: Material[] = [
     gost: 'ГОСТ 31424-2010',
     strength: 'М1000',
     density: 1.45,
-    pricePerTon: 610,
-    estimated: true,
+    pricePerTon: null,
     availability: 'on-order',
     uses: ['подсыпка', 'дренаж', 'отсыпка площадок'],
   },
@@ -534,8 +516,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 1.15,
-    pricePerTon: 1260,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['газон', 'клумбы', 'плодовые посадки'],
     note: 'Содержание гумуса от 6 %. Паспорт агрохимического анализа по запросу.',
@@ -548,8 +529,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 1.2,
-    pricePerTon: 820,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['газон', 'озеленение территории', 'рекультивация'],
   },
@@ -561,8 +541,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'непросеянный' },
     gost: 'без ГОСТ',
     density: 1.25,
-    pricePerTon: 610,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['выравнивание участка', 'подсыпка под газон'],
   },
@@ -574,8 +553,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'просеянный' },
     gost: 'без ГОСТ, по агроанализу',
     density: 0.9,
-    pricePerTon: 1240,
-    estimated: true,
+    pricePerTon: null,
     availability: 'on-order',
     uses: ['теплицы', 'клумбы', 'улучшение почвы'],
   },
@@ -587,8 +565,7 @@ export const MATERIALS: Material[] = [
     fraction: { kind: 'none', label: 'без сортировки' },
     gost: 'без ГОСТ',
     density: 1.6,
-    pricePerTon: 240,
-    estimated: true,
+    pricePerTon: null,
     availability: 'out',
     uses: ['вертикальная планировка', 'засыпка котлована'],
     note: 'Отгружаем с площадок в момент выемки — наличие уточняйте.',
@@ -840,9 +817,9 @@ export const MATERIALS: Material[] = [
 export const POSITIONS_TOTAL = MATERIALS.length;
 export const POSITIONS_IN_STOCK = MATERIALS.filter((m) => m.availability === 'in-stock').length;
 export const POSITIONS_ON_ORDER = MATERIALS.filter((m) => m.availability === 'on-order').length;
-/** Сколько позиций стоит с ориентировочной ценой: их нет в присланном прайсе. */
-export const POSITIONS_ESTIMATED = MATERIALS.filter((m) => m.estimated).length;
-/** Сколько позиций стоит без цены: в прайсе они есть, числа против них нет. */
+/** Сколько позиций стоит с ценой из прайса заказчика. */
+export const POSITIONS_PRICED = MATERIALS.filter((m) => m.pricePerTon !== null).length;
+/** Сколько позиций стоит без цены: её нет в прайсе, спрашиваем у менеджера. */
 export const POSITIONS_ON_REQUEST = MATERIALS.filter((m) => m.pricePerTon === null).length;
 
 /**
@@ -898,7 +875,7 @@ export function materialsOf(id: CategoryId): Material[] {
  *
  * Позиции без цены в минимум не попадают: иначе Math.min получил бы null,
  * привёл его к нулю и категория показала бы «от 0 ₽». null здесь значит, что
- * в категории не осталось ни одной цены — тогда карточка пишет «по запросу».
+ * в категории не осталось ни одной цены — тогда карточка пишет «уточняйте».
  */
 export function priceFrom(id: CategoryId): number | null {
   const prices = materialsOf(id)

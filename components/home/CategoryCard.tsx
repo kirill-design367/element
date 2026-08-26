@@ -8,7 +8,7 @@ import { captureSource } from '@/lib/flip-store';
 import { prefersReducedMotion } from '@/lib/motion';
 import { categorySpecLine, materialsOf, priceFrom, unitLabel, type Category } from '@/lib/catalog';
 import { categorySlot } from '@/lib/assets';
-import { plural, rub, typo } from '@/lib/format';
+import { ON_REQUEST, plural, rub, typo } from '@/lib/format';
 import { ArrowIcon } from '@/components/site/Icons';
 
 /**
@@ -75,7 +75,7 @@ export function CategoryCard({ category }: { category: Category }) {
             <div className="text-t1 text-ink-2">Цена</div>
             <div className="mt-0.5 text-t3 font-bold leading-none">
               {from === null ? (
-                <span>По запросу</span>
+                <span className="text-t2 font-normal">{ON_REQUEST}</span>
               ) : (
                 <>
                   <span className="text-t1 font-normal text-ink-2">от</span>{' '}

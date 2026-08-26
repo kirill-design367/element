@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { calculate, type Unit } from '@/lib/pricing';
-import { plural, rub, tons, volume } from '@/lib/format';
+import { ON_REQUEST, plural, rub, tons, volume } from '@/lib/format';
 import { LeadForm } from '@/components/home/LeadForm';
 import { CloseIcon, ListIcon } from '@/components/site/Icons';
 import { fractionLabel, priceOf, sellUnit, unitLabel } from '@/lib/catalog';
@@ -95,7 +95,7 @@ export function RequestPanel() {
      нет тарифа на доставку. Их число считается тут же и говорится словами:
      молча занизить итог нельзя. */
   /* Сколько позиций реально попало в сумму. Ноль на месте итога — та же
-     неправда, что ноль на месте цены: пишем «по запросу». */
+     неправда, что ноль на месте цены: пишем ту же формулировку, что везде. */
   let counted = 0;
   let outside = 0;
   const estimate = req.detailed.reduce((sum, { item }) => {
@@ -131,7 +131,7 @@ export function RequestPanel() {
                   ≈ <span className="tnum">{rub(estimate)}</span>
                 </>
               ) : (
-                'по запросу'
+                ON_REQUEST
               )}
             </span>
             <span className="rounded bg-white/15 px-3 py-1 text-t2">Открыть</span>
@@ -192,7 +192,7 @@ export function RequestPanel() {
                           <p className="text-t1 text-ink-2">
                             {fractionLabel(material.fraction)} ·{' '}
                             {priceOf(material) === null
-                              ? 'цена по запросу'
+                              ? ON_REQUEST
                               : `${rub(priceOf(material) as number)}/${unitLabel(sellUnit(material))}`}
                           </p>
                         </div>
@@ -285,7 +285,7 @@ export function RequestPanel() {
                               <span className="ml-2 font-medium text-ink">
                                 {calc.total === null ? (
                                   calc.materialCost === null ? (
-                                    'по запросу'
+                                    ON_REQUEST
                                   ) : (
                                     <>
                                       ≈ <span className="tnum">{rub(calc.materialCost)}</span>{' '}
@@ -312,7 +312,7 @@ export function RequestPanel() {
               <p className="mt-3 flex items-baseline justify-between border-t border-line pt-3 text-t2">
                 <span className="text-ink-2">Ориентировочно с доставкой</span>
                 <span className={`text-t3 font-bold ${counted > 0 ? 'tnum' : ''}`}>
-                  {counted > 0 ? rub(estimate) : 'по запросу'}
+                  {counted > 0 ? rub(estimate) : ON_REQUEST}
                 </span>
               </p>
               <p className="mt-1 text-t1 leading-snug text-ink-2">

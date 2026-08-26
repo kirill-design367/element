@@ -20,7 +20,7 @@ import {
   calculate,
   type Unit,
 } from '@/lib/pricing';
-import { nbsp, num, rides, rub, rubOr, tons, volume, typo } from '@/lib/format';
+import { nbsp, num, ON_REQUEST, rides, rub, rubOr, tons, volume, typo } from '@/lib/format';
 import { Counter } from './Counter';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
@@ -159,7 +159,7 @@ export function Calculator() {
                     <option key={m.id} value={m.id}>
                       {m.name}, {fractionLabel(m.fraction)} —{' '}
                       {priceOf(m) === null
-                        ? 'цена по запросу'
+                        ? ON_REQUEST
                         : `${rub(priceOf(m) as number)}/${unitLabel(c.unit)}`}
                     </option>
                   ))}
@@ -349,7 +349,7 @@ export function Calculator() {
                      тёмной панели она читается замазанной строкой, а не
                      отсутствием числа. Когда цены нет, на её месте стоят
                      слова, и ступенью ниже. */
-                  <span className="text-t4">{noPrice ? 'по запросу' : '—'}</span>
+                  <span className="text-t4">{noPrice ? ON_REQUEST : '—'}</span>
                 )}
               </dd>
             </dl>
@@ -425,14 +425,6 @@ export function Calculator() {
             </p>
           )}
 
-          {result?.estimated && (
-            <p className="mt-4 rounded border-l-2 border-line-strong bg-surface-2 px-3 py-2 text-t1 leading-snug text-ink">
-              {typo(
-                'Цена этой позиции ориентировочная: её нет в прайсе. Подтвердим в ответ на заявку.',
-              )}
-            </p>
-          )}
-
           {result?.belowMinimum && (
             <p className="mt-4 rounded border-l-2 border-warn bg-warn-soft px-3 py-2 text-t1 leading-snug text-ink">
               Меньше {MIN_ORDER_M3} м³ не возим: машина оплачивается целиком независимо от загрузки.
@@ -470,7 +462,7 @@ export function Calculator() {
 
 function Row({ label, value, note }: { label: string; value: string; note?: string }) {
   /* Табличные цифры вешаются только на значения с цифрами. В CoFo Sans фича
-     tnum подменяет заодно пробел широким — «считаем отдельно» и «по запросу»
+     tnum подменяет заодно пробел широким — «считаем отдельно» и «уточняйте»
      расходились разрядкой втрое шире нормальной. */
   const numeric = /\d/.test(value);
   return (
