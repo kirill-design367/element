@@ -37,7 +37,7 @@ export default function HomePage() {
         <div className="mb-8 md:mb-10">
           <SectionHead
             title="Расчёт стоимости с доставкой"
-            lead="Считаем на месте: выберите материал, объём и расстояние — цифры пересчитаются сразу. Отправлять ничего не нужно."
+            lead="Выберите материал, объём и расстояние — цену увидите сразу."
             stacked
             wideTitle
           />
@@ -52,7 +52,7 @@ export default function HomePage() {
         <div className="shell">
         <SectionHead
           title="Материалы"
-          lead={`${CATEGORIES.length} ${plural(CATEGORIES.length, 'группа', 'группы', 'групп')}, ${POSITIONS_TOTAL} ${plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}. Карточка открывает каталог с уже выставленным фильтром.`}
+          lead={`${CATEGORIES.length} ${plural(CATEGORIES.length, 'группа', 'группы', 'групп')}, ${POSITIONS_TOTAL} ${plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')}.`}
           aside={
             <ButtonLink href="/catalog/" variant="secondary">
               Весь каталог

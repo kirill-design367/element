@@ -290,8 +290,8 @@ export function Calculator() {
               aria-describedby={`${uid}-address-hint`}
             />
             <p id={`${uid}-address-hint`} className="mt-1.5 text-t1 text-ink-2">
-              Адрес получим вместе с заявкой. На расчёт влияет расстояние от МКАД —
-              его можно поправить вручную.
+              На цену влияет расстояние от МКАД. Нет вашего адреса в списке — поставьте
+              километры руками.
             </p>
           </div>
         </div>
@@ -403,9 +403,7 @@ export function Calculator() {
 
           {noDelivery && (
             <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
-              {typo(
-                'Металл возят не самосвалом, и тарифа на его доставку у нас на странице нет — считаем отдельно, под адрес и объём.',
-              )}{' '}
+              {typo('Доставку металла считаем отдельно, под адрес и объём.')}{' '}
               <a href="#zayavka" className="link-underline rounded font-medium text-accent">
                 Оставьте заявку
               </a>
@@ -452,7 +450,7 @@ export function Calculator() {
           <p className="mt-3 text-t1 leading-snug text-ink-2">
             {noDelivery
               ? 'Цена проката за тонну из прайса. Доставку и срок называем по заявке.'
-              : 'Расчёт ориентировочный: не учитывает простой под разгрузкой, ночную подачу и подъезд, недоступный для самосвала. Точную цену назовём по телефону.'}
+              : 'Расчёт ориентировочный: в нём нет простоя под разгрузкой, ночной подачи и тяжёлого подъезда. Точную цену назовём по телефону.'}
           </p>
         </div>
       </div>
