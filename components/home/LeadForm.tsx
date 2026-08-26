@@ -192,13 +192,17 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
       noValidate
       className="rounded-panel bg-surface-2 p-4 md:p-4"
     >
-      {/* На широком экране поля идут в четыре колонки: семь полей ложатся в
-          два ряда вместо трёх, и карточка становится ниже без единого
-          изменения самих полей — их высота, отбивка и порядок прежние.
-          Колонка формы для этого расширена с 7 до 8 из 12: ширина поля
-          осталась прежней, около 200 px. Ниже 1024 — прежние две колонки,
-          на телефоне одна. */}
-      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Три колонки, но колонка формы расширена с 7 до 8 из 12 — поле стало
+          шире, около 257 px против прежних 200.
+
+          Четыре колонки пробовались и отклонены: они снимали ещё 78 px
+          высоты, но поле сужалось до 172 px, и подпись выбранного материала
+          переставала помещаться (нужно 128 px, оставалось 120). Плейсхолдер
+          срока не помещался и до этого — 222 px против 172, — а на 257 px он
+          помещается впервые. Высоту режем отступами, поля не трогаем.
+
+          Ниже 1024 — две колонки, на телефоне одна. */}
+      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <label className={label} htmlFor={`${uid}-name`}>
             Имя <span aria-hidden="true" className="text-ink-2">*</span>
@@ -262,7 +266,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         </div>
 
         {showItems ? (
-          <div className="sm:col-span-2 lg:col-span-4">
+          <div className="sm:col-span-2 lg:col-span-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-t1 font-medium">Позиции заявки</span>
               <button
@@ -375,7 +379,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-4">
+        <div className="sm:col-span-2 lg:col-span-3">
           <label className={label} htmlFor={`${uid}-comment`}>
             Комментарий <span className="font-normal text-ink-2">— необязательно</span>
           </label>
