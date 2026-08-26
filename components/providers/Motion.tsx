@@ -75,46 +75,25 @@ export function Motion() {
       };
       document.addEventListener('click', onAnchor);
 
-      /* Пилюля шапки ужимается, как только страница тронулась с места.
-         Порог 40 px и флаг на <html>: переход описан в CSS, JS только
-         переключает состояние — никаких стилей в цикле прокрутки. */
+      /* Единственное, что шапка меняет по прокрутке, — геометрия. Ни
+         плотность заливки, ни радиус размытия, ни насыщенность не трогаются
+         никогда: любое изменение прозрачности по ходу прокрутки читается как
+         моргание.
+
+         Сжатие привязано к прокрутке на отрезке 0-160 px. Доля квантуется
+         до 1/60: писать переменную на каждый пиксель незачем, 2,7 px
+         прокрутки на шаг глазом не отличить, а пересчётов втрое меньше.
+         Порог, который был здесь раньше, схлопывал панель в первый же
+         щелчок колеса. */
       const root = document.documentElement;
-      let stopTimer = 0;
-      // Ссылка на применение стекла: обработчик прокрутки объявлен раньше
-      // самого стекла, а вызывать надо уже готовую функцию.
-      let applyGlassRef: (() => void) | undefined;
-      // Сжатие шапки привязано к прокрутке на отрезке 0-160 px. Доля
-      // квантуется до 1/60: писать переменную на каждый пиксель незачем,
-      // 2,7 px прокрутки на шаг глазом не отличить, а пересчётов втрое
-      // меньше. Порог, который был здесь раньше, схлопывал панель в первый
-      // же щелчок колеса.
       const PILL_RANGE = 160;
       let pillStep = -1;
-      let scrolling = false;
       const onScroll = ({ scroll }: { scroll: number }) => {
         const step = Math.round(Math.min(1, Math.max(0, scroll / PILL_RANGE)) * 60);
         if (step !== pillStep) {
           pillStep = step;
           root.style.setProperty('--pill', String(step / 60));
         }
-        // Пока страница едет, со стекла снимается размытие: композитор не
-        // может закэшировать блюр движущейся подложки и пересчитывает его
-        // каждый кадр. Возвращаем через 160 мс после остановки.
-        //
-        // Атрибут ставится один раз на всю прокрутку, а не на каждый кадр.
-        // setAttribute с тем же значением всё равно инвалидирует стили всего
-        // документа: без флага это давало +200 пересчётов стиля за проход
-        // страницы на ровном месте.
-        if (!scrolling) {
-          scrolling = true;
-          root.setAttribute('data-scrolling', '');
-        }
-        window.clearTimeout(stopTimer);
-        stopTimer = window.setTimeout(() => {
-          scrolling = false;
-          root.removeAttribute('data-scrolling');
-          applyGlassRef?.();
-        }, 160);
       };
       lenis.on('scroll', onScroll);
       onScroll({ scroll: window.scrollY });
@@ -287,48 +266,38 @@ export function Motion() {
          время движения CSS держит радиус на 18 px, цель считается в
          onUpdate дёшево (только число), а применяется один раз — когда
          страница остановилась. Переход 0,35 с описан в CSS. */
-      let blurTarget = 32;
-      let glassTarget = 0.5;
-      const applyGlass = () => {
-        root.style.setProperty('--glass-blur', `${Math.round(blurTarget)}px`);
-        root.style.setProperty('--glass', `rgba(247,247,244,${glassTarget.toFixed(3)})`);
-      };
+      /* Панели первого экрана идут параллаксом относительно кадра: подложка
+         за стеклом заметно двигается, и стекло от этого живёт. Двигается
+         только положение — ни плотность, ни радиус размытия по прокрутке не
+         меняются нигде на сайте.
+
+         Раньше здесь стоял скраб: радиус ехал 32 -> 48, заливка 0,5 -> 0,44.
+         Плюс на время движения размытие у шапки подменялось плотной
+         заливкой и возвращалось через 160 мс. Оба механизма читались как
+         моргание — и на десктопе, и на телефоне. Убраны. */
       const heroSection = document.querySelector<HTMLElement>('section');
       const panels = gsap.utils.toArray<HTMLElement>('[data-glass-parallax]');
-      if (heroSection) {
-        ScrollTrigger.create({
-          trigger: heroSection,
-          start: 'top top',
-          end: 'bottom top',
-          onUpdate: (self) => {
-            blurTarget = 32 + self.progress * 16;
-            glassTarget = 0.5 - self.progress * 0.06;
-          },
-        });
-        if (panels.length) {
-          gsap.fromTo(
-            panels,
-            { y: 0 },
-            {
-              y: -34,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: heroSection,
-                start: 'top top',
-                end: 'bottom top',
-                scrub: 0.5,
-                onToggle: (self) => {
-                  // Слой композитора и will-change — только на время работы.
-                  panels.forEach((el) => {
-                    el.style.willChange = self.isActive ? 'transform' : '';
-                  });
-                },
+      if (heroSection && panels.length) {
+        gsap.fromTo(
+          panels,
+          { y: 0 },
+          {
+            y: -34,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: heroSection,
+              start: 'top top',
+              end: 'bottom top',
+              scrub: 0.5,
+              onToggle: (self) => {
+                // Слой композитора и will-change — только на время работы.
+                panels.forEach((el) => {
+                  el.style.willChange = self.isActive ? 'transform' : '';
+                });
               },
             },
-          );
-        }
-        applyGlassRef = applyGlass;
-        applyGlass();
+          },
+        );
       }
 
       /* ── 2. Появление ───────────────────────────────────────────────────
@@ -633,10 +602,8 @@ export function Motion() {
         ctx.revert();
         gsap.ticker.remove(raf);
         lenis.destroy();
-        window.clearTimeout(stopTimer);
         window.clearInterval(revealGuard);
         root.style.removeProperty('--pill');
-        root.removeAttribute('data-scrolling');
         document.documentElement.classList.remove('lenis-ready');
       };
     };
