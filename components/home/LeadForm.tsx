@@ -41,6 +41,11 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   const [deadline, setDeadline] = useState('');
   const [comment, setComment] = useState('');
 
+  /* Единица поля количества — из категории выбранного материала. Металл
+     считается тоннами, инертные кубами; пока выбор не сделан, куб. */
+  const leadMaterial = materialById(materialId);
+  const leadUnit = leadMaterial ? sellUnit(leadMaterial) : 'm3';
+
   const listMode = req.count > 0;
   const showItems = listMode && !hideItems;
 
@@ -116,7 +121,9 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
          печатает объёмы разрядкой («1 000 м³»), и скопированное из своей же
          строки поле не должно отвергаться. */
       const n = Number(amount.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.'));
-      if (!Number.isFinite(n) || n <= 0) e.amount = 'Объём числом, например 20 или 12,5';
+      if (!Number.isFinite(n) || n <= 0) {
+        e.amount = leadUnit === 't' ? 'Масса числом, например 20 или 12,5' : 'Объём числом, например 20 или 12,5';
+      }
     }
     setErrors(e);
     return e;
@@ -364,7 +371,10 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             </div>
             <div>
               <label className={label} htmlFor={`${uid}-amount`}>
-                Объём, м³
+                {/* Подпись и единица идут за выбранным материалом: металл
+                    меряется тоннами, и «Объём, м³» против арматуры было бы
+                    неправдой ещё до того, как заявка уйдёт. */}
+                {leadUnit === 't' ? 'Масса, т' : 'Объём, м³'}
               </label>
               <input
                 id={`${uid}-amount`}

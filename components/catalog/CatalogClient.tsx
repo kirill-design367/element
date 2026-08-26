@@ -135,15 +135,15 @@ export function CatalogClient() {
      а потому, что фракции не имеют. Показывается только при выбранной
      фракции: без неё они и так все на месте. */
   const withoutFraction = useMemo(() => {
-    if (fraction === ALL) return { count: 0, names: '' };
+    if (fraction === ALL) return { count: 0, names: '', many: false };
     const hidden = MATERIALS.filter(
       (m) => !hasFraction(m) && (category === ALL || m.categoryId === category),
     );
     /* Названия категорий берутся из тех позиций, что реально скрыты. Пока
        здесь стояло слово «Грунты», строка врала бы в тот же день, когда
        появилась вторая безфракционная категория, — металл. */
-    const names = [...new Set(hidden.map((m) => categoryById(m.categoryId).name))].join(' и ');
-    return { count: hidden.length, names };
+    const names = [...new Set(hidden.map((m) => categoryById(m.categoryId).name))];
+    return { count: hidden.length, names: names.join(', '), many: names.length > 1 };
   }, [category, fraction]);
 
   /* Группы показываются только у выбранной категории: без неё в одной строке
@@ -163,7 +163,9 @@ export function CatalogClient() {
       {/* Верхний отступ под плавающую шапку: она вынута из потока. */}
       <div className="shell pb-6 pt-[calc(74px+1.5rem)] md:pb-10 md:pt-[calc(74px+2rem)]">
         <nav aria-label="Хлебные крошки" className="mb-5 flex flex-wrap items-center text-t1 text-ink-2">
-          <Link href="/#materialy" onClick={backHome} className="-my-2 rounded py-2 hover:text-accent">
+          {/* Поле нажатия 44 px при кегле 12: отрицательное поле снимает
+              прибавку из раскладки, строка крошек не растёт. */}
+          <Link href="/#materialy" onClick={backHome} className="-my-3.5 rounded py-3.5 hover:text-accent">
             Главная
           </Link>
           <span className="mx-2 text-line-strong" aria-hidden="true">
@@ -299,7 +301,18 @@ export function CatalogClient() {
           {withoutFraction.count > 0 && (
             <p className="mt-3 text-t1 leading-snug text-ink-2">
               {typo(
-                `${withoutFraction.names} в подборе по фракции не участвуют: по размеру зерна такой товар не сортируют. Сейчас так скрыто ${withoutFraction.count} ${plural(withoutFraction.count, 'позиция', 'позиции', 'позиций')} —`,
+                /* Число согласуется и в глаголе: «скрыта 21 позиция», но
+                   «скрыто 26 позиций». Категорий может быть одна или
+                   несколько — «Металлопрокат не участвует», «Грунт и
+                   чернозём, Металлопрокат не участвуют». */
+                `${withoutFraction.names} в подборе по фракции ${
+                  withoutFraction.many ? 'не участвуют' : 'не участвует'
+                }: по размеру зерна такой товар не сортируют. Сейчас так ${plural(
+                  withoutFraction.count,
+                  'скрыта',
+                  'скрыто',
+                  'скрыто',
+                )} ${withoutFraction.count} ${plural(withoutFraction.count, 'позиция', 'позиции', 'позиций')} —`,
               )}{' '}
               <button
                 type="button"

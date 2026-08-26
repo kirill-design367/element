@@ -94,6 +94,9 @@ export function RequestPanel() {
      с ними нечего. Причин две — цены нет вовсе, и это металл, которому у нас
      нет тарифа на доставку. Их число считается тут же и говорится словами:
      молча занизить итог нельзя. */
+  /* Сколько позиций реально попало в сумму. Ноль на месте итога — та же
+     неправда, что ноль на месте цены: пишем «по запросу». */
+  let counted = 0;
   let outside = 0;
   const estimate = req.detailed.reduce((sum, { item }) => {
     const c = calculate({
@@ -103,6 +106,7 @@ export function RequestPanel() {
       km: req.brief.km,
     });
     if (c && c.total === null) outside += 1;
+    else if (c) counted += 1;
     return sum + (c?.total ?? 0);
   }, 0);
 
@@ -122,7 +126,13 @@ export function RequestPanel() {
               {plural(req.count, 'позиция', 'позиции', 'позиций')}
             </span>
             <span className="hidden text-t2 text-white/75 sm:inline">
-              ≈ <span className="tnum">{rub(estimate)}</span>
+              {counted > 0 ? (
+                <>
+                  ≈ <span className="tnum">{rub(estimate)}</span>
+                </>
+              ) : (
+                'по запросу'
+              )}
             </span>
             <span className="rounded bg-white/15 px-3 py-1 text-t2">Открыть</span>
           </button>
@@ -198,7 +208,7 @@ export function RequestPanel() {
 
                       <div className="mt-3 flex items-center gap-2">
                         <label className="sr-only" htmlFor={`amt-${item.materialId}`}>
-                          Объём, {material.name}
+                          {sellUnit(material) === 't' ? 'Масса' : 'Объём'}, {material.name}
                         </label>
                         <input
                           id={`amt-${item.materialId}`}
@@ -301,7 +311,9 @@ export function RequestPanel() {
 
               <p className="mt-3 flex items-baseline justify-between border-t border-line pt-3 text-t2">
                 <span className="text-ink-2">Ориентировочно с доставкой</span>
-                <span className="tnum text-t3 font-bold">{rub(estimate)}</span>
+                <span className={`text-t3 font-bold ${counted > 0 ? 'tnum' : ''}`}>
+                  {counted > 0 ? rub(estimate) : 'по запросу'}
+                </span>
               </p>
               <p className="mt-1 text-t1 leading-snug text-ink-2">
                 Доставку посчитали на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.

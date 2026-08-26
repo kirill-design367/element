@@ -40,7 +40,10 @@ export function Header() {
       <div className="site-pill glass">
         {/* Без aria-label: доступное имя должно совпадать с видимой надписью,
             иначе голосовое управление не найдёт ссылку по тому, что видит человек. */}
-        <Link href="/" className="shrink-0 rounded-pill px-1 py-1.5">
+        {/* py-3, а не py-1.5: цель нажатия у логотипа была 95×36 при
+            рекомендованных 44. Высота пилюли задана жёстко, поэтому поле
+            нажатия растёт, а раскладка не меняется ни на пиксель. */}
+        <Link href="/" className="shrink-0 rounded-pill px-1 py-3">
           <span className="text-t3 font-black leading-none tracking-[-.02em]">Элемент</span>
         </Link>
 
