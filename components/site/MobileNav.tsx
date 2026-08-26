@@ -174,7 +174,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
                     <Link
                       href={n.href}
                       onClick={close}
-                      className="block py-3.5 text-t3 font-medium text-ink transition-colors duration-300 hover:text-accent"
+                      className="nav-zoom py-3.5 text-t3 font-medium text-ink"
                     >
                       {n.label}
                     </Link>
@@ -186,7 +186,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
             <a
               href={`tel:${COMPANY.phone}`}
               onClick={close}
-              className="mt-2 flex min-h-[44px] items-center gap-2 border-t border-line pt-3.5 text-t2 font-semibold tracking-[-.01em] text-ink transition-colors duration-300 hover:text-accent"
+              className="mt-2 flex min-h-[44px] items-center gap-2 border-t border-line pt-3.5 text-t2 font-semibold tracking-[-.01em] text-ink"
             >
               <PhoneIcon className="h-[18px] w-[18px] text-ink-3" />
               <span className="whitespace-nowrap">{nbsp(COMPANY.phoneLabel)}</span>

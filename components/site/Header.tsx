@@ -56,7 +56,7 @@ export function Header() {
           <ul className="flex items-center gap-3.5 pl-4 text-t2 text-ink lg:gap-6">
             {NAV.map((n) => (
               <li key={n.href}>
-                <Link href={n.href} className="link-underline whitespace-nowrap rounded py-2 transition-colors duration-300 hover:text-accent">
+                <Link href={n.href} className="nav-zoom whitespace-nowrap rounded py-2">
                   {n.label}
                 </Link>
               </li>
