@@ -17,7 +17,18 @@ import { PhoneIcon } from './Icons';
  */
 export function MobileBar() {
   return (
-    <div className="no-print fixed inset-x-0 bottom-0 z-50 border-t border-line bg-bg/95 backdrop-blur-[6px] lg:hidden">
+    /* Линии по верхней кромке нет: ни border, ни тени, ни псевдоэлемента.
+       Тонкая полоса держалась на экране постоянно и читалась швом поперёк
+       страницы. Панель отделяется от содержимого только своим фоном.
+
+       Фон объявлен классом .mobile-bar в globals.css, а не утилитой
+       Tailwind. Здесь стояло bg-bg/95 — и оно не давало НИЧЕГО: цвет темы
+       объявлен как var(--bg), модификатор прозрачности к переменной
+       неприменим, правило не генерируется вовсе. Замер computed style:
+       background-color rgba(0, 0, 0, 0). Панель стояла вообще без фона, и
+       держала её ровно та линия, которую велено снять; содержимое
+       проходило под кнопками насквозь. */
+    <div className="mobile-bar no-print fixed inset-x-0 bottom-0 z-50 lg:hidden">
       <div className="grid grid-cols-2 gap-2 px-3 py-2.5 pb-[max(10px,env(safe-area-inset-bottom))]">
         <a
           href={`tel:${COMPANY.phone}`}
