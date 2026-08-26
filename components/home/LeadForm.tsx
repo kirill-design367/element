@@ -181,12 +181,15 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="rounded-panel bg-surface-2 p-4 md:p-5"
+      className="rounded-panel bg-surface-2 p-4 md:p-4"
     >
-      {/* На широком экране поля идут в три колонки: то же количество
-          полей помещается в три ряда вместо пяти, и блок перестаёт быть
-          плитой во весь экран. Ниже 1024 — прежние две колонки. */}
-      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* На широком экране поля идут в четыре колонки: семь полей ложатся в
+          два ряда вместо трёх, и карточка становится ниже без единого
+          изменения самих полей — их высота, отбивка и порядок прежние.
+          Колонка формы для этого расширена с 7 до 8 из 12: ширина поля
+          осталась прежней, около 200 px. Ниже 1024 — прежние две колонки,
+          на телефоне одна. */}
+      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label className={label} htmlFor={`${uid}-name`}>
             Имя <span aria-hidden="true" className="text-ink-2">*</span>
@@ -250,7 +253,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         </div>
 
         {showItems ? (
-          <div className="sm:col-span-2 lg:col-span-3">
+          <div className="sm:col-span-2 lg:col-span-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-t1 font-medium">Позиции заявки</span>
               <button
@@ -355,7 +358,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-3">
+        <div className="sm:col-span-2 lg:col-span-4">
           <label className={label} htmlFor={`${uid}-comment`}>
             Комментарий <span className="font-normal text-ink-2">— необязательно</span>
           </label>
@@ -370,7 +373,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
         </div>
       </div>
 
-      <div className="mt-5 flex flex-col gap-2.5">
+      <div className="mt-4 flex flex-col gap-2.5">
         {/* Кнопка во всю ширину колонки: это последнее действие на
             странице, сужать его незачем. */}
         <Button type="submit" size="lg" disabled={status === 'sending'} className="w-full">
@@ -384,7 +387,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
       {/* Полоска прогресса — единственная анимация формы. */}
       <div
         aria-hidden="true"
-        className="mt-4 h-0.5 overflow-hidden rounded bg-line"
+        className="mt-3 h-0.5 overflow-hidden rounded bg-line"
         style={{ opacity: status === 'sending' ? 1 : 0 }}
       >
         <div

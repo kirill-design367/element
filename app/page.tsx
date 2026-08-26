@@ -100,8 +100,11 @@ export default function HomePage() {
           страницы — поля от краёв, скругление со всех четырёх сторон, фон
           тёмно-серый с синим оттенком, а не чёрный. */}
       <Section id="zayavka" width="shell" pad="tight">
-        <div className="lead-band rounded-panel px-5 py-8 md:px-10 md:py-12">
-          <div className="grid gap-8 lg:grid-cols-12 lg:gap-8">
+        {/* Вертикальный воздух урезан вдвое: было py-8 md:py-12, стало
+            py-5 md:py-6. Поля формы при этом не тронуты — высота поля
+            по-прежнему 44 px, отбивка между полями прежняя. */}
+        <div className="lead-band rounded-panel px-5 py-5 md:px-10 md:py-6">
+          <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
             <div className="lg:col-span-4">
               <h2 data-reveal className="font-black text-t4 leading-[1.02] tracking-[-.02em]">
                 Заявка на просчёт
@@ -116,7 +119,7 @@ export default function HomePage() {
                 {nbsp(COMPANY.phoneLabel)}
               </a>
             </div>
-            <div className="lg:col-span-7 lg:col-start-6">
+            <div className="lg:col-span-8 lg:col-start-5">
               <LeadForm />
             </div>
           </div>
