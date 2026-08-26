@@ -342,9 +342,10 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
               </label>
               <input
                 id={`${uid}-amount`}
-                type="number"
+                /* type="text" по той же причине, что в калькуляторе:
+                   числовое поле молча съедает запятую. */
+                type="text"
                 inputMode="decimal"
-                min={1}
                 className={`${field} tnum`}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}

@@ -128,13 +128,13 @@ export function RequestPanel() {
                         </label>
                         <input
                           id={`amt-${item.materialId}`}
-                          type="number"
-                          min={1}
-                          step="any"
+                          /* type="text": числовое поле молча съедает
+                             запятую, и «12,5» становилось «125». */
+                          type="text"
                           inputMode="decimal"
                           value={item.amount}
                           onChange={(e) =>
-                            req.setAmount(item.materialId, Math.max(0, Number(e.target.value) || 0))
+                            req.setAmount(item.materialId, Math.max(0, Number(e.target.value.replace(',', '.')) || 0))
                           }
                           className="field tnum h-10 w-24 rounded-card px-2.5 text-t2"
                         />

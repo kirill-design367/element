@@ -147,7 +147,7 @@ export function Hero() {
               </ul>
 
               <p className="mt-4 border-t border-ink/15 pt-4 text-t1 leading-snug text-ink">
-                Самовывоз с площадки. Доставка считается отдельно —{' '}
+                Самовывоз с площадки. Доставку считаем отдельно —{' '}
                 <Link
                   href="/#raschet"
                   className="link-underline rounded font-medium text-ink underline-offset-4"

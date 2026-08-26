@@ -98,10 +98,14 @@ export function Calculator() {
             <div className="flex gap-2">
               <input
                 id={`${uid}-amount`}
-                type="number"
+                /* type="text", а не "number": в числовом поле браузер молча
+                   выбрасывает запятую, и «12,5» превращалось в «125» — цена
+                   выходила вдесятеро больше без единого признака ошибки.
+                   inputMode="decimal" оставлен: на телефоне клавиатура
+                   по-прежнему цифровая. Границы значения проверяет сам
+                   калькулятор, а не атрибуты min и step. */
+                type="text"
                 inputMode="decimal"
-                min={1}
-                step="any"
                 className={`${field} tnum flex-1`}
                 value={amountText}
                 onChange={(e) => setAmountText(e.target.value)}
@@ -198,7 +202,7 @@ export function Calculator() {
               aria-describedby={`${uid}-address-hint`}
             />
             <p id={`${uid}-address-hint`} className="mt-1.5 text-t1 text-ink-2">
-              Адрес уходит менеджеру вместе с заявкой. На расчёт влияет расстояние от МКАД —
+              Адрес получим вместе с заявкой. На расчёт влияет расстояние от МКАД —
               его можно поправить вручную.
             </p>
           </div>
@@ -292,7 +296,7 @@ export function Calculator() {
 
           <p className="mt-3 text-t1 leading-snug text-ink-2">
             Расчёт ориентировочный: не учитывает простой под разгрузкой, ночную подачу и
-            подъезд, недоступный для самосвала. Менеджер подтвердит цену письмом.
+            подъезд, недоступный для самосвала. Цену подтвердим письмом.
           </p>
         </div>
       </div>
