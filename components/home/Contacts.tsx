@@ -1,6 +1,8 @@
 import { COMPANY, CONTACTS_ARE_PLACEHOLDER } from '@/lib/company';
 import { nbsp, typo } from '@/lib/format';
 import { PhoneIcon } from '@/components/site/Icons';
+import { PHOTO } from '@/lib/assets';
+import { Photo } from '@/components/ui/Photo';
 
 /**
  * Три равные карточки разбиты.
@@ -85,40 +87,45 @@ export function Contacts() {
       </div>
 
       {/* ── Карта во всю ширину экрана ──────────────────────────────────
-          Схема, а не карта: чужих тайлов и стоковой картинки здесь нет.
-          Слот PHOTO.map остаётся пустым до решения по Яндекс.Картам. */}
-      <div
-        className="relative mt-12 h-[200px] overflow-hidden border-y border-line bg-surface-2 md:mt-16 md:h-[240px]"
-        role="img"
-        aria-label="Схема расположения площадки отгрузки. Интерактивная карта подключается при запуске."
+          Вся полоса — одна ссылка, открывающая адрес в Яндекс.Картах в новой
+          вкладке. Ключа для этого не нужно: ссылка ведёт на обычный поиск по
+          адресу.
+
+          Изображение карты берётся из слота PHOTO.map. Пока слот пуст,
+          полоса рисует адрес и метку на собственном фоне — и НИ ОДНОЙ
+          нарисованной дороги: выдумывать картографию реального адреса
+          нельзя, а сеть в сборочной среде закрыта политикой, тайлы и
+          геокодер недоступны. Как только в assets/photos/ ляжет map.jpg и
+          имя попадёт в PLAN скрипта сборки кадров, снимок появится здесь
+          сам — правка ровно одна, в lib/assets.ts. Что нужно для перехода
+          на интерактивную карту, записано в CLAUDE.md. */}
+      <a
+        href={`https://yandex.ru/maps/?text=${encodeURIComponent(COMPANY.addressQuery)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group relative mt-12 flex h-[200px] items-center justify-center overflow-hidden border-y border-line bg-surface-2 md:mt-16 md:h-[240px]"
+        aria-label={`Открыть адрес «${COMPANY.address}» в Яндекс.Картах в новой вкладке`}
       >
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 opacity-70"
-          style={{
-            backgroundImage:
-              'linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px)',
-            backgroundSize: '34px 34px',
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'linear-gradient(115deg, transparent 46%, var(--line-strong) 46%, var(--line-strong) 47.2%, transparent 47.2%)',
-          }}
-        />
-        <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-          <span className="h-3 w-3 rounded-full bg-ink ring-4 ring-ink/15" aria-hidden="true" />
-          <span className="mt-3 rounded-pill bg-surface px-3 py-1.5 text-t1 font-medium shadow-card">
-            Площадка отгрузки
+        {PHOTO.map.file && (
+          <Photo
+            file={PHOTO.map.file}
+            alt={PHOTO.map.brief}
+            sizes="100vw"
+            className="absolute inset-0"
+            imgClassName="photo-zoom absolute inset-0 h-full w-full"
+          />
+        )}
+
+        <span className="relative flex flex-col items-center px-5 text-center">
+          <span className="h-3 w-3 rounded-full bg-accent ring-4 ring-accent-soft" aria-hidden="true" />
+          <span className="mt-3 rounded-pill bg-surface px-4 py-2 text-t2 font-medium shadow-card">
+            {typo(COMPANY.address)}
           </span>
-        </div>
-        <p className="absolute inset-x-0 bottom-0 bg-surface/85 px-4 py-2.5 text-t1 text-ink-2">
-          Интерактивная карта подключается при запуске
-        </p>
-      </div>
+          <span className="mt-2 text-t1 text-ink-2 underline-offset-4 group-hover:underline">
+            Открыть в Яндекс.Картах
+          </span>
+        </span>
+      </a>
     </>
   );
 }
