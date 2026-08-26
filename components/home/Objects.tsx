@@ -72,7 +72,7 @@ export function Objects() {
               </div>
               <div className="shrink-0 text-right">
                 <div className="tnum font-black text-t3 leading-none">{volume(o.m3)}</div>
-                <div className="mt-1 text-t1 text-ink-2">поставлено</div>
+                <div className="mt-1 text-t1 text-ink-2">поставили</div>
               </div>
             </li>
           ))}

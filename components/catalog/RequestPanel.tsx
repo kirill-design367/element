@@ -178,7 +178,7 @@ export function RequestPanel() {
                 <span className="tnum text-t3 font-bold">{rub(estimate)}</span>
               </p>
               <p className="mt-1 text-t1 leading-snug text-ink-2">
-                Доставка посчитана на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.
+                Доставку посчитали на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.
               </p>
 
               <div className="mt-6">
