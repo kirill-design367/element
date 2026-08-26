@@ -22,6 +22,9 @@ export function RequestPanel() {
   /** Куда вернуть фокус после закрытия — та кнопка, что панель открыла. */
   const openerRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
+  /* Сырой текст полей объёма, пока в них печатают. По уходу фокуса запись
+     выбрасывается, и поле снова показывает нормализованное число. */
+  const [amountText, setAmountText] = useState<Record<string, string>>({});
 
   useEffect(() => setMounted(true), []);
 
@@ -194,17 +197,30 @@ export function RequestPanel() {
                              запятую, и «12,5» становилось «125». */
                           type="text"
                           inputMode="decimal"
-                          value={item.amount}
-                          onChange={(e) =>
+                          /* Поле хранит НАБРАННЫЙ ТЕКСТ, а не число. Пока оно
+                             было привязано к числу, «выделить всё и набрать
+                             заново» теряло символы: первый же введённый знак
+                             нормализовался в число и переписывал поле, и
+                             «25» превращалось в «2». Тем же способом
+                             вылечено поле объёма в калькуляторе. */
+                          value={amountText[item.materialId] ?? String(item.amount)}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            setAmountText((prev) => ({ ...prev, [item.materialId]: raw }));
+                            const n = Number(
+                              raw.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.'),
+                            );
                             req.setAmount(
                               item.materialId,
-                              Math.max(
-                                0,
-                                Number(
-                                  e.target.value.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.'),
-                                ) || 0,
-                              ),
-                            )
+                              Number.isFinite(n) ? Math.max(0, n) : 0,
+                            );
+                          }}
+                          onBlur={() =>
+                            setAmountText((prev) => {
+                              const next = { ...prev };
+                              delete next[item.materialId];
+                              return next;
+                            })
                           }
                           className="field tnum h-10 w-24 rounded-card px-2.5 text-t2"
                         />

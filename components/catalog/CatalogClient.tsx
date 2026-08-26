@@ -25,10 +25,26 @@ function readUrl(): Filters {
   if (typeof window === 'undefined') return EMPTY;
   const sp = new URLSearchParams(window.location.search);
   return {
-    category: sp.get('category') ?? ALL,
-    fraction: sp.get('fraction') ?? ALL,
-    gost: sp.get('gost') ?? ALL,
+    /* Значение из адреса проверяется по данным. Неизвестная категория
+       («?category=нет-такой») раньше проходила как есть: каталог пустел, ни
+       один чип не подсвечивался — даже «Все», — а заголовок продолжал
+       обещать 24 позиции. Теперь чужое значение читается как «все». */
+    category: valid('category', sp.get('category')),
+    fraction: valid('fraction', sp.get('fraction')),
+    gost: valid('gost', sp.get('gost')),
   };
+}
+
+/** Значение из адреса, если оно есть в данных; иначе «все». */
+function valid(key: (typeof KEYS)[number], raw: string | null): string {
+  if (!raw) return ALL;
+  const ok =
+    key === 'category'
+      ? CATEGORIES.some((c) => c.id === raw)
+      : key === 'fraction'
+        ? FRACTION_FILTERS.some((f) => f.id === raw)
+        : GOST_FILTERS.includes(raw);
+  return ok ? raw : ALL;
 }
 
 /**
@@ -54,12 +70,28 @@ export function CatalogClient() {
     PREFILTER_KEYS.forEach((k) => document.documentElement.removeAttribute(`data-f-${k}`));
   }, []);
 
-  // Кнопка «назад» в браузере меняет адрес — выборка обязана поехать следом.
+  /* Адрес — источник правды для выборки, и сверка идёт на каждый проход.
+     Кнопка «назад» ловится через popstate. А пункт «Каталог» в шапке ведёт
+     на ТОТ ЖЕ маршрут: компонент не перемонтируется, useLayoutEffect выше
+     больше не сработает, и параметры, прочитанные при монтаже, оставались в
+     силе — адрес говорил «все», а на экране были четыре позиции.
+
+     Эффект намеренно без списка зависимостей: Next перерисовывает сегмент на
+     клиентском переходе, и эта сверка идёт следом. Зацикливания нет —
+     состояние переписывается только когда действительно разошлось. */
   useEffect(() => {
-    const onPop = () => setFilters(readUrl());
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
+    const sync = () => {
+      const next = readUrl();
+      setFilters((prev) =>
+        prev.category === next.category && prev.fraction === next.fraction && prev.gost === next.gost
+          ? prev
+          : next,
+      );
+    };
+    sync();
+    window.addEventListener('popstate', sync);
+    return () => window.removeEventListener('popstate', sync);
+  });
 
   const { category, fraction, gost } = filters;
   const active = category !== ALL || fraction !== ALL || gost !== ALL;
@@ -280,9 +312,19 @@ export function CatalogClient() {
           ) : (
             <div className="rounded-card border border-line bg-surface p-8 text-center">
               <p className="text-t3 font-bold">Под такой набор фильтров ничего нет</p>
+              {/* Совет по тому, что реально выставлено. Раньше здесь всегда
+                  предлагалось снять фракцию и ГОСТ — даже когда ни одна из
+                  них не выбрана, а пусто из-за категории. */}
               <p className="mx-auto mt-2 max-w-[48ch] text-t2 text-ink-2">
-                Снимите фракцию или ГОСТ — либо позвоните: часть позиций возим под заказ
-                и в каталог они не попадают.
+                {typo(
+                  `Снимите ${[
+                    fraction !== ALL ? 'фракцию' : null,
+                    gost !== ALL ? 'ГОСТ' : null,
+                    category !== ALL ? 'категорию' : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' или ')} — либо позвоните: часть позиций возим под заказ и в каталог они не попадают.`,
+                )}
               </p>
               <button
                 type="button"

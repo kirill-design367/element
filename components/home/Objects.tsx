@@ -59,8 +59,11 @@ export function Objects() {
             <li
               key={o.name}
               data-reveal
-              tabIndex={0}
-              className="object-row flex items-start justify-between gap-5 rounded-card px-3 py-4 -mx-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              /* tabIndex здесь больше нет. Он остался от смены кадра при
+                 наведении, которая убрана: строка ничего не делает, а таб
+                 ловила — четыре остановки подряд, на которых нажимать
+                 нечего. Подсветка при наведении осталась, она декоративная. */
+              className="object-row flex items-start justify-between gap-5 rounded-card px-3 py-4 -mx-3"
             >
               <div className="min-w-0">
                 <h3 className="text-t2 font-bold leading-snug tracking-[-.015em]">{typo(o.name)}</h3>

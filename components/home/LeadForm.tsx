@@ -3,7 +3,7 @@
 import { useId, useMemo, useState, type FormEvent } from 'react';
 import { CATEGORIES, fractionLabel, materialById, materialsOf } from '@/lib/catalog';
 import { calculate, DESTINATIONS } from '@/lib/pricing';
-import { nbsp, rub, tons, volume } from '@/lib/format';
+import { nbsp, phoneDigits, phoneMask, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
 import { COMPANY } from '@/lib/company';
@@ -12,7 +12,6 @@ import { CheckIcon, CloseIcon } from '@/components/site/Icons';
 type Status = 'idle' | 'sending' | 'done';
 type Errors = Partial<Record<'name' | 'phone' | 'amount', string>>;
 
-const DIGITS = /\d/g;
 
 /**
  * Форма заявки.
@@ -103,8 +102,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   const validate = (): Errors => {
     const e: Errors = {};
     if (name.trim().length < 2) e.name = 'Как к вам обращаться?';
-    const digits = (phone.match(DIGITS) || []).length;
-    if (digits < 10) e.phone = 'Нужен номер из 10 цифр — на него перезвоним';
+    if (phoneDigits(phone) < 10) e.phone = 'Нужен номер из 10 цифр — на него перезвоним';
     /* Объём проверяется здесь, а не браузером. Пока поле было type="number",
        нечисловое в него просто не вводилось; после перевода на type="text"
        ради запятой в дробях эта защита пропала, и «абвгд» уходило в письмо
@@ -273,8 +271,12 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
                «160-78-78» превращается в «160 - 78 - 78». Правило 8. */
             className={`${field} ${errors.phone ? 'is-error' : ''}`}
             value={phone}
+            /* Маска на вводе, а не только в плейсхолдере. Разбор идёт по
+               цифрам, поэтому вставка из буфера в любом виде — «89991234567»,
+               «8 999 123-45-67», «+7(999)1234567» — приводится к одному
+               виду, а не отвергается. */
             onChange={(e) => {
-              setPhone(e.target.value);
+              setPhone(phoneMask(e.target.value));
               if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }));
             }}
             aria-invalid={Boolean(errors.phone)}
@@ -420,7 +422,12 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           <input
             id={`${uid}-deadline`}
             className={field}
-            placeholder="на этой неделе / к 15 сентября"
+            /* Короче прежнего «на этой неделе / к 15 сентября»: тот не
+               помещался в поле — 222 px текста против 208 доступных на
+               лендинге и 124 в панели заявки каталога, — и обрывался посреди
+               слова. Поля здесь расширить нельзя: три колонки уже предел, а
+               четыре пробовались и отклонены. */
+            placeholder="к 15 сентября"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
           />
@@ -434,7 +441,9 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             id={`${uid}-comment`}
             rows={2}
             className="field w-full resize-y rounded-card px-3 py-2.5 text-t2"
-            placeholder="Подъезд для полуприцепа, разгрузка до 17:00, нужен паспорт качества заранее"
+            /* Короче прежнего: тот занимал 582 px и на 390 раскладывался в
+               три строки при двух видимых. */
+            placeholder="Подъезд для полуприцепа, разгрузка до 17:00"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />

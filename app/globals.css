@@ -656,11 +656,11 @@ select.field option { color: #17191c; background: #fff; }
    сам кадр возит Motion трансформом.
    ──────────────────────────────────────────────────────────── */
 .object-row { transition: color .4s var(--ease-out), background-color .4s var(--ease-out); }
-.object-row:hover, .object-row:focus-visible {
+.object-row:hover {
   color: var(--ink);
   background: var(--field-bg);
 }
-.object-row:hover .text-ink-2, .object-row:focus-visible .text-ink-2 { color: var(--ink-2); }
+.object-row:hover .text-ink-2 { color: var(--ink-2); }
 
 /* Крупное скругление слева — у кадра «Объектов» и у панели заявки. */
 .rounded-l-panel { border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
