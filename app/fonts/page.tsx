@@ -12,7 +12,7 @@ import {
   pricePerTon,
 } from '@/lib/catalog';
 import { calculate } from '@/lib/pricing';
-import { num, plural, rub } from '@/lib/format';
+import { num, plural, rub, typo } from '@/lib/format';
 import { FLEET_NUMBERS } from '@/components/home/Fleet';
 
 export const metadata: Metadata = {
@@ -390,7 +390,9 @@ function Specimen({ pair }: { pair: Pair }) {
                 [
                   ['Материал', rub(CALC.materialCost)],
                   [
-                    `Доставка · ${CALC.truck.name} × ${CALC.rides} ${plural(CALC.rides, 'рейс', 'рейса', 'рейсов')}`,
+                    typo(
+                      `Доставка · ${CALC.truck.name} × ${CALC.rides} ${plural(CALC.rides, 'рейс', 'рейса', 'рейсов')}`,
+                    ),
                     rub(CALC.deliveryCost),
                   ],
                   ['За кубометр на объекте', rub(CALC.totalPerM3)],
