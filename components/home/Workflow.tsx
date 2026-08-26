@@ -1,4 +1,4 @@
-import { typo } from '@/lib/format';
+import { plural, typo } from '@/lib/format';
 import { PRICE_HOLD_DAYS } from '@/lib/pricing';
 
 const STEPS = [
@@ -82,8 +82,10 @@ export function Workflow() {
           {typo('Как работаем')}
         </h2>
         <p className="mt-3 max-w-[52ch] text-t2 leading-relaxed text-ink-2">
+          {/* Число шагов считается из STEPS: словом «пять» оно молча
+              разошлось бы с дорожкой при первой же правке порядка работы. */}
           {typo(
-            'От заявки до закрывающих документов — пять шагов и ни одного лишнего согласования.',
+            `От заявки до закрывающих документов — ${STEPS.length} ${plural(STEPS.length, 'шаг', 'шага', 'шагов')} и ни одного лишнего согласования.`,
           )}
         </p>
 
