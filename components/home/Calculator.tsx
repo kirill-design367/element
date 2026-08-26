@@ -25,11 +25,23 @@ export function Calculator() {
   const [unit, setUnit] = useState<Unit>('m3');
   const [destinationId, setDestinationId] = useState('mkad');
   const [km, setKm] = useState(0);
+  /* Отдельно от числа хранится набранный текст. Пока поле было привязано
+     прямо к числу, пустая строка мгновенно превращалась в 0, React не
+     переписывал значение обратно, и ноль прилипал: очистить поле было
+     нельзя, а набранное после него читалось как «025» и «07». */
+  const [kmText, setKmText] = useState('0');
   const [address, setAddress] = useState('');
-  const [sent, setSent] = useState(false);
 
   const amount = Number(amountText.replace(',', '.'));
   const valid = Number.isFinite(amount) && amount > 0;
+
+  /* Подпись «Добавлено в заявку» относится к тому расчёту, который добавили.
+     Поменяли материал, объём или единицу — в заявке лежит уже не это, и
+     подпись обязана вернуться к «Отправить на просчёт». Раньше флаг
+     выставлялся один раз и не сбрасывался никогда. */
+  const stamp = `${materialId}|${amountText}|${unit}`;
+  const [sentStamp, setSentStamp] = useState('');
+  const sent = sentStamp === stamp && sentStamp !== '';
 
   const result = useMemo(
     () => (valid ? calculate({ materialId, amount, unit, km }) : null),
@@ -39,10 +51,14 @@ export function Calculator() {
   const onDestination = (id: string) => {
     setDestinationId(id);
     const d = DESTINATIONS.find((x) => x.id === id);
-    if (d) setKm(d.km);
+    if (d) {
+      setKm(d.km);
+      setKmText(String(d.km));
+    }
   };
 
   const onKm = (value: string) => {
+    setKmText(value);
     const n = Math.max(0, Math.min(MAX_KM * 2, Number(value) || 0));
     setKm(n);
     const match = DESTINATIONS.find((d) => d.km === n && d.id !== 'other');
@@ -53,7 +69,7 @@ export function Calculator() {
     if (!result) return;
     req.add(materialId, amount, unit);
     req.patchBrief({ address, km, destinationId });
-    setSent(true);
+    setSentStamp(stamp);
     document.getElementById('zayavka')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -182,7 +198,7 @@ export function Calculator() {
               min={0}
               max={MAX_KM * 2}
               className={`${field} tnum`}
-              value={km}
+              value={kmText}
               onChange={(e) => onKm(e.target.value)}
             />
           </div>
