@@ -344,7 +344,7 @@ export function CatalogClient() {
           href="/#zayavka"
           className="link-underline mt-2 inline-flex items-center gap-2 rounded text-t2 text-accent"
         >
-          Не нашли нужную позицию — напишите нам
+          Не нашли нужную позицию — оставьте заявку
           <ArrowIcon className="h-4 w-4" />
         </Link>
       </div>

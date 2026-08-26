@@ -8,8 +8,8 @@ import { COMPANY } from '@/lib/company';
  * висит на экране всегда, и дублировать их внизу незачем — подвал от этого
  * был выше первого экрана телефона.
  *
- * Остались три вещи, которые в подвале действительно ищут: кто это, как
- * позвонить и оговорка про оферту.
+ * Осталось две вещи, которые в подвале действительно ищут: кто это и как
+ * позвонить. Почты на сайте нет, оговорка про оферту убрана заказчиком.
  */
 export function Footer() {
   return (
@@ -30,9 +30,6 @@ export function Footer() {
         <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <a href={`tel:${COMPANY.phone}`} className="nav-zoom rounded font-semibold text-ink">
             {nbsp(COMPANY.phoneLabel)}
-          </a>
-          <a href={`mailto:${COMPANY.email}`} className="nav-zoom rounded">
-            {COMPANY.email}
           </a>
         </p>
       </div>

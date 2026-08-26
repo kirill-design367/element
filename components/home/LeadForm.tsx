@@ -17,9 +17,9 @@ type Errors = Partial<Record<'name' | 'phone' | 'amount', string>>;
  * Форма заявки.
  *
  * Сервера нет — сайт выгружается статикой. Поэтому форма не делает вид, что
- * что-то отправила: она собирает заявку, показывает её текст и даёт два
- * рабочих канала — письмо с уже заполненным телом и звонок. Обещаний, которых
- * сайт не выполняет, в интерфейсе нет.
+ * что-то отправила: она собирает заявку, показывает её текст и даёт рабочий
+ * канал — звонок по готовому тексту, который можно скопировать одной
+ * кнопкой. Обещаний, которых сайт не выполняет, в интерфейсе нет.
  */
 /**
  * @param hideItems — панель каталога уже показывает позиции со своими полями
@@ -77,7 +77,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
       } else {
         const m = materialById(materialId);
         /* Пустое значение — это не «поле не заполнили», а выбранный пункт
-           «Подберём вместе». Прочерк на его месте читался в письме так,
+           «Подберём вместе». Прочерк на его месте читался в заявке так,
            будто человек просто пропустил вопрос. */
         lines.push(
           `Материал: ${m ? `${m.name}, ${fractionLabel(m.fraction)}` : 'подберём вместе'}`,
@@ -105,7 +105,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     if (phoneDigits(phone) < 10) e.phone = 'Нужен номер из 10 цифр — на него перезвоним';
     /* Объём проверяется здесь, а не браузером. Пока поле было type="number",
        нечисловое в него просто не вводилось; после перевода на type="text"
-       ради запятой в дробях эта защита пропала, и «абвгд» уходило в письмо
+       ради запятой в дробях эта защита пропала, и «абвгд» уходило в заявку
        строкой «Объём: абвгд м³». */
     if (amount.trim()) {
       /* Пробелы выбрасываются той же логикой, что в калькуляторе: сайт сам
@@ -144,10 +144,6 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     }
   };
 
-  const mailto = `mailto:${COMPANY.email}?subject=${encodeURIComponent(
-    `Заявка с сайта${company ? ` — ${company}` : ''}`,
-  )}&body=${encodeURIComponent(summary)}`;
-
   const field =
     'field h-11 w-full rounded-card px-3 text-t2';
   const label = 'mb-1 block text-t1 font-medium text-ink';
@@ -175,7 +171,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
             </h3>
             <p className="mt-1.5 max-w-[52ch] text-t2 leading-relaxed text-ink-2">
               Приём заявок на сервере ещё не подключён — сайт выложен статикой. Чтобы заявка
-              дошла сегодня, отправьте её письмом одной кнопкой или позвоните: текст уже готов.
+              дошла сегодня, позвоните: текст ниже готов, его можно скопировать и продиктовать.
             </p>
           </div>
         </div>
@@ -184,16 +180,13 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           {summary}
         </pre>
 
+        {/* Кнопки письма здесь больше нет: почта с сайта убрана целиком, и
+            каналов осталось два — звонок и сама заявка. Звонок стал главным
+            действием и занял место письма. */}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <a
-            href={mailto}
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-card bg-accent px-5 text-t2 font-medium text-white transition-colors hover:bg-accent-hover"
-          >
-            Отправить письмом
-          </a>
-          <a
             href={`tel:${COMPANY.phone}`}
-            className="btn inline-flex h-12 flex-1 items-center justify-center rounded-card border border-line bg-surface px-5 text-t2 font-medium"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-card bg-accent px-5 text-t2 font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Позвонить {nbsp(COMPANY.phoneLabel)}
           </a>
@@ -368,7 +361,7 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
                     lib/catalog.ts его быть не должно — оттуда считается число
                     позиций, фильтры и калькулятор. Значение METAL_OPTION не
                     совпадает ни с одним идентификатором каталога, поэтому
-                    materialById его не найдёт, и в письмо он уходит своей
+                    materialById его не найдёт, и в текст заявки он уходит своей
                     веткой. */}
                 <option value={METAL_OPTION}>Металлопрокат</option>
               </select>
