@@ -65,9 +65,16 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           km: req.brief.km,
         });
         const qty = item.unit === 'm3' ? volume(item.amount) : tons(item.amount);
+        /* Позиция без цены уходит в письмо честно: «цена по запросу», а не
+           сумма одной доставки и не ноль. */
+        const money =
+          calc === null
+            ? ''
+            : calc.total === null
+              ? ' · цена по запросу'
+              : ` · ориентировочно ${rub(calc.total)} с доставкой`;
         lines.push(
-          `${i + 1}. ${material.name}, ${fractionLabel(material.fraction)} — ${qty}` +
-            (calc ? ` · ориентировочно ${rub(calc.total)} с доставкой` : ''),
+          `${i + 1}. ${material.name}, ${fractionLabel(material.fraction)} — ${qty}${money}`,
         );
       });
     } else {

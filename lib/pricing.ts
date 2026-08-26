@@ -89,8 +89,19 @@ export interface CalcInput {
   km: number;
 }
 
+/**
+ * Почему полного расчёта нет. null — расчёт полный.
+ *
+ * 'no-price' — у позиции нет цены: она есть в прайсе, а числа против неё не
+ * стоит. Доставку в этом случае посчитать всё равно можно — она зависит от
+ * объёма и плотности, а не от цены, — и она показывается: это честная часть
+ * ответа. Итога нет, и подставлять на его место ноль нельзя.
+ */
+export type CalcBlock = null | 'no-price';
+
 export interface CalcResult {
   material: Material;
+  blocked: CalcBlock;
   /** Объём после приведения к кубам. */
   volumeM3: number;
   /** Масса — её спрашивают на въезде на объект. */
@@ -100,15 +111,19 @@ export interface CalcResult {
   rides: number;
   /** Сколько кубов реально влезает в один рейс с учётом тоннажа. */
   perRideM3: number;
-  materialCost: number;
+  /** null, если цены у позиции нет. */
+  materialCost: number | null;
   deliveryCost: number;
-  total: number;
+  /** null, если цены у позиции нет: ноль на месте итога — это неправда. */
+  total: number | null;
   /** Цена одного куба «на объекте» — по ней сравнивают поставщиков. */
-  totalPerM3: number;
+  totalPerM3: number | null;
   /** Заказ меньше минимального: машина всё равно поедет целиком. */
   belowMinimum: boolean;
   /** Расстояние вне зоны — цена ориентировочная. */
   beyondRange: boolean;
+  /** Цена позиции ориентировочная: её нет в прайсе заказчика. */
+  estimated: boolean;
 }
 
 /** Сколько кубов данного материала влезает в машину: кузов или тоннаж. */
@@ -145,12 +160,14 @@ export function calculate(input: CalcInput): CalcResult | null {
   const km = clamp(input.km, 0, MAX_KM * 2);
 
   const { truck, rides, cost, perRideM3 } = pickTruck(Math.max(volumeM3, 0.01), material.density, km);
-  const materialCost = Math.round(volumeM3 * pricePerM3(material));
+  const perM3 = pricePerM3(material);
+  const materialCost = perM3 === null ? null : Math.round(volumeM3 * perM3);
   const deliveryCost = volumeM3 > 0 ? Math.round(cost) : 0;
-  const total = materialCost + deliveryCost;
+  const total = materialCost === null ? null : materialCost + deliveryCost;
 
   return {
     material,
+    blocked: perM3 === null ? 'no-price' : null,
     volumeM3,
     massT,
     truck,
@@ -159,9 +176,10 @@ export function calculate(input: CalcInput): CalcResult | null {
     materialCost,
     deliveryCost,
     total,
-    totalPerM3: volumeM3 > 0 ? Math.round(total / volumeM3) : 0,
+    totalPerM3: total !== null && volumeM3 > 0 ? Math.round(total / volumeM3) : null,
     belowMinimum: volumeM3 > 0 && volumeM3 < MIN_ORDER_M3,
     beyondRange: km > MAX_KM,
+    estimated: !!material.estimated,
   };
 }
 

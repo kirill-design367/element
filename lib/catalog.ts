@@ -130,8 +130,12 @@ export interface Material {
    * и считает сайт по-прежнему кубами: снабженец заказывает объём, и машина
    * меряется кубами. Пересчёт — pricePerM3() ниже, через насыпную плотность
    * этой же позиции, так что разойтись двум ценам не с чем.
+   *
+   * null — цены нет: позиция в прайсе есть, а числа против неё не стоит.
+   * Это не ноль и не «бесплатно»: сайт пишет «цена по запросу», в расчёт
+   * такая позиция не идёт и в минимум по категории не попадает.
    */
-  pricePerTon: number;
+  pricePerTon: number | null;
   /**
    * Цена ориентировочная: позиции нет в присланном прайсе, число осталось от
    * прежней заглушки. Карточка говорит об этом словами — молча выдавать
@@ -270,8 +274,7 @@ export const MATERIALS: Material[] = [
     strength: 'М600',
     frost: 'F150',
     density: 1.28,
-    pricePerTon: 1050,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['отсыпка дорог', 'основание площадок', 'дренаж'],
   },
@@ -285,8 +288,7 @@ export const MATERIALS: Material[] = [
     strength: 'М400',
     frost: 'F150',
     density: 1.26,
-    pricePerTon: 960,
-    estimated: true,
+    pricePerTon: null,
     availability: 'in-stock',
     uses: ['временные дороги', 'отсыпка котлована'],
   },
@@ -315,8 +317,7 @@ export const MATERIALS: Material[] = [
     strength: 'М1000',
     frost: 'F200',
     density: 1.4,
-    pricePerTon: 1150,
-    estimated: true,
+    pricePerTon: null,
     availability: 'on-order',
     uses: ['основание дороги', 'отсыпка', 'дренажный слой'],
   },
@@ -560,6 +561,8 @@ export const POSITIONS_IN_STOCK = MATERIALS.filter((m) => m.availability === 'in
 export const POSITIONS_ON_ORDER = MATERIALS.filter((m) => m.availability === 'on-order').length;
 /** Сколько позиций стоит с ориентировочной ценой: их нет в присланном прайсе. */
 export const POSITIONS_ESTIMATED = MATERIALS.filter((m) => m.estimated).length;
+/** Сколько позиций стоит без цены: в прайсе они есть, числа против них нет. */
+export const POSITIONS_ON_REQUEST = MATERIALS.filter((m) => m.pricePerTon === null).length;
 
 /**
  * Цена за кубометр выводится из цены за тонну и насыпной плотности.
@@ -569,8 +572,14 @@ export const POSITIONS_ESTIMATED = MATERIALS.filter((m) => m.estimated).length;
  * иначе правка прайса превращается в арифметику на калькуляторе, а сайт
  * показывает округление округления.
  */
-export function pricePerM3(m: Material): number {
+export function pricePerM3(m: Material): number | null {
+  if (m.pricePerTon === null) return null;
   return Math.round((m.pricePerTon * m.density) / 10) * 10;
+}
+
+/** Есть ли у позиции цена вообще. */
+export function hasPrice(m: Material): boolean {
+  return m.pricePerTon !== null;
 }
 
 export function categoryById(id: CategoryId): Category {
@@ -583,9 +592,18 @@ export function materialsOf(id: CategoryId): Material[] {
   return MATERIALS.filter((m) => m.categoryId === id);
 }
 
-/** «от 1 210 ₽» для карточки категории на лендинге. */
-export function priceFrom(id: CategoryId): number {
-  return Math.min(...materialsOf(id).map((m) => pricePerM3(m)));
+/**
+ * «от 1 210 ₽» для карточки категории на лендинге.
+ *
+ * Позиции без цены в минимум не попадают: иначе Math.min получил бы null,
+ * привёл его к нулю и категория показала бы «от 0 ₽». null здесь значит, что
+ * в категории не осталось ни одной цены — тогда карточка пишет «по запросу».
+ */
+export function priceFrom(id: CategoryId): number | null {
+  const prices = materialsOf(id)
+    .map((m) => pricePerM3(m))
+    .filter((x): x is number => x !== null);
+  return prices.length ? Math.min(...prices) : null;
 }
 
 /**

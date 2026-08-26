@@ -23,6 +23,8 @@ export function CategoryCard({ category }: { category: Category }) {
   const plateRef = useRef<HTMLDivElement>(null);
   const href = `/catalog/?category=${category.id}`;
   const count = materialsOf(category.id).length;
+  /* null — в категории не осталось ни одной цены. Показывать «от 0 ₽» нельзя. */
+  const from = priceFrom(category.id);
 
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
@@ -72,9 +74,15 @@ export function CategoryCard({ category }: { category: Category }) {
           <div>
             <div className="text-t1 text-ink-2">Цена</div>
             <div className="mt-0.5 text-t3 font-bold leading-none">
-              <span className="text-t1 font-normal text-ink-2">от</span>{' '}
-              <span className="tnum">{rub(priceFrom(category.id))}</span>
-              <span className="ml-1.5 text-t1 font-normal text-ink-2">/м³</span>
+              {from === null ? (
+                <span>По запросу</span>
+              ) : (
+                <>
+                  <span className="text-t1 font-normal text-ink-2">от</span>{' '}
+                  <span className="tnum">{rub(from)}</span>
+                  <span className="ml-1.5 text-t1 font-normal text-ink-2">/м³</span>
+                </>
+              )}
             </div>
           </div>
           {/* Стрелка сдвигается вправо, кружок не перекрашивается: на

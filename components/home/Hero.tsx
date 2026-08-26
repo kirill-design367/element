@@ -141,11 +141,17 @@ export function Hero() {
                         {c.name}
                       </span>
                       <span className="flex shrink-0 items-baseline gap-1.5">
-                        <span className="text-t1 text-ink">от</span>
-                        <span className="tnum font-black text-t3 leading-none">
-                          {num(priceFrom(c.id))}
-                        </span>
-                        <span className="text-t1 text-ink">₽</span>
+                        {priceFrom(c.id) === null ? (
+                          <span className="text-t1 text-ink">по запросу</span>
+                        ) : (
+                          <>
+                            <span className="text-t1 text-ink">от</span>
+                            <span className="tnum font-black text-t3 leading-none">
+                              {num(priceFrom(c.id) as number)}
+                            </span>
+                            <span className="text-t1 text-ink">₽</span>
+                          </>
+                        )}
                       </span>
                     </Link>
                   </li>

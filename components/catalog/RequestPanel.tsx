@@ -90,6 +90,8 @@ export function RequestPanel() {
 
   if (!mounted || req.count === 0) return null;
 
+  /* Позиции без цены в сумму не входят — складывать с ними нечего. Их число
+     считается отдельно и говорится словами: молча занизить итог нельзя. */
   const estimate = req.detailed.reduce((sum, { item }) => {
     const c = calculate({
       materialId: item.materialId,
@@ -99,6 +101,7 @@ export function RequestPanel() {
     });
     return sum + (c?.total ?? 0);
   }, 0);
+  const onRequest = req.detailed.filter(({ material }) => material.pricePerTon === null).length;
 
   return (
     <>
@@ -174,7 +177,10 @@ export function RequestPanel() {
                         <div className="min-w-0">
                           <p className="text-t2 font-medium leading-snug">{material.name}</p>
                           <p className="text-t1 text-ink-2">
-                            {fractionLabel(material.fraction)} · {rub(pricePerM3(material))}/м³
+                            {fractionLabel(material.fraction)} ·{' '}
+                            {pricePerM3(material) === null
+                              ? 'цена по запросу'
+                              : `${rub(pricePerM3(material) as number)}/м³`}
                           </p>
                         </div>
                         <button
@@ -246,7 +252,13 @@ export function RequestPanel() {
                                 {item.unit === 'm3' ? tons(calc.massT) : volume(calc.volumeM3)}
                               </span>
                               <span className="ml-2 font-medium text-ink">
-                                ≈ <span className="tnum">{rub(calc.total)}</span>
+                                {calc.total === null ? (
+                                  'по запросу'
+                                ) : (
+                                  <>
+                                    ≈ <span className="tnum">{rub(calc.total)}</span>
+                                  </>
+                                )}
                               </span>
                             </>
                           ) : (
@@ -265,6 +277,8 @@ export function RequestPanel() {
               </p>
               <p className="mt-1 text-t1 leading-snug text-ink-2">
                 Доставку посчитали на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.
+                {onRequest > 0 &&
+                  ` В сумму не вошли ${onRequest} ${plural(onRequest, 'позиция', 'позиции', 'позиций')} с ценой по запросу — назовём её в ответ на заявку.`}
               </p>
 
               <div className="mt-6">

@@ -20,6 +20,20 @@ export function rub(n: number): string {
   return `${new Intl.NumberFormat('ru-RU').format(Math.round(n)).replace(/\s/g, NBSP)}${NBSP}₽`;
 }
 
+/**
+ * Цена, которой нет.
+ *
+ * Одна формулировка на весь сайт: и в каталоге, и в калькуляторе, и в панели
+ * заявки, и в письме. Ноль на месте отсутствующей цены — неправда, прочерк
+ * читается как «поле не заполнили».
+ */
+export const ON_REQUEST = 'по запросу';
+
+/** Цена или честное «по запросу». */
+export function rubOr(n: number | null): string {
+  return n === null ? ON_REQUEST : rub(n);
+}
+
 export function num(n: number, digits = 0): string {
   return new Intl.NumberFormat('ru-RU', {
     minimumFractionDigits: digits,

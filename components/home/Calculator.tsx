@@ -10,7 +10,7 @@ import {
   calculate,
   type Unit,
 } from '@/lib/pricing';
-import { nbsp, num, rides, rub, tons, volume, typo } from '@/lib/format';
+import { nbsp, num, rides, rub, rubOr, tons, volume, typo } from '@/lib/format';
 import { Counter } from './Counter';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
@@ -69,7 +69,11 @@ export function Calculator() {
   const overCap = !!computed && computed.volumeM3 > MAX_ORDER_M3;
   const result = overCap ? null : computed;
   /** Разрядность итога — по ней выбирается ступень кегля. */
-  const totalDigits = result ? String(Math.round(result.total)).length : 0;
+  const totalDigits = result?.total != null ? String(Math.round(result.total)).length : 0;
+  /* Позиция без цены: считать нечего, и подставлять ноль нельзя. Расчёт
+     показывает доставку — она от цены не зависит, — а вместо итога говорит,
+     что цену уточняем, и ведёт в заявку. */
+  const noPrice = result?.blocked === 'no-price';
 
   const onDestination = (id: string) => {
     setDestinationId(id);
@@ -122,7 +126,10 @@ export function Calculator() {
                 <optgroup key={c.id} label={c.name}>
                   {materialsOf(c.id).map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.name}, {fractionLabel(m.fraction)} — {rub(pricePerM3(m))}/м³
+                      {m.name}, {fractionLabel(m.fraction)} —{' '}
+                      {pricePerM3(m) === null
+                        ? 'цена по запросу'
+                        : `${rub(pricePerM3(m) as number)}/м³`}
                     </option>
                   ))}
                 </optgroup>
@@ -286,7 +293,7 @@ export function Calculator() {
                   totalDigits > 6 ? 'text-t4' : 'text-t5'
                 }`}
               >
-                {result ? (
+                {result && result.total !== null ? (
                   <>
                     <Counter value={result.total} format={(n) => num(Math.round(n))} live />
                     <span className={totalDigits > 6 ? 'text-t3' : 'text-t4'}>₽</span>
@@ -298,7 +305,7 @@ export function Calculator() {
             </dl>
             {/* tnum висит только на числе: в CoFo Sans фича подменяет заодно
                 пробел широким, и фраза расходится разрядкой. */}
-            {result && result.volumeM3 > 0 && (
+            {result && result.totalPerM3 !== null && result.volumeM3 > 0 && (
               <p className="mt-2 text-t1 text-ink-2">
                 <span className="tnum">{rub(result.totalPerM3)}</span> за м³ с доставкой на объект
               </p>
@@ -312,7 +319,7 @@ export function Calculator() {
               label="Объём"
               value={result ? nbsp(`${volume(result.volumeM3)} · ${tons(result.massT)}`) : '—'}
             />
-            <Row label="Материал" value={result ? rub(result.materialCost) : '—'} />
+            <Row label="Материал" value={result ? rubOr(result.materialCost) : '—'} />
             <Row
               label="Доставка"
               value={result ? rub(result.deliveryCost) : '—'}
@@ -333,6 +340,26 @@ export function Calculator() {
                 Оставьте заявку
               </a>
               {typo(' — ответим ценой и сроком.')}
+            </p>
+          )}
+
+          {noPrice && (
+            <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
+              {typo(
+                'Цену на эту позицию уточняем: в прайсе против неё числа нет. Доставку посчитали — она от цены не зависит.',
+              )}{' '}
+              <a href="#zayavka" className="link-underline rounded font-medium text-accent">
+                Оставьте заявку
+              </a>
+              {typo(' — назовём цену и срок.')}
+            </p>
+          )}
+
+          {result?.estimated && (
+            <p className="mt-4 rounded border-l-2 border-line-strong bg-surface-2 px-3 py-2 text-t1 leading-snug text-ink">
+              {typo(
+                'Цена этой позиции ориентировочная: её нет в прайсе. Подтвердим в ответ на заявку.',
+              )}
             </p>
           )}
 

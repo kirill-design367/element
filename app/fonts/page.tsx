@@ -5,7 +5,7 @@ import { cofoSans } from '../type';
 import report from '@/lib/font-check.json';
 import { AVAILABILITY_LABEL, CATEGORIES, fractionLabel, MATERIALS, POSITIONS_TOTAL, priceFrom, pricePerM3 } from '@/lib/catalog';
 import { calculate } from '@/lib/pricing';
-import { num, plural, rub, typo } from '@/lib/format';
+import { num, plural, rub, typo, rubOr } from '@/lib/format';
 import { FLEET_NUMBERS } from '@/components/home/Fleet';
 
 export const metadata: Metadata = {
@@ -294,7 +294,7 @@ function Specimen({ pair }: { pair: Pair }) {
                     {c.name}
                   </span>
                   <span style={head} className="tnum text-[16px] font-semibold">
-                    от {rub(priceFrom(c.id))}
+                    от {rubOr(priceFrom(c.id))}
                   </span>
                 </li>
               ))}
@@ -324,8 +324,8 @@ function Specimen({ pair }: { pair: Pair }) {
             <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
               {(
                 [
-                  ['За м³', rub(pricePerM3(SAMPLE))],
-                  ['За тонну', rub(SAMPLE.pricePerTon)],
+                  ['За м³', rubOr(pricePerM3(SAMPLE))],
+                  ['За тонну', rubOr(SAMPLE.pricePerTon)],
                 ] as [string, string][]
               ).map(([term, value]) => (
                 <div key={term} className="bg-surface-2 px-3 py-2">
@@ -378,19 +378,19 @@ function Specimen({ pair }: { pair: Pair }) {
               style={head}
               className="tnum mt-1.5 text-[clamp(40px,7.5vw,72px)] font-semibold leading-none tracking-[-.035em]"
             >
-              {rub(CALC.total)}
+              {rubOr(CALC.total)}
             </div>
             <dl style={body} className="mt-4 space-y-1.5 text-[13px]">
               {(
                 [
-                  ['Материал', rub(CALC.materialCost)],
+                  ['Материал', rubOr(CALC.materialCost)],
                   [
                     typo(
                       `Доставка · ${CALC.truck.name} × ${CALC.rides} ${plural(CALC.rides, 'рейс', 'рейса', 'рейсов')}`,
                     ),
                     rub(CALC.deliveryCost),
                   ],
-                  ['За кубометр на объекте', rub(CALC.totalPerM3)],
+                  ['За кубометр на объекте', rubOr(CALC.totalPerM3)],
                 ] as [string, string][]
               ).map(([term, value]) => (
                 <div key={term} className="flex items-baseline justify-between gap-4 border-b border-line pb-1.5">

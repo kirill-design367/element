@@ -14,6 +14,8 @@ export function MaterialCard({ material }: { material: Material }) {
   const req = useRequest();
   const inList = req.has(material.id);
   const out = material.availability === 'out';
+  /* Цена за куб считается из цены за тонну; null значит, что цены нет вовсе. */
+  const perM3 = pricePerM3(material);
 
   return (
     <article
@@ -39,20 +41,31 @@ export function MaterialCard({ material }: { material: Material }) {
       {/* Цены — крупно и в табличных цифрах, чтобы колонки не плясали.
           Цена за куб не хранится, а считается из цены за тонну и насыпной
           плотности этой же позиции: прайс приходит за тонну. */}
-      <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
-        <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-t1 text-ink-2">За м³</div>
-          <div className="tnum mt-0.5 text-t3 font-bold leading-none">
-            {rub(pricePerM3(material))}
+      {perM3 === null ? (
+        /* Цены нет — так и написано. Ноль на месте цены читался бы как
+           «бесплатно», прочерк — как незаполненное поле. Место занимает тот
+           же блок той же высоты, поэтому в сетке карточки ничего не едет. */
+        <div className="mt-4 overflow-hidden rounded border border-line bg-surface-2 px-3 py-2.5">
+          <div className="text-t1 text-ink-2">Цена</div>
+          <div className="mt-0.5 text-t3 font-bold leading-none">По запросу</div>
+          <p className="mt-1.5 text-t1 leading-snug text-ink-2">
+            В прайсе против этой позиции числа нет — назовём цену в ответ на заявку.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line">
+          <div className="bg-surface-2 px-3 py-2.5">
+            <div className="text-t1 text-ink-2">За м³</div>
+            <div className="tnum mt-0.5 text-t3 font-bold leading-none">{rub(perM3)}</div>
+          </div>
+          <div className="bg-surface-2 px-3 py-2.5">
+            <div className="text-t1 text-ink-2">За тонну</div>
+            <div className="tnum mt-0.5 text-t3 font-bold leading-none">
+              {rub(material.pricePerTon as number)}
+            </div>
           </div>
         </div>
-        <div className="bg-surface-2 px-3 py-2.5">
-          <div className="text-t1 text-ink-2">За тонну</div>
-          <div className="tnum mt-0.5 text-t3 font-bold leading-none">
-            {rub(material.pricePerTon)}
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Позиции нет в присланном прайсе — число осталось от прежней
           заглушки. Говорим об этом словами: выдавать заглушку за прайс
