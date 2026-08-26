@@ -79,7 +79,7 @@ export default function HomePage() {
 
       {/* Порядок работы и условия. Наезд ленты сюда больше не доходит —
           между ними стоит анонс металла, — поэтому воздух обычный. */}
-      <Section id="usloviya" tone="muted" width="edge" pad="normal">
+      <Section tone="muted" width="edge" pad="normal">
         <Workflow />
       </Section>
 
