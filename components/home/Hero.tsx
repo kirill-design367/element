@@ -80,7 +80,9 @@ export function Hero() {
                 <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden="true" />
                 Поставка инертных материалов
               </span>
-              <span className="hidden text-ink/40 sm:inline" aria-hidden="true">
+              {/* Разделитель сплошным цветом, а не альфой: на прозрачной
+                  панели альфа даёт дымку. */}
+              <span className="hidden text-ink sm:inline" aria-hidden="true">
                 ·
               </span>
               <span>Москва и Московская область</span>
@@ -129,7 +131,7 @@ export function Hero() {
                       href={`/catalog/?category=${c.id}`}
                       className="group flex items-baseline justify-between gap-4 py-3"
                     >
-                      <span className="text-t1 text-ink transition-opacity duration-300 group-hover:opacity-70">
+                      <span className="text-t1 text-ink">
                         {c.name}
                       </span>
                       <span className="flex shrink-0 items-baseline gap-1.5">
