@@ -311,6 +311,25 @@ export function Motion() {
         let lastT = 0;
         let moved = 0;
         let velocity = 0;
+
+        /* Смещение указателя считается ОТДЕЛЬНО от тяги и для всех типов
+           указателя, включая палец. Тягу мышью палец не ведёт — там прокрутка
+           родная, — но клик после свайпа подавлять надо так же: свайп до упора
+           не должен открывать карточку под пальцем. */
+        let downX = 0;
+        let downY = 0;
+        let slide = 0;
+        const onDownAny = (e: PointerEvent) => {
+          downX = e.clientX;
+          downY = e.clientY;
+          slide = 0;
+        };
+        const onMoveAny = (e: PointerEvent) => {
+          slide = Math.max(slide, Math.hypot(e.clientX - downX, e.clientY - downY));
+        };
+        rail.addEventListener('pointerdown', onDownAny, true);
+        rail.addEventListener('pointermove', onMoveAny, true);
+
         const onDown = (e: PointerEvent) => {
           if (e.button !== 0 || e.pointerType === 'touch') return;
           pressed = true;
@@ -354,28 +373,53 @@ export function Motion() {
         rail.addEventListener('pointermove', onMove);
         rail.addEventListener('pointerup', onUp);
         rail.addEventListener('pointercancel', onUp);
+        /* Отпускание ловится и на окне. Пока захват не взят — а он берётся
+           только после порога, иначе элементом клика становится сама лента и
+           карточка перестаёт открывать каталог, — отпускание за пределами
+           ленты до неё не доходило: pressed оставался поднятым, и следующее
+           движение мыши БЕЗ нажатой кнопки продолжало тянуть ленту. */
+        window.addEventListener('pointerup', onUp);
+        window.addEventListener('pointercancel', onUp);
         // Клик по карточке после протаскивания открывал бы каталог.
         // Порог тот же: сдвинулись меньше чем на 5 px — это клик.
         const onClick = (e: MouseEvent) => {
-          if (moved > DRAG_THRESHOLD) {
+          if (Math.max(moved, slide) > DRAG_THRESHOLD) {
             e.preventDefault();
             e.stopPropagation();
           }
         };
         rail.addEventListener('click', onClick, true);
 
-        /* Стрелки: листают на ширину карточки и гаснут на краях. */
+        /* Стрелки: листают на ширину карточки, на краю приглушаются и
+           перестают работать — но НЕ исчезают.
+
+           Исчезали: докрутив ленту до упора, человек видел, как стрелка
+           пропадает прямо под курсором, и следующий щелчок попадал в карточку
+           под ней — открывался каталог вместо продолжения листания. На
+           телефоне то же самое пальцем.
+
+           Состояние держит aria-disabled, а не disabled: disabled выбрасывает
+           кнопку из обхода табом, и фокус, стоявший на ней, падал бы в BODY.
+           Кнопка остаётся на месте и по-прежнему принимает нажатие на себя —
+           именно поэтому щелчок больше не проваливается в карточку. */
         const prev = document.querySelector<HTMLButtonElement>('[data-rail-prev]');
         const next = document.querySelector<HTMLButtonElement>('[data-rail-next]');
+        const isOff = (el: HTMLButtonElement | null) => el?.getAttribute('aria-disabled') === 'true';
         const step = () => (rail.querySelector<HTMLElement>('[data-rail-item]')?.offsetWidth ?? 320) + 16;
-        const goPrev = () => glide(rail.scrollLeft - step(), 0.9);
-        const goNext = () => glide(rail.scrollLeft + step(), 0.9);
+        const goPrev = () => {
+          if (isOff(prev)) return;
+          glide(rail.scrollLeft - step(), 0.9);
+        };
+        const goNext = () => {
+          if (isOff(next)) return;
+          glide(rail.scrollLeft + step(), 0.9);
+        };
         prev?.addEventListener('click', goPrev);
         next?.addEventListener('click', goNext);
         const edges = () => {
           const max = maxLeft();
-          if (prev) prev.disabled = rail.scrollLeft < 4;
-          if (next) next.disabled = rail.scrollLeft > max - 4;
+          prev?.setAttribute('aria-disabled', String(rail.scrollLeft < 4));
+          next?.setAttribute('aria-disabled', String(rail.scrollLeft > max - 4));
         };
         rail.addEventListener('scroll', edges, { passive: true });
         edges();
@@ -389,6 +433,10 @@ export function Motion() {
           rail.removeEventListener('pointermove', onMove);
           rail.removeEventListener('pointerup', onUp);
           rail.removeEventListener('pointercancel', onUp);
+          rail.removeEventListener('pointerdown', onDownAny, true);
+          rail.removeEventListener('pointermove', onMoveAny, true);
+          window.removeEventListener('pointerup', onUp);
+          window.removeEventListener('pointercancel', onUp);
           rail.removeEventListener('click', onClick, true);
           prev?.removeEventListener('click', goPrev);
           next?.removeEventListener('click', goNext);

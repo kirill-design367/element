@@ -938,7 +938,29 @@ select.field option { color: #17191c; background: #fff; }
 .rail-wrap:hover .rail-arrow,
 .rail-arrow:focus-visible { opacity: 1; transform: scale(1); }
 .rail-arrow:hover { background: var(--ink); color: var(--surface); }
-.rail-arrow[disabled] { opacity: 0 !important; pointer-events: none; }
+
+/* НА КРАЮ СТРЕЛКА ОСТАЁТСЯ НА МЕСТЕ.
+   Здесь стояло opacity: 0 и pointer-events: none — и это ловушка, а не
+   аккуратность: докрутив ленту до упора, человек видел, как стрелка исчезает
+   ровно под курсором, а следующий щелчок попадал в карточку под ней и
+   открывал каталог. То же самое на телефоне пальцем.
+
+   Теперь стрелка приглушается и перестаёт работать, но никуда не девается:
+   она по-прежнему перехватывает нажатие на себя — и это главное, ради чего
+   pointer-events возвращены.
+
+   Состояние объявлено через aria-disabled, а не disabled: атрибут disabled
+   выбрасывает кнопку из обхода табом, и фокус, стоявший на ней в момент
+   докрутки, падал бы в BODY. Обработчик щелчка сам ничего не делает, когда
+   атрибут выставлен.
+
+   Место не меняется ни на пиксель: кнопка absolute и размером 48×48 в любом
+   состоянии, масштаб в приглушённом виде тот же, что в рабочем. */
+.rail-arrow[aria-disabled='true'] { cursor: default; }
+.rail-wrap:hover .rail-arrow[aria-disabled='true'],
+.rail-arrow[aria-disabled='true']:focus-visible { opacity: .38; transform: scale(1); }
+/* Приглушённая не перекрашивается на наведении: она не кнопка сейчас. */
+.rail-arrow[aria-disabled='true']:hover { background: var(--surface); color: var(--ink); }
 
 /* Название карточки едет за стрелкой при наведении — только transform. */
 .card-title { transition: transform .3s var(--ease-out); }
