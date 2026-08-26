@@ -37,14 +37,15 @@ export function Contacts() {
               <a href={`mailto:${COMPANY.email}`} className="link-underline rounded text-t3 font-medium text-ink">
                 {COMPANY.email}
               </a>
-              <span>{COMPANY.hoursOffice}</span>
             </p>
 
-            {/* Адреса компактным блоком рядом с телефоном, а не таблицей на
-                четыре строки: их читают один раз перед выездом. */}
+            {/* Адрес компактным блоком рядом с телефоном, а не таблицей на
+                четыре строки: его читают один раз перед выездом. Адрес один —
+                офис и площадка отгрузки по нему же, поэтому строка называется
+                «Адрес», а не «Офис» и «Отгрузка». */}
             <dl className="mt-8 grid gap-x-8 gap-y-4 border-t border-line pt-6 sm:grid-cols-2">
-              <Line term="Офис" value={COMPANY.officeAddress} />
-              <Line term="Отгрузка" value={COMPANY.siteAddress} />
+              <Line term="Адрес" value={COMPANY.address} />
+              <Line term="Часы работы" value={COMPANY.hoursOffice} />
               <Line term="Часы отгрузки" value={COMPANY.hoursShipping} />
               <Line term="География" value={COMPANY.geo} />
             </dl>
@@ -54,7 +55,9 @@ export function Contacts() {
                 тоже ненастоящие, и человек должен узнать это до звонка. */}
             {CONTACTS_ARE_PLACEHOLDER && (
               <p className="mt-6 text-t1 leading-snug text-ink-2">
-                {typo('Телефон, почта, адреса и реквизиты приведены для примера и заменяются перед запуском.')}
+                {typo(
+                  'Телефон и адрес — рабочие. Почта и реквизиты приведены для примера и заменяются перед запуском.',
+                )}
               </p>
             )}
           </div>
