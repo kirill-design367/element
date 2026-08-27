@@ -83,8 +83,11 @@ export function Contacts() {
           имя попадёт в PLAN скрипта сборки кадров, снимок появится здесь
           сам — правка ровно одна, в lib/assets.ts. Что нужно для перехода
           на интерактивную карту, записано в CLAUDE.md. */}
+      {/* Поиск на карте идёт по тому же адресу, что показан рядом. Отдельной
+          строки addressQuery больше нет: это была вторая запись того же
+          адреса, набранная иначе, и разъехаться им было нечем помешать. */}
       <a
-        href={`https://yandex.ru/maps/?text=${encodeURIComponent(COMPANY.addressQuery)}`}
+        href={`https://yandex.ru/maps/?text=${encodeURIComponent(COMPANY.address)}`}
         target="_blank"
         rel="noopener noreferrer"
         className="group relative mt-12 flex h-[200px] items-center justify-center overflow-hidden border-y border-line bg-surface-2 md:mt-16 md:h-[240px]"
