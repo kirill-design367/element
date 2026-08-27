@@ -1019,12 +1019,42 @@ export function materialById(id: string): Material | undefined {
  * Последняя открыта сверху: она значит «40 мм и крупнее», а не строго
  * 40–70. Отдельной корзины под более крупное в проекте нет.
  */
-export const FRACTION_FILTERS = [
-  { id: '0-5', label: '0–5 мм', from: 0, to: 5 },
-  { id: '5-20', label: '5–20 мм', from: 5, to: 20 },
-  { id: '20-40', label: '20–40 мм', from: 20, to: 40 },
-  { id: '40-70', label: '40–70 мм', from: 40, to: Infinity },
-] as const;
+export interface FractionFilter {
+  /** Идентификатор в адресе страницы. */
+  id: string;
+  /**
+   * Подпись на чипе. Необязательная: у корзины с обеими границами она
+   * выводится из чисел, и разойтись с ними не может. Писать её руками надо
+   * только там, где числа подписи не равны границам подбора, — у последней
+   * корзины верхней границы нет вовсе, а подписана она «40–70 мм», потому
+   * что 70 мм это крупнейшая фракция каталога.
+   */
+  label?: string;
+  /** Нижняя граница корзины, мм. */
+  from: number;
+  /**
+   * Верхняя граница, мм. null — границы нет.
+   *
+   * Здесь стояла Infinity, и для типов это было верно, а для выноса —
+   * нет: JSON.stringify(Infinity) даёт null молча, и корзина «40–70 мм»
+   * после первого же круга через CMS ловила бы пустоту. null объявлен
+   * значением, а не получается случайно.
+   */
+  to: number | null;
+}
+
+export const FRACTION_FILTERS: FractionFilter[] = [
+  { id: '0-5', from: 0, to: 5 },
+  { id: '5-20', from: 5, to: 20 },
+  { id: '20-40', from: 20, to: 40 },
+  { id: '40-70', label: '40–70 мм', from: 40, to: null },
+];
+
+/** Подпись корзины: из чисел, если её не написали руками. */
+export function fractionFilterLabel(f: FractionFilter): string {
+  if (f.label) return f.label;
+  return f.to === null ? `от ${f.from} мм` : `${f.from}–${f.to} мм`;
+}
 
 /**
  * Попадание — по ПЕРЕСЕЧЕНИЮ диапазонов, а не по вложенности.
@@ -1042,7 +1072,9 @@ export function inFraction(m: Material, id: string): boolean {
   const f = FRACTION_FILTERS.find((x) => x.id === id);
   const mm = fractionMm(m.fraction);
   if (!f || !mm) return false;
-  return mm[0] < f.to && mm[1] > f.from;
+  /* Верхней границы нет — значит сверху корзина не ограничена ничем. */
+  const upper = f.to ?? Number.POSITIVE_INFINITY;
+  return mm[0] < upper && mm[1] > f.from;
 }
 
 /* ГОСТ есть не у всего: у металла в прайсе его нет вовсе. Пустое значение в

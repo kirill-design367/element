@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CATEGORIES, categoryById, categoryName, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, GROUPS, groupsOf, hasFraction, inFraction, isCategoryId, MATERIALS, POSITIONS_ON_REQUEST, POSITIONS_PRICED, POSITIONS_TOTAL } from '@/lib/catalog';
+import { CATEGORIES, categoryById, categoryName, categorySpecLine, FRACTION_FILTERS, fractionFilterLabel, GOST_FILTERS, GROUPS, groupsOf, hasFraction, inFraction, isCategoryId, MATERIALS, POSITIONS_ON_REQUEST, POSITIONS_PRICED, POSITIONS_TOTAL } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
 import { RequestPanel } from './RequestPanel';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
@@ -299,7 +299,7 @@ export function CatalogClient() {
                 active={fraction === f.id}
                 onClick={() => setParam('fraction', f.id)}
               >
-                {f.label}
+                {fractionFilterLabel(f)}
               </Chip>
             ))}
           </FilterRow>
