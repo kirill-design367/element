@@ -267,7 +267,7 @@ export function Calculator() {
             </p>
           </div>
 
-          <div>
+          <div className="sm:col-span-2">
             <label className={label} htmlFor={`${uid}-address`}>
               Адрес объекта <span className="font-normal text-ink-2">— необязательно</span>
             </label>

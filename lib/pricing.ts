@@ -22,17 +22,17 @@ export interface Truck {
   volumeM3: number;
   /** Разрешённая нагрузка, т. Ограничивает объём для тяжёлых материалов. */
   payloadT: number;
-  /** Подача в пределах МКАД, ₽ за рейс. */
-  baseCost: number;
-  /** Каждый километр за МКАД, ₽. */
-  perKm: number;
 }
 
+/* Полей baseCost и perKm у машины больше нет — это были подача в пределах
+   МКАД и цена километра за МКАД, то есть тариф доставки. Возить мы перестали,
+   и тариф не «обнулён на всякий случай», а удалён: пустое поле с ценой рано
+   или поздно кто-нибудь заполнит и включит расчёт обратно. */
 export const FLEET: Truck[] = [
-  { id: 'kamaz-10', name: 'Самосвал 10 м³', volumeM3: 10, payloadT: 15, baseCost: 9500, perKm: 70 },
-  { id: 'kamaz-15', name: 'Самосвал 15 м³', volumeM3: 15, payloadT: 20, baseCost: 12500, perKm: 85 },
-  { id: 'tonar-20', name: 'Полуприцеп 20 м³', volumeM3: 20, payloadT: 28, baseCost: 15500, perKm: 100 },
-  { id: 'tonar-30', name: 'Полуприцеп 30 м³', volumeM3: 30, payloadT: 40, baseCost: 21000, perKm: 130 },
+  { id: 'kamaz-10', name: 'Самосвал 10 м³', volumeM3: 10, payloadT: 15 },
+  { id: 'kamaz-15', name: 'Самосвал 15 м³', volumeM3: 15, payloadT: 20 },
+  { id: 'tonar-20', name: 'Полуприцеп 20 м³', volumeM3: 20, payloadT: 28 },
+  { id: 'tonar-30', name: 'Полуприцеп 30 м³', volumeM3: 30, payloadT: 40 },
 ];
 
 /** Минимальный объём отгрузки — меньше самой маленькой машины не возим. */
@@ -64,45 +64,6 @@ export const FLEET_VOLUME_RANGE: [number, number] = [
   Math.min(...FLEET.map((t) => t.volumeM3)),
   Math.max(...FLEET.map((t) => t.volumeM3)),
 ];
-
-/**
- * Готовые направления, чтобы снабженцу не искать километраж вручную.
- * Расстояние — от МКАД по вылетной трассе, округлённое.
- */
-export interface Destination {
-  id: string;
-  name: string;
-  /** Расстояние от МКАД, км. */
-  km: number;
-  /**
-   * Направление, выбранное при открытии страницы. Раньше на его месте стояла
-   * строка 'mkad' прямо в двух компонентах: перестановка или переименование
-   * записи молча меняли начальное состояние расчёта.
-   */
-  isDefault?: boolean;
-}
-
-export const DESTINATIONS: Destination[] = [
-  { id: 'mkad', name: 'В пределах МКАД', km: 0, isDefault: true },
-  { id: 'himki', name: 'Химки', km: 9 },
-  { id: 'odintsovo', name: 'Одинцово', km: 12 },
-  { id: 'lyubertsy', name: 'Люберцы', km: 12 },
-  { id: 'podolsk', name: 'Подольск', km: 16 },
-  { id: 'domodedovo', name: 'Домодедово', km: 22 },
-  { id: 'zelenograd', name: 'Зеленоград', km: 25 },
-  { id: 'noginsk', name: 'Ногинск', km: 35 },
-  { id: 'chekhov', name: 'Чехов', km: 45 },
-  { id: 'dmitrov', name: 'Дмитров', km: 55 },
-  { id: 'serpuhov', name: 'Серпухов', km: 75 },
-  { id: 'other', name: 'Другой адрес', km: 30 },
-];
-
-/** Направление по умолчанию. Признак — в данных, порядок записей ни при чём. */
-export const DEFAULT_DESTINATION_ID: string =
-  (DESTINATIONS.find((d) => d.isDefault) ?? DESTINATIONS[0])?.id ?? '';
-
-/** Максимальное расстояние, на которое возим. Дальше — только по согласованию. */
-export const MAX_KM = 150;
 
 /**
  * Потолок объёма для расчёта на странице.

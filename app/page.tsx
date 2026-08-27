@@ -10,7 +10,6 @@ import { Objects } from '@/components/home/Objects';
 import { LeadForm } from '@/components/home/LeadForm';
 import { Contacts } from '@/components/home/Contacts';
 import { ButtonLink } from '@/components/ui/Button';
-import { MAX_KM } from '@/lib/pricing';
 import { CATEGORIES, POSITIONS_TOTAL } from '@/lib/catalog';
 import { nbsp, plural } from '@/lib/format';
 import { COMPANY } from '@/lib/company';

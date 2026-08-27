@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { materialById, sellUnit, type Material } from '@/lib/catalog';
-import { DEFAULT_DESTINATION_ID, type Unit } from '@/lib/pricing';
+import type { Unit } from '@/lib/pricing';
 
 /**
  * Заявка-список. Снабженец просит просчёт сразу по нескольким позициям —
@@ -19,11 +19,14 @@ export interface RequestItem {
   unit: Unit;
 }
 
-/** Общие для всех позиций условия поставки: их спрашивают один раз. */
+/**
+ * Общие для всех позиций условия поставки: их спрашивают один раз.
+ *
+ * Полей km и destinationId здесь больше нет — они были про доставку. Адрес
+ * объекта остался: на расчёт он не влияет, а менеджеру полезен.
+ */
 export interface RequestBrief {
   address: string;
-  km: number;
-  destinationId: string;
   deadline: string;
 }
 
@@ -47,18 +50,13 @@ interface RequestApi {
 
 const Ctx = createContext<RequestApi | null>(null);
 
-/** Объём по умолчанию — одна машина. Меньше всё равно не возим. */
+/** Объём по умолчанию — одна машина, минимальная отгрузка. */
 const DEFAULT_AMOUNT = 10;
 
 export function RequestProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<RequestItem[]>([]);
   const [open, setOpen] = useState(false);
-  const [brief, setBrief] = useState<RequestBrief>({
-    address: '',
-    km: 0,
-    destinationId: DEFAULT_DESTINATION_ID,
-    deadline: '',
-  });
+  const [brief, setBrief] = useState<RequestBrief>({ address: '', deadline: '' });
 
   const patchBrief = useCallback((p: Partial<RequestBrief>) => {
     setBrief((prev) => ({ ...prev, ...p }));
