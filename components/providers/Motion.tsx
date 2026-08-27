@@ -614,11 +614,20 @@ export function Motion() {
            числом: на 390 px и на 2560 px скорость должна быть одна и та же —
            70 пикселей в секунду. При наведении лента не встаёт, а сбавляет
            ход вчетверо за 0,5 с; менять длительность CSS-анимации на лету
-           нельзя, она перескакивает, поэтому это tween с timeScale. */
+           нельзя, она перескакивает, поэтому это tween с timeScale.
+
+           ШИРИНА КОПИИ БЕРЁТСЯ ДРОБНОЙ, А НЕ ЧЕРЕЗ offsetWidth. offsetWidth
+           округляет до целого, а копия дробная: на 1920 это 1334,594 против
+           1335. Лента уезжала на 1335 и возвращалась на 0, то есть каждый
+           круг сдвигалась на 0,406 px — стык переставал совпадать сам с
+           собой. Величина подпиксельная, глазом её не поймать, но снимок
+           ловит: кадры в положении 0 и в положении −copyWidth расходились на
+           1280 и 1920 и совпадали на 390 и 768, где округление в ноль.
+           С getBoundingClientRect совпадают на всех четырёх. */
         const track = document.querySelector<HTMLElement>('[data-marquee-track]');
         const strip = document.querySelector<HTMLElement>('[data-marquee]');
         if (track && strip && track.children.length > 1) {
-          const copyWidth = (track.children[0] as HTMLElement).offsetWidth;
+          const copyWidth = (track.children[0] as HTMLElement).getBoundingClientRect().width;
           const run = gsap.to(track, {
             x: -copyWidth,
             ease: 'none',
@@ -630,7 +639,7 @@ export function Motion() {
           // Копия меряется по факту, а не по проценту: шрифт может ещё не
           // приехать в момент замера, и тогда ширина будет чужая.
           void document.fonts?.ready.then(() => {
-            const w = (track.children[0] as HTMLElement).offsetWidth;
+            const w = (track.children[0] as HTMLElement).getBoundingClientRect().width;
             if (Math.abs(w - copyWidth) > 2) {
               run.vars.x = -w;
               run.duration(w / 70);

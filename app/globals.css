@@ -1137,19 +1137,25 @@ select.field option { color: #17191c; background: #fff; }
 .marquee-strip { overflow: hidden; padding-block: 22px; }
 .marquee-track { display: flex; width: max-content; }
 .marquee-copy { display: flex; align-items: center; }
+/* ГРАНИЦУ МЕЖДУ ФАКТАМИ ДЕРЖИТ ПРОМЕЖУТОК, А НЕ ЗНАК.
+   Точка между фактами снята. Поле здесь симметричное и лежит на самом
+   факте, а не между фактами, и это принципиально: расстояние между любыми
+   двумя соседями равно двум таким полям — и внутри копии, и на стыке копий,
+   где кончается первая и начинается вторая. Поставить промежуток
+   свойством gap на .marquee-copy было бы проще и сломало бы ровно стык:
+   копии лежат в разных flex-контейнерах, и между ними gap не подставится.
+
+   Числа подобраны так, чтобы граница осталась той же ширины, что была со
+   знаком: точка занимала 4 px плюс отступы 24…44 по бокам, и всё это ушло
+   в поле. 32 px на телефоне и 56 на широком экране дают границу 64 и 112 —
+   те же 64 и 112, что мерились до снятия точки. В пробелах шрифта это
+   19 и 34: знак на такой ширине ничего не добавлял. */
 .marquee-item {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  padding-inline: clamp(18px, 2.4vw, 34px);
+  padding-inline: clamp(32px, 4vw, 56px);
   white-space: nowrap;
-}
-.marquee-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--ink-3);
-  margin-left: clamp(14px, 2vw, 30px);
 }
 [data-marquee-clone] { display: none; }
 html.js [data-marquee-clone] { display: flex; }
