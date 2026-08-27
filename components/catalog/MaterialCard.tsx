@@ -94,7 +94,9 @@ export function MaterialCard({ material }: { material: Material }) {
         <p className="mt-3 text-t1 leading-relaxed text-ink-2">{material.note}</p>
       )}
 
-      <ul className="mt-3 flex flex-wrap gap-1.5">
+      {/* Нижний отступ здесь, а не верхний у кнопки: у кнопки стоит mt-auto,
+          и своё значение оно бы перебило. */}
+      <ul className="mb-4 mt-3 flex flex-wrap gap-1.5">
         {material.uses.map((u) => (
           <li
             key={u}
@@ -110,7 +112,12 @@ export function MaterialCard({ material }: { material: Material }) {
         onClick={() => (inList ? req.remove(material.id) : req.add(material.id))}
         disabled={out}
         aria-pressed={inList}
-        className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-card text-t2 font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        /* mt-auto прижимает кнопку к нижней кромке карточки. Карточки в ряду
+           и так были одной высоты — их растягивает сетка, — но содержимое у
+           них разной длины, и кнопка висела в разных местах: замер на 1920
+           давал от 21 до 83,7 px пустоты под кнопкой в одном ряду. Свободное
+           место теперь собирается НАД кнопкой, а не под ней. */
+        className={`mt-auto inline-flex h-11 w-full items-center justify-center gap-2 rounded-card text-t2 font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
           out
             ? 'cursor-not-allowed border border-line bg-surface-2 text-ink-2'
             : inList
