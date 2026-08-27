@@ -13,13 +13,16 @@ import {
   unitLabel,
 } from '@/lib/catalog';
 import {
+  AVG_SPEED_KMH,
   MAX_ORDER_M3,
   MAX_ORDER_T,
+  MAX_TRIP_KM,
   MIN_ORDER_M3,
   calculate,
+  estimateTrip,
   type Unit,
 } from '@/lib/pricing';
-import { nbsp, num, ON_REQUEST, rides, rub, rubOr, tons, volume, typo } from '@/lib/format';
+import { duration, nbsp, num, ON_REQUEST, rides, rub, rubOr, tons, volume, typo } from '@/lib/format';
 import { Counter } from './Counter';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
@@ -56,6 +59,16 @@ export function Calculator() {
   const forcedUnit: Unit | null = material && sellUnit(material) === 't' ? 't' : null;
   const effUnit: Unit = forcedUnit ?? unit;
   const [address, setAddress] = useState('');
+  /* Расстояние до объекта. На стоимость оно не влияет — доставки нет, — а
+     влияет на время рейса: человек едет за материалом сам и планирует день.
+
+     Отдельно от числа хранится набранный текст. Пока поле было привязано
+     прямо к числу, пустая строка мгновенно превращалась в 0, React не
+     переписывал значение обратно, и ноль прилипал: очистить поле было
+     нельзя, а набранное после него читалось как «025» и «07». */
+  const [kmText, setKmText] = useState('20');
+  const km = Math.max(0, Math.min(MAX_TRIP_KM, Number(kmText.replace(',', '.')) || 0));
+  const trip = estimateTrip(km);
 
   /* Разбор объёма терпит то, что человек реально набирает и вставляет.
      Пробелы — обычные, неразрывные и узкие — выбрасываются: сайт сам печатает
@@ -234,7 +247,27 @@ export function Calculator() {
             </div>
           </div>
 
-          <div className="sm:col-span-2">
+          <div>
+            <label className={label} htmlFor={`${uid}-km`}>
+              Расстояние до объекта, км
+            </label>
+            <input
+              id={`${uid}-km`}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={MAX_TRIP_KM}
+              className={`${field} tnum`}
+              value={kmText}
+              onChange={(e) => setKmText(e.target.value)}
+              aria-describedby={`${uid}-km-hint`}
+            />
+            <p id={`${uid}-km-hint`} className="mt-1.5 text-t1 leading-snug text-ink-2">
+              {typo('От площадки в Люберцах, в одну сторону. На стоимость не влияет — только на время рейса.')}
+            </p>
+          </div>
+
+          <div>
             <label className={label} htmlFor={`${uid}-address`}>
               Адрес объекта <span className="font-normal text-ink-2">— необязательно</span>
             </label>
@@ -251,7 +284,7 @@ export function Calculator() {
             {/* Адрес на расчёт не влияет — доставки нет. Поле остаётся,
                 потому что менеджеру полезно знать, куда пойдёт материал. */}
             <p id={`${uid}-address-hint`} className="mt-1.5 text-t1 text-ink-2">
-              Адрес на расчёт не влияет — он нужен менеджеру, чтобы понимать объект.
+              Нужен менеджеру, чтобы понимать объект.
             </p>
           </div>
         </div>
@@ -319,12 +352,10 @@ export function Calculator() {
                 )}
               </dd>
             </dl>
-            {/* Когда крупным числом стоит количество, стоимость всё равно
-                должна быть сказана — строкой и той же формулировкой, что
-                везде на сайте. */}
-            {result && priced === null && (
-              <p className="mt-2 text-t1 text-ink-2">Стоимость — {ON_REQUEST}</p>
-            )}
+            {/* Отдельной строки «стоимость — уточняйте» здесь нет: ровно эту
+                формулировку показывает строка «Материал» в разбивке двумя
+                десятками пикселей ниже, и сказанное дважды подряд читается
+                сбоем, а не заботой. */}
           </div>
 
           {/* Разбивка как в счёте: строка — статья — сумма. Под итогом: она
@@ -351,6 +382,17 @@ export function Calculator() {
                 result && result.truck
                   ? typo(`${result.truck.name} · до ${volume(result.perRideM3)} за рейс`)
                   : undefined
+              }
+            />
+            {/* Время считает estimateTrip — одна функция на весь сайт, и
+                когда появится маршрутизатор, меняться будет только она. */}
+            <Row
+              label="Рейс в одну сторону"
+              value={trip.km > 0 ? duration(trip.minutes) : '—'}
+              note={
+                trip.km > 0
+                  ? typo(`${num(trip.km)} км, средняя ${AVG_SPEED_KMH} км/ч`)
+                  : 'укажите расстояние'
               }
             />
           </div>

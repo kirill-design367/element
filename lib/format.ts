@@ -55,6 +55,20 @@ export function tons(n: number): string {
   return `${num(r, Number.isInteger(r) ? 0 : 1)}${NBSP}т`;
 }
 
+/**
+ * Длительность: «40 мин», «1 ч 20 мин», «2 ч».
+ *
+ * Пробелы неразрывные — число не отрывается от единицы, как и везде на
+ * сайте. Часы и минуты разделены обычным пробелом: там перенос допустим.
+ */
+export function duration(minutes: number): string {
+  const m = Number.isFinite(minutes) ? Math.max(0, Math.round(minutes)) : 0;
+  if (m < 60) return `${num(m)}${NBSP}мин`;
+  const h = Math.floor(m / 60);
+  const rest = m % 60;
+  return rest ? `${num(h)}${NBSP}ч ${num(rest)}${NBSP}мин` : `${num(h)}${NBSP}ч`;
+}
+
 /** «1 рейс», «2 рейса», «5 рейсов». */
 export function plural(n: number, one: string, few: string, many: string): string {
   const mod10 = n % 10;
