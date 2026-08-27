@@ -73,7 +73,7 @@ export function Hero() {
             >
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden="true" />
-                Поставка инертных материалов
+                Инертные материалы и металлопрокат
               </span>
               {/* Разделитель сплошным цветом, а не альфой: на прозрачной
                   панели альфа даёт дымку. */}
