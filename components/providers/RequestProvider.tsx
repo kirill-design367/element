@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { materialById, sellUnit, type Material } from '@/lib/catalog';
-import type { Unit } from '@/lib/pricing';
+import { DEFAULT_DESTINATION_ID, type Unit } from '@/lib/pricing';
 
 /**
  * Заявка-список. Снабженец просит просчёт сразу по нескольким позициям —
@@ -56,7 +56,7 @@ export function RequestProvider({ children }: { children: ReactNode }) {
   const [brief, setBrief] = useState<RequestBrief>({
     address: '',
     km: 0,
-    destinationId: 'mkad',
+    destinationId: DEFAULT_DESTINATION_ID,
     deadline: '',
   });
 

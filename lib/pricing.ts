@@ -49,8 +49,21 @@ export const PRICE_HOLD_DAYS = 5;
  * Готовые направления, чтобы снабженцу не искать километраж вручную.
  * Расстояние — от МКАД по вылетной трассе, округлённое.
  */
-export const DESTINATIONS: { id: string; name: string; km: number }[] = [
-  { id: 'mkad', name: 'В пределах МКАД', km: 0 },
+export interface Destination {
+  id: string;
+  name: string;
+  /** Расстояние от МКАД, км. */
+  km: number;
+  /**
+   * Направление, выбранное при открытии страницы. Раньше на его месте стояла
+   * строка 'mkad' прямо в двух компонентах: перестановка или переименование
+   * записи молча меняли начальное состояние расчёта.
+   */
+  isDefault?: boolean;
+}
+
+export const DESTINATIONS: Destination[] = [
+  { id: 'mkad', name: 'В пределах МКАД', km: 0, isDefault: true },
   { id: 'himki', name: 'Химки', km: 9 },
   { id: 'odintsovo', name: 'Одинцово', km: 12 },
   { id: 'lyubertsy', name: 'Люберцы', km: 12 },
@@ -63,6 +76,10 @@ export const DESTINATIONS: { id: string; name: string; km: number }[] = [
   { id: 'serpuhov', name: 'Серпухов', km: 75 },
   { id: 'other', name: 'Другой адрес', km: 30 },
 ];
+
+/** Направление по умолчанию. Признак — в данных, порядок записей ни при чём. */
+export const DEFAULT_DESTINATION_ID: string =
+  (DESTINATIONS.find((d) => d.isDefault) ?? DESTINATIONS[0])?.id ?? '';
 
 /** Максимальное расстояние, на которое возим. Дальше — только по согласованию. */
 export const MAX_KM = 150;

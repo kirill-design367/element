@@ -3,6 +3,7 @@
 import { useId, useMemo, useState } from 'react';
 import {
   CATEGORIES,
+  DEFAULT_MATERIAL_ID,
   fractionLabel,
   materialById,
   MATERIALS,
@@ -12,6 +13,7 @@ import {
   unitLabel,
 } from '@/lib/catalog';
 import {
+  DEFAULT_DESTINATION_ID,
   DESTINATIONS,
   MAX_KM,
   MAX_ORDER_M3,
@@ -37,7 +39,10 @@ export function Calculator() {
   const uid = useId();
   const req = useRequest();
 
-  const [materialId, setMaterialId] = useState(MATERIALS[0].id);
+  /* Начальные значения — из данных, а не из порядка записей: признак
+     isDefault у позиции и у направления. MATERIALS[0] и строка 'mkad' на их
+     месте молча менялись бы от любой сортировки списка. */
+  const [materialId, setMaterialId] = useState(DEFAULT_MATERIAL_ID);
   const [amountText, setAmountText] = useState('20');
   const [unit, setUnit] = useState<Unit>('m3');
   /* Единица не хранится дважды. У металла она не выбирается вовсе: прокат
@@ -48,7 +53,7 @@ export function Calculator() {
   const material = materialById(materialId);
   const forcedUnit: Unit | null = material && sellUnit(material) === 't' ? 't' : null;
   const effUnit: Unit = forcedUnit ?? unit;
-  const [destinationId, setDestinationId] = useState('mkad');
+  const [destinationId, setDestinationId] = useState(DEFAULT_DESTINATION_ID);
   const [km, setKm] = useState(0);
   /* Отдельно от числа хранится набранный текст. Пока поле было привязано
      прямо к числу, пустая строка мгновенно превращалась в 0, React не

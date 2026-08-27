@@ -186,6 +186,16 @@ export interface Material {
    */
   pricePerTon: number | null;
   availability: Availability;
+  /**
+   * Позиция, которая стоит в калькуляторе при открытии страницы.
+   *
+   * Раньше бралась как MATERIALS[0] — то есть перестановка записей местами
+   * молча меняла то, что человек видит первым. Признак явный: правит его
+   * тот, кто этого хочет, а не тот, кто отсортировал список.
+   *
+   * Если признака нет ни у одной позиции, по умолчанию берётся первая.
+   */
+  isDefault?: boolean;
   /** Где применяется. Показывается в карточке каталога. */
   uses: string[];
   note?: string;
@@ -272,6 +282,7 @@ export const MATERIALS: Material[] = [
     density: 1.37,
     pricePerTon: 3000,
     availability: 'in-stock',
+    isDefault: true,
     uses: ['товарный бетон', 'фундамент', 'ЖБИ'],
     note: 'Лещадность I группы. Основная фракция под бетон.',
   },
@@ -1010,6 +1021,14 @@ export function categorySpecLine(id: CategoryId): string {
 export function materialById(id: string): Material | undefined {
   return MATERIALS.find((m) => m.id === id);
 }
+
+/**
+ * Позиция, с которой открывается калькулятор. Признак — в данных, порядок
+ * записей на неё не влияет. Пустой каталог даёт пустую строку, и калькулятор
+ * просто не находит материал — это уже штатный путь.
+ */
+export const DEFAULT_MATERIAL_ID: string =
+  (MATERIALS.find((m) => m.isDefault) ?? MATERIALS[0])?.id ?? '';
 
 /** Значения фильтров собираются из данных, а не пишутся руками. */
 /**
