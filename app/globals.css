@@ -9,25 +9,55 @@
 :root {
   /* Светлая база: цементно-серый, чуть тёплый. Не крем и не чистый белый —
      белый уходит фону карточек, чтобы карточка читалась как лист поверх поля. */
-  --bg: #f4f4f1;
-  --surface: #ffffff;
-  --surface-2: #edede8;
+  /* ЦВЕТА ТЕМЫ ХРАНЯТСЯ ТРОЙКАМИ КАНАЛОВ, А НЕ ЗАПИСЬЮ ЦВЕТА.
+     Причина одна и она чисто механическая: модификатор прозрачности
+     Tailwind («bg-ink/35») подставляет альфу внутрь записи цвета, и с
+     цветом, спрятанным за var(--ink), он не может этого сделать — правило
+     не генерируется вовсе. Девять классов на сайте выглядели осмысленно и
+     не давали ничего: замер computed style показывал rgba(0, 0, 0, 0) там,
+     где должно было стоять притемнение.
 
-  --ink: #17191c;      /* 15.98:1 к фону */
-  --ink-2: #5a5f66;    /*  5.84:1 к фону — вторичный текст, проходит AA */
-  --ink-3: #85898f;    /* только для нетекстовой графики и разделителей */
+     Поэтому у каждого цвета темы два имени. Тройка каналов --x-rgb —
+     источник, её читает Tailwind. Готовая запись --x собрана из неё же и
+     нужна прямым обращениям в этом файле: их около сотни, и переписывать
+     каждое на rgb(...) незачем. Разойтись двум именам не с чем: второе
+     собрано из первого.
 
-  --line: #dedeD8;
-  --line-strong: #c9c9c1;
+     Ни одно значение цвета при переводе не изменилось. */
+  --bg-rgb: 244 244 241;
+  --surface-rgb: 255 255 255;
+  --surface-2-rgb: 237 237 232;
+
+  --ink-rgb: 23 25 28;       /* 15.98:1 к фону */
+  --ink-2-rgb: 90 95 102;    /*  5.84:1 к фону — вторичный текст, проходит AA */
+  --ink-3-rgb: 133 137 143;  /* только для нетекстовой графики и разделителей */
+
+  --line-rgb: 222 222 216;
+  --line-strong-rgb: 201 201 193;
 
   /* Акцент — чернильный ультрамарин. 9.14:1 с белым, 8.29:1 с фоном. */
-  --accent: #173fa6;
-  --accent-hover: #102e7c;
-  --accent-soft: #e8ecf8;
+  --accent-rgb: 23 63 166;
+  --accent-hover-rgb: 16 46 124;
+  --accent-soft-rgb: 232 236 248;
 
   /* Служебный цвет: только «нет в наличии» и ошибки формы. */
-  --warn: #b3261e;
-  --warn-soft: #fbeceb;
+  --warn-rgb: 179 38 30;
+  --warn-soft-rgb: 251 236 235;
+
+  /* Готовые записи для прямых обращений в этом файле. */
+  --bg: rgb(var(--bg-rgb));
+  --surface: rgb(var(--surface-rgb));
+  --surface-2: rgb(var(--surface-2-rgb));
+  --ink: rgb(var(--ink-rgb));
+  --ink-2: rgb(var(--ink-2-rgb));
+  --ink-3: rgb(var(--ink-3-rgb));
+  --line: rgb(var(--line-rgb) / var(--line-a, 1));
+  --line-strong: rgb(var(--line-strong-rgb) / var(--line-strong-a, 1));
+  --accent: rgb(var(--accent-rgb));
+  --accent-hover: rgb(var(--accent-hover-rgb));
+  --accent-soft: rgb(var(--accent-soft-rgb) / var(--accent-soft-a, 1));
+  --warn: rgb(var(--warn-rgb));
+  --warn-soft: rgb(var(--warn-soft-rgb) / var(--warn-soft-a, 1));
 
   /* ── Поля ввода ──
      Ни у одного поля на сайте нет тёмной обводки: тёмный контур в светлой
@@ -108,20 +138,41 @@
    8,84:1 у акцента — все с запасом к 4,5:1.
    ──────────────────────────────────────────────────────────── */
 .inv {
-  --surface: #14161a;
-  --surface-2: #1c1f24;
-  --ink: #f4f3ef;
-  --ink-2: #a8afb7;
-  --ink-3: #767d85;
-  --line: rgba(244, 243, 239, .14);
-  --line-strong: rgba(244, 243, 239, .3);
+  /* Переопределяются тройки, а готовые записи собираются из них тут же:
+     иначе --surface остался бы светлым из :root, где он собран из светлой
+     тройки. Прозрачность линий и мягких заливок вынесена в отдельные
+     --*-a: она принадлежит этому набору, а не цвету. */
+  --surface-rgb: 20 22 26;
+  --surface-2-rgb: 28 31 36;
+  --ink-rgb: 244 243 239;
+  --ink-2-rgb: 168 175 183;
+  --ink-3-rgb: 118 125 133;
+  --line-rgb: 244 243 239;
+  --line-a: .14;
+  --line-strong-rgb: 244 243 239;
+  --line-strong-a: .3;
   /* Тот же ультрамарин, поднятый по светлоте до читаемого на тёмном.
      Это не второй акцент: оттенок один, меняется только светлота. */
-  --accent: #9db4f2;
-  --accent-hover: #c2d0f7;
-  --accent-soft: rgba(157, 180, 242, .16);
-  --warn: #f0938a;
-  --warn-soft: rgba(240, 147, 138, .16);
+  --accent-rgb: 157 180 242;
+  --accent-hover-rgb: 194 208 247;
+  --accent-soft-rgb: 157 180 242;
+  --accent-soft-a: .16;
+  --warn-rgb: 240 147 138;
+  --warn-soft-rgb: 240 147 138;
+  --warn-soft-a: .16;
+
+  --surface: rgb(var(--surface-rgb));
+  --surface-2: rgb(var(--surface-2-rgb));
+  --ink: rgb(var(--ink-rgb));
+  --ink-2: rgb(var(--ink-2-rgb));
+  --ink-3: rgb(var(--ink-3-rgb));
+  --line: rgb(var(--line-rgb) / var(--line-a));
+  --line-strong: rgb(var(--line-strong-rgb) / var(--line-strong-a));
+  --accent: rgb(var(--accent-rgb));
+  --accent-hover: rgb(var(--accent-hover-rgb));
+  --accent-soft: rgb(var(--accent-soft-rgb) / var(--accent-soft-a));
+  --warn: rgb(var(--warn-rgb));
+  --warn-soft: rgb(var(--warn-soft-rgb) / var(--warn-soft-a));
   --field-bg: rgba(244, 243, 239, .07);
   --field-bg-hover: rgba(244, 243, 239, .11);
   --field-line: rgba(244, 243, 239, .12);
@@ -244,11 +295,18 @@ body {
      дымкой: белый по светлому месту кадра и так на пределе, а серый по нему
      пропадал. Все три токена сведены в белый, иерархию на панели держат
      кегль и вес, а не светлота. */
-  --ink: #ffffff;
-  --ink-2: #ffffff;
-  --ink-3: #ffffff;
-  --line: rgba(246, 245, 242, .18);
-  --line-strong: rgba(246, 245, 242, .34);
+  --ink-rgb: 255 255 255;
+  --ink-2-rgb: 255 255 255;
+  --ink-3-rgb: 255 255 255;
+  --line-rgb: 246 245 242;
+  --line-a: .18;
+  --line-strong-rgb: 246 245 242;
+  --line-strong-a: .34;
+  --ink: rgb(var(--ink-rgb));
+  --ink-2: rgb(var(--ink-2-rgb));
+  --ink-3: rgb(var(--ink-3-rgb));
+  --line: rgb(var(--line-rgb) / var(--line-a));
+  --line-strong: rgb(var(--line-strong-rgb) / var(--line-strong-a));
   /* Акцент на панелях — РОВНО тот же цвет, что на кнопке «Запросить прайс»:
      #173fa6, без поправки на светлоту. Решение заказчика, окончательное.
 
@@ -261,11 +319,15 @@ body {
 
      Теперь размена нет: акцент равен кнопочному знак в знак. Порог контраста
      здесь не условие и не мерится — так решено. Осветлять нельзя. */
-  --accent: #173fa6;
+  --accent-rgb: 23 63 166;
   /* Наведение на ступень темнее — как и у глобального акцента, где
      --accent-hover #102e7c темнее #173fa6. Здесь то же значение. */
-  --accent-hover: #102e7c;
-  --accent-soft: rgba(23, 63, 166, .18);
+  --accent-hover-rgb: 16 46 124;
+  --accent-soft-rgb: 23 63 166;
+  --accent-soft-a: .18;
+  --accent: rgb(var(--accent-rgb));
+  --accent-hover: rgb(var(--accent-hover-rgb));
+  --accent-soft: rgb(var(--accent-soft-rgb) / var(--accent-soft-a));
   /* Акцентное СЛОВО в заголовке — на ступень светлее кнопочного.
      Кнопочный #173fa6 на панели оказался темноват: под притемнением 0,45
      слово читалось почти чёрным, и признак цвета терялся. #1c54e3 — тот же
@@ -289,7 +351,8 @@ body {
   --glass-blur: 12px;
   /* Тёмный тон для текста поверх поднятого акцента: белым по нему нельзя,
      контраст падает до 2:1. Тем же приёмом живут .inv и .lead-band. */
-  --surface: #12151a;
+  --surface-rgb: 18 21 26;
+  --surface: rgb(var(--surface-rgb));
   color: var(--ink);
 }
 

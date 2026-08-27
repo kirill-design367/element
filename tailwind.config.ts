@@ -8,20 +8,29 @@ const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      /* Цвета берутся ТРОЙКАМИ КАНАЛОВ, а не готовой записью цвета: иначе
+         модификатор прозрачности («bg-ink/35») не работает вовсе — Tailwind
+         подставляет альфу внутрь записи, а записи он не видит, и правило не
+         генерируется. Девять классов на сайте так и не рисовались.
+
+         У линий и мягких заливок альфа своя, из набора токенов: в .inv линия
+         это белый с прозрачностью 0,14, и «border-line» обязан остаться
+         прежним. Поэтому альфа читается из --*-a, а модификатор работает
+         там, где своей альфы у набора нет. */
       colors: {
-        bg: 'var(--bg)',
-        surface: 'var(--surface)',
-        'surface-2': 'var(--surface-2)',
-        ink: 'var(--ink)',
-        'ink-2': 'var(--ink-2)',
-        'ink-3': 'var(--ink-3)',
-        line: 'var(--line)',
-        'line-strong': 'var(--line-strong)',
-        accent: 'var(--accent)',
-        'accent-hover': 'var(--accent-hover)',
-        'accent-soft': 'var(--accent-soft)',
-        warn: 'var(--warn)',
-        'warn-soft': 'var(--warn-soft)',
+        bg: 'rgb(var(--bg-rgb) / <alpha-value>)',
+        surface: 'rgb(var(--surface-rgb) / <alpha-value>)',
+        'surface-2': 'rgb(var(--surface-2-rgb) / <alpha-value>)',
+        ink: 'rgb(var(--ink-rgb) / <alpha-value>)',
+        'ink-2': 'rgb(var(--ink-2-rgb) / <alpha-value>)',
+        'ink-3': 'rgb(var(--ink-3-rgb) / <alpha-value>)',
+        line: 'rgb(var(--line-rgb) / var(--line-a, <alpha-value>))',
+        'line-strong': 'rgb(var(--line-strong-rgb) / var(--line-strong-a, <alpha-value>))',
+        accent: 'rgb(var(--accent-rgb) / <alpha-value>)',
+        'accent-hover': 'rgb(var(--accent-hover-rgb) / <alpha-value>)',
+        'accent-soft': 'rgb(var(--accent-soft-rgb) / var(--accent-soft-a, <alpha-value>))',
+        warn: 'rgb(var(--warn-rgb) / <alpha-value>)',
+        'warn-soft': 'rgb(var(--warn-soft-rgb) / var(--warn-soft-a, <alpha-value>))',
       },
       fontFamily: {
         display: 'var(--font-text)',

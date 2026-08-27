@@ -133,9 +133,18 @@ export function Hero() {
               {/* В панели только то, что считается кубами. Металл продаётся
                   тоннами, и строка «от 59 500 ₽» под шапкой «₽/м³» соврала бы
                   про единицу; у него своя карточка ниже по странице. */}
-              <ul className="mt-4 divide-y divide-ink/12">
+              {/* Разделители стоят на самих строках, а не утилитой divide-*.
+                  Причина механическая: divide-* в этой версии Tailwind не
+                  принимает модификатор прозрачности вовсе — «divide-ink/12»
+                  не порождало правила, и линию рисовал запасной цвет из
+                  «* { border-color: var(--line) }». Проверено отдельной
+                  сборкой: divide-line правило даёт, divide-ink/12 — нет.
+                  И доля записана в скобках: шкала прозрачности Tailwind идёт
+                  через пять, двенадцати в ней нет, и «/12» тоже не породило
+                  бы правила. */}
+              <ul className="mt-4">
                 {CATEGORIES.filter((c) => c.unit === 'm3').map((c) => (
-                  <li key={c.id}>
+                  <li key={c.id} className="border-t border-ink/[.12] first:border-t-0">
                     <Link
                       href={`/catalog/?category=${c.id}`}
                       className="group flex items-baseline justify-between gap-4 py-3"
