@@ -109,7 +109,7 @@ export function RequestPanel() {
   return (
     <>
       {/* Полоса-счётчик. Над мобильной панелью телефона, чтобы не перекрывать её. */}
-      <div className="no-print fixed inset-x-0 bottom-[68px] z-40 md:bottom-0">
+      <div className="no-print fixed inset-x-0 bottom-[var(--bar-h)] z-40 lg:bottom-0">
         <div className="shell pb-3 md:pb-4">
           <button
             type="button"

@@ -18,7 +18,7 @@ export function Footer() {
        незакрытым. Замер на 390 в самом низу страницы: панель высотой 69 px
        ложилась на подвал высотой 121 px и закрывала 69 из них, а докрутить
        было нечем — страница уже кончилась. */
-    <footer className="border-t border-line bg-surface-2 py-6 pb-[calc(24px+76px)] md:pb-6">
+    <footer className="border-t border-line bg-surface-2 py-6 pb-[calc(24px+var(--bar-h)+8px)] lg:pb-6">
       <div className="shell flex flex-col gap-3 text-t1 text-ink-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-t2 font-black text-ink">Элемент</span>
