@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CATEGORIES, categoryById, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, GROUPS, groupsOf, hasFraction, inFraction, MATERIALS, POSITIONS_ON_REQUEST, POSITIONS_PRICED, POSITIONS_TOTAL, type CategoryId } from '@/lib/catalog';
+import { CATEGORIES, categoryById, categoryName, categorySpecLine, FRACTION_FILTERS, GOST_FILTERS, GROUPS, groupsOf, hasFraction, inFraction, isCategoryId, MATERIALS, POSITIONS_ON_REQUEST, POSITIONS_PRICED, POSITIONS_TOTAL } from '@/lib/catalog';
 import { MaterialCard } from './MaterialCard';
 import { RequestPanel } from './RequestPanel';
 import { PhotoSlot } from '@/components/ui/PhotoSlot';
@@ -41,7 +41,7 @@ function valid(key: (typeof KEYS)[number], raw: string | null): string {
   if (!raw) return ALL;
   const ok =
     key === 'category'
-      ? CATEGORIES.some((c) => c.id === raw)
+      ? isCategoryId(raw)
       : key === 'fraction'
         ? FRACTION_FILTERS.some((f) => f.id === raw)
         : key === 'group'
@@ -96,8 +96,9 @@ export function CatalogClient() {
 
   const { category, fraction, gost, group } = filters;
   const active = KEYS.some((k) => filters[k] !== ALL);
-  const activeCategory =
-    category !== ALL ? CATEGORIES.find((c) => c.id === (category as CategoryId)) : undefined;
+  /* Приведения типа больше нет: идентификатор категории — обычная строка,
+     а проверку делает categoryById, возвращая undefined на незнакомой. */
+  const activeCategory = category !== ALL ? categoryById(category) : undefined;
 
   // Прилёт карточки с главной. Пусто в хранилище — страница просто открывается.
   useFlipArrival('to-catalog', () => plateRef.current, { fadeIn: listRef });
@@ -142,7 +143,9 @@ export function CatalogClient() {
     /* Названия категорий берутся из тех позиций, что реально скрыты. Пока
        здесь стояло слово «Грунты», строка врала бы в тот же день, когда
        появилась вторая безфракционная категория, — металл. */
-    const names = [...new Set(hidden.map((m) => categoryById(m.categoryId).name))];
+    /* Незнакомая категория даёт пустое имя и в перечисление не идёт: одна
+       непонятная позиция не должна превращать строку в «Грунты, , Металл». */
+    const names = [...new Set(hidden.map((m) => categoryName(m.categoryId)).filter(Boolean))];
     return { count: hidden.length, names: names.join(', '), many: names.length > 1 };
   }, [category, fraction]);
 

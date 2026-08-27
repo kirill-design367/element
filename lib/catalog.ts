@@ -15,7 +15,19 @@
 
 import { num } from './format';
 
-export type CategoryId = 'shcheben' | 'pesok' | 'pgs' | 'otsev' | 'grunt' | 'metall';
+/**
+ * ИДЕНТИФИКАТОР КАТЕГОРИИ — ОБЫЧНАЯ СТРОКА.
+ *
+ * Здесь стоял союз шести литералов, и он держал каталог ровно до того дня,
+ * когда категории начнут заводиться снаружи: строка, пришедшая из CMS,
+ * такому типу не соответствует, и сборка падала бы на первой же новой
+ * категории. Проверка переехала из типов в рантайм — isCategoryId() и
+ * categoryById(), возвращающий undefined вместо исключения.
+ *
+ * Псевдоним оставлен нарочно: он говорит в сигнатурах, ЧТО это за строка.
+ * Гарантий он не даёт, гарантии дают функции ниже.
+ */
+export type CategoryId = string;
 
 /**
  * Единица, в которой категория продаётся и показывается.
@@ -30,7 +42,7 @@ export type SaleUnit = 'm3' | 't';
  * Заведена не признаком позиции, а списком, потому что по ней работает
  * фильтр, а значения фильтра берутся из данных.
  */
-export type GroupId = 'armatura' | 'ugolok' | 'shveller' | 'truba';
+export type GroupId = string;
 
 export const GROUPS: { id: GroupId; categoryId: CategoryId; name: string }[] = [
   { id: 'armatura', categoryId: 'metall', name: 'Арматура' },
@@ -857,9 +869,14 @@ export function pricePerM3(m: Material): number | null {
   return Math.round((m.pricePerTon * m.density) / 10) * 10;
 }
 
-/** В чём позиция продаётся: инертные кубами, металл тоннами. */
+/**
+ * В чём позиция продаётся: инертные кубами, металл тоннами.
+ *
+ * Позиция с неизвестной категорией считается кубами: это единица, в которой
+ * работает весь остальной сайт, и падать из-за неё незачем.
+ */
 export function sellUnit(m: Material): SaleUnit {
-  return categoryById(m.categoryId).unit;
+  return categoryById(m.categoryId)?.unit ?? 'm3';
 }
 
 /** Цена в той единице, в которой позиция продаётся. */
@@ -882,10 +899,25 @@ export function hasPrice(m: Material): boolean {
   return m.pricePerTon !== null;
 }
 
-export function categoryById(id: CategoryId): Category {
-  const c = CATEGORIES.find((x) => x.id === id);
-  if (!c) throw new Error(`Нет категории ${id}`);
-  return c;
+/**
+ * Категория по идентификатору. Нет такой — undefined, а не исключение.
+ *
+ * Раньше здесь стоял throw, и это было ровно то поведение, которого нельзя
+ * допускать после выноса данных наружу: опечатка редактора в поле
+ * «категория» роняла бы сборку целиком вместо одной неправильной карточки.
+ */
+export function categoryById(id: CategoryId): Category | undefined {
+  return CATEGORIES.find((x) => x.id === id);
+}
+
+/** Есть ли такая категория. Проверка адреса страницы и данных из CMS. */
+export function isCategoryId(id: string): boolean {
+  return CATEGORIES.some((c) => c.id === id);
+}
+
+/** Название категории или пустая строка: незнакомая категория молчит. */
+export function categoryName(id: CategoryId): string {
+  return categoryById(id)?.name ?? '';
 }
 
 export function materialsOf(id: CategoryId): Material[] {
