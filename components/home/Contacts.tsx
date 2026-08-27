@@ -44,7 +44,7 @@ export function Contacts() {
               <Line term="Адрес" value={COMPANY.address} />
               <Line term="Часы работы" value={COMPANY.hoursOffice} />
               <Line term="Часы отгрузки" value={COMPANY.hoursShipping} />
-              <Line term="География" value={COMPANY.geo} />
+              <Line term="Отгрузка" value={COMPANY.shipping} />
             </dl>
           </div>
 

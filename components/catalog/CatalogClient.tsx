@@ -227,10 +227,10 @@ export function CatalogClient() {
               <p className="mt-3 max-w-[64ch] text-t2 leading-relaxed text-ink-2">
                 {POSITIONS_TOTAL} {plural(POSITIONS_TOTAL, 'позиция', 'позиции', 'позиций')} в{' '}
                 {CATEGORIES.length}{' '}
-                {plural(CATEGORIES.length, 'группе', 'группах', 'группах')}. Цены с НДС, на условиях
-                самовывоза; стоимость доставки считаем отдельно,{' '}
+                {plural(CATEGORIES.length, 'группе', 'группах', 'группах')}. Цены с НДС, на отгрузку
+                с площадки в Люберцах. Объём, рейсы и время до объекта —{' '}
                 <Link href="/#raschet" className="link-underline rounded text-accent">
-                  в калькуляторе
+                  в расчёте
                 </Link>
                 .
                 {POSITIONS_ON_REQUEST > 0 && (
