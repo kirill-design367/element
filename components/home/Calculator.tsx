@@ -225,6 +225,10 @@ export function Calculator() {
                 Укажите объём числом — например, 20
               </p>
             )}
+            {/* Пилюля видимая — 36 px, и такой она и остаётся. Цель нажатия
+                поднята до 44 прозрачным слоем поверх (.tap-over): полем её
+                не поднять, у чипа задана высота и padding ушёл бы внутрь
+                рамки. Раскладка не изменилась — слой абсолютный. */}
             <div className="mt-2 flex flex-wrap gap-1.5">
               {QUICK.map((q) => (
                 <button
@@ -234,7 +238,7 @@ export function Calculator() {
                     setAmountText(String(q));
                     if (!forcedUnit) setUnit('m3');
                   }}
-                  className="tnum inline-flex h-9 items-center rounded-pill border border-line px-3 text-t1 text-ink-2 transition-colors hover:border-accent hover:text-accent"
+                  className="tap-over tnum inline-flex h-9 items-center rounded-pill border border-line px-3 text-t1 text-ink-2 transition-colors hover:border-accent hover:text-accent"
                 >
                   {`${q}\u00A0${unitLabel(effUnit === 't' ? 't' : 'm3')}`}
                 </button>

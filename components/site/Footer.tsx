@@ -28,7 +28,15 @@ export function Footer() {
         </p>
 
         <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <a href={`tel:${COMPANY.phone}`} className="nav-zoom rounded font-semibold text-ink">
+          {/* Цель нажатия поднята до 45,6 px по высоте: строка телефона сама
+              по себе 15,6, и пальцем в неё попасть нечем. Поле добавляет
+              .tap-y, отрицательный margin его вычитает — в раскладке не
+              сдвинулось ничего. Плашка наведения при этом не выросла: она
+              считает свой отступ от того же --tap-y. */}
+          <a
+            href={`tel:${COMPANY.phone}`}
+            className="nav-zoom tap-y tap-phone rounded font-semibold text-ink"
+          >
             {nbsp(COMPANY.phoneLabel)}
           </a>
         </p>

@@ -353,11 +353,14 @@ export function CatalogClient() {
             <p data-found className="ml-auto text-t2 text-ink-2" aria-live="polite">
               Найдено: <span className="tnum font-medium text-ink">{items.length}</span>
             </p>
+            {/* Цель нажатия 44,8 px по высоте вместо 24,8. Подчёркивание
+                осталось на нижней кромке текста: .link-underline::after
+                вычитает поле цели из своего отступа. */}
             {active && (
               <button
                 type="button"
                 onClick={reset}
-                className="link-underline rounded text-t2 text-accent"
+                className="link-underline tap-y tap-reset rounded text-t2 text-accent"
               >
                 Сбросить фильтры
               </button>
