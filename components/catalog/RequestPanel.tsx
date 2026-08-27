@@ -90,12 +90,9 @@ export function RequestPanel() {
 
   if (!mounted || req.count === 0) return null;
 
-  /* Позиции, у которых итога с доставкой нет, в сумму не входят: складывать
-     с ними нечего. Причин две — цены нет вовсе, и это металл, которому у нас
-     нет тарифа на доставку. Их число считается тут же и говорится словами:
-     молча занизить итог нельзя. */
-  /* Сколько позиций реально попало в сумму. Ноль на месте итога — та же
-     неправда, что ноль на месте цены: пишем ту же формулировку, что везде. */
+  /* Позиции без цены в сумму не входят: складывать с ними нечего. Их число
+     считается тут же и говорится словами — молча занизить итог нельзя.
+     Ноль на месте итога это та же неправда, что ноль на месте цены. */
   let counted = 0;
   let outside = 0;
   const estimate = req.detailed.reduce((sum, { item }) => {
@@ -103,11 +100,10 @@ export function RequestPanel() {
       materialId: item.materialId,
       amount: item.amount,
       unit: item.unit,
-      km: req.brief.km,
     });
-    if (c && c.total === null) outside += 1;
+    if (c && c.materialCost === null) outside += 1;
     else if (c) counted += 1;
-    return sum + (c?.total ?? 0);
+    return sum + (c?.materialCost ?? 0);
   }, 0);
 
   return (
@@ -179,7 +175,6 @@ export function RequestPanel() {
                     materialId: item.materialId,
                     amount: item.amount,
                     unit: item.unit,
-                    km: req.brief.km,
                   });
                   return (
                     <li
@@ -276,25 +271,18 @@ export function RequestPanel() {
                                   там, где он есть: у металла второй единицы
                                   нет, и «0 м³» было бы неправдой. */}
                               <span className="tnum">
-                                {calc.blocked === 'no-delivery'
+                                {calc.blocked === 'no-fleet'
                                   ? ''
                                   : item.unit === 'm3'
                                     ? tons(calc.massT)
                                     : volume(calc.volumeM3)}
                               </span>
                               <span className="ml-2 font-medium text-ink">
-                                {calc.total === null ? (
-                                  calc.materialCost === null ? (
-                                    ON_REQUEST
-                                  ) : (
-                                    <>
-                                      ≈ <span className="tnum">{rub(calc.materialCost)}</span>{' '}
-                                      <span className="font-normal text-ink-2">без доставки</span>
-                                    </>
-                                  )
+                                {calc.materialCost === null ? (
+                                  ON_REQUEST
                                 ) : (
                                   <>
-                                    ≈ <span className="tnum">{rub(calc.total)}</span>
+                                    ≈ <span className="tnum">{rub(calc.materialCost)}</span>
                                   </>
                                 )}
                               </span>
@@ -310,15 +298,15 @@ export function RequestPanel() {
               </ul>
 
               <p className="mt-3 flex items-baseline justify-between border-t border-line pt-3 text-t2">
-                <span className="text-ink-2">Ориентировочно с доставкой</span>
+                <span className="text-ink-2">Ориентировочно за материалы</span>
                 <span className={`text-t3 font-bold ${counted > 0 ? 'tnum' : ''}`}>
                   {counted > 0 ? rub(estimate) : ON_REQUEST}
                 </span>
               </p>
               <p className="mt-1 text-t1 leading-snug text-ink-2">
-                Доставку посчитали на {req.brief.km} км от МКАД. Точное расстояние уточним по адресу.
+                Цены на отгрузку с площадки в Люберцах.
                 {outside > 0 &&
-                  ` В сумму не ${outside === 1 ? 'вошла' : 'вошли'} ${outside} ${plural(outside, 'позиция', 'позиции', 'позиций')}: цену или доставку по ним считаем отдельно и назовём в ответ на заявку.`}
+                  ` В сумму не ${outside === 1 ? 'вошла' : 'вошли'} ${outside} ${plural(outside, 'позиция', 'позиции', 'позиций')}: цену по ним уточняем и назовём в ответ на заявку.`}
               </p>
 
               <div className="mt-6">

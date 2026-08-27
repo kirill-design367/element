@@ -66,7 +66,7 @@ const SAMPLE: Material | undefined =
   MATERIALS[0];
 const FLEET_PEAK = FLEET_LEAD;
 const CALC = SAMPLE
-  ? calculate({ materialId: SAMPLE.id, amount: 20, unit: 'm3', km: 22 })
+  ? calculate({ materialId: SAMPLE.id, amount: 20, unit: 'm3' })
   : null;
 
 interface Pair {
@@ -398,25 +398,23 @@ function Specimen({ pair }: { pair: Pair }) {
         <Composition n="5" title="Итог калькулятора">
           <div className="rounded-card border border-line bg-surface p-5">
             <p style={body} className="text-[13px] text-ink-2">
-              {CALC.material.name} · {num(CALC.volumeM3)} м³ · доставка 22 км
+              {CALC.material.name} · {num(CALC.volumeM3)} м³ · самовывоз
             </p>
             <div
               style={head}
               className="tnum mt-1.5 text-[clamp(40px,7.5vw,72px)] font-semibold leading-none tracking-[-.035em]"
             >
-              {rubOr(CALC.total)}
+              {rubOr(CALC.materialCost)}
             </div>
             <dl style={body} className="mt-4 space-y-1.5 text-[13px]">
               {(
                 [
                   ['Материал', rubOr(CALC.materialCost)],
                   [
-                    typo(
-                      `Доставка · ${CALC.truck?.name ?? ''} × ${CALC.rides} ${plural(CALC.rides, 'рейс', 'рейса', 'рейсов')}`,
-                    ),
-                    rubOr(CALC.deliveryCost),
+                    typo(`Рейсы · ${CALC.truck?.name ?? ''}`),
+                    `${CALC.rides} ${plural(CALC.rides, 'рейс', 'рейса', 'рейсов')}`,
                   ],
-                  ['За кубометр на объекте', rubOr(CALC.totalPerM3)],
+                  ['Масса', `${num(CALC.massT, 1)} т`],
                 ] as [string, string][]
               ).map(([term, value]) => (
                 <div key={term} className="flex items-baseline justify-between gap-4 border-b border-line pb-1.5">

@@ -1,10 +1,15 @@
 /**
- * ТАРИФЫ ДОСТАВКИ И ФОРМУЛЫ РАСЧЁТА.
+ * ПАРК, ПОРОГИ И ФОРМУЛЫ РАСЧЁТА.
  *
  * ⚠️ ДАННЫЕ ДЕМОНСТРАЦИОННЫЕ И ПОДЛЕЖАТ ЗАМЕНЕ.
- * Менеджер правит только этот файл: подачу машины, цену километра, состав
- * парка и минимальный заказ. Калькулятор на лендинге и просчёт из каталога
- * считают по одним и тем же функциям — разойтись не могут.
+ * Менеджер правит только этот файл: состав парка, минимальную отгрузку и
+ * пороги. Калькулятор на лендинге и просчёт из каталога считают по одним и
+ * тем же функциям — разойтись не могут.
+ *
+ * ДОСТАВКИ У НАС НЕТ. Заказчик работает только на самовывоз, поэтому в этом
+ * файле не осталось ни тарифов, ни направлений, ни радиуса: цены в каталоге
+ * это цены отгрузки с площадки. Парк остался — по нему подбирается машина и
+ * число рейсов, чтобы человек понимал, сколько раз ехать.
  */
 
 import { MATERIALS, pricePerM3, sellUnit, type Material } from './catalog';
@@ -126,24 +131,22 @@ export interface CalcInput {
   /** Количество в выбранных единицах. */
   amount: number;
   unit: Unit;
-  /** Расстояние от МКАД, км. */
-  km: number;
 }
 
 /**
- * Почему полного расчёта нет. null — расчёт полный.
+ * Почему расчёт неполный. null — полный.
  *
  * 'no-price' — у позиции нет цены: она есть в прайсе, а числа против неё не
- * стоит. Доставку в этом случае посчитать всё равно можно — она зависит от
- * объёма и плотности, а не от цены, — и она показывается: это честная часть
- * ответа. Итога нет, и подставлять на его место ноль нельзя.
+ * стоит. Объём, массу и рейсы посчитать всё равно можно — они от цены не
+ * зависят, — и они показываются: это честная часть ответа. Стоимости нет, и
+ * подставлять на её место ноль нельзя.
  *
- * 'no-delivery' — металл. Стоимость проката считается точно, тоннаж на цену
- * за тонну, а доставки нет: возят его не самосвалом, и тарифа под это в
- * lib/pricing.ts не заведено. Выдумывать тариф нельзя, поэтому итога с
- * доставкой у металла не бывает — расчёт честно доводит до заявки.
+ * 'no-fleet' — металл. Стоимость проката считается точно, тоннаж на цену за
+ * тонну, а рейсы не подбираются: плотности у проката в данных нет, и
+ * самосвал ему не подходит. Подставить самосвал ради того, чтобы в панели
+ * появилось число, нельзя — это была бы выдумка про товар.
  */
-export type CalcBlock = null | 'no-price' | 'no-delivery';
+export type CalcBlock = null | 'no-price' | 'no-fleet';
 
 export interface CalcResult {
   material: Material;
@@ -152,23 +155,15 @@ export interface CalcResult {
   volumeM3: number;
   /** Масса — её спрашивают на въезде на объект. */
   massT: number;
-  /** Подобранная машина и число рейсов. null у металла: самосвал ему не нужен. */
+  /** Подобранная машина и число рейсов. null у металла. */
   truck: Truck | null;
   rides: number;
   /** Сколько кубов реально влезает в один рейс с учётом тоннажа. */
   perRideM3: number;
   /** null, если цены у позиции нет. */
   materialCost: number | null;
-  /** null, если тарифа на перевозку этого товара нет (металл). */
-  deliveryCost: number | null;
-  /** null, если цены у позиции нет: ноль на месте итога — это неправда. */
-  total: number | null;
-  /** Цена одного куба «на объекте» — по ней сравнивают поставщиков. */
-  totalPerM3: number | null;
-  /** Заказ меньше минимального: машина всё равно поедет целиком. */
+  /** Заказ меньше минимальной отгрузки. */
   belowMinimum: boolean;
-  /** Расстояние вне зоны — цена ориентировочная. */
-  beyondRange: boolean;
 }
 
 /** Сколько кубов данного материала влезает в машину: кузов или тоннаж. */
@@ -177,16 +172,22 @@ export function capacityM3(truck: Truck, density: number): number {
 }
 
 /**
- * Подбор машины. Перебираем весь парк и берём вариант с наименьшей суммой
- * доставки: на 12 кубах дешевле один пятнадцатикубовый, чем два десятых.
+ * Подбор машины. Перебираем весь парк и берём тот вариант, который увозит
+ * объём за наименьшее число рейсов; при равном числе рейсов — машину
+ * поменьше, чтобы она не шла полупустой. На 12 кубах это пятнадцатикубовый
+ * самосвал, а не тридцатикубовый полуприцеп.
+ *
+ * Денежной части здесь больше нет: доставки у нас нет вовсе, и сравнивать
+ * варианты по стоимости подачи не по чему.
  */
-export function pickTruck(volumeM3: number, density: number, km: number) {
-  let best: { truck: Truck; rides: number; cost: number; perRideM3: number } | null = null;
+export function pickTruck(volumeM3: number, density: number) {
+  let best: { truck: Truck; rides: number; perRideM3: number } | null = null;
   for (const truck of FLEET) {
     const perRideM3 = capacityM3(truck, density);
     const rides = Math.max(1, Math.ceil(round2(volumeM3) / perRideM3 - 1e-9));
-    const cost = rides * (truck.baseCost + truck.perKm * Math.max(0, km));
-    if (!best || cost < best.cost) best = { truck, rides, cost, perRideM3 };
+    const better =
+      !best || rides < best.rides || (rides === best.rides && truck.volumeM3 < best.truck.volumeM3);
+    if (better) best = { truck, rides, perRideM3 };
   }
   return best!;
 }
@@ -209,31 +210,24 @@ export function calculate(input: CalcInput): CalcResult | null {
     const perTon = material.pricePerTon;
     return {
       material,
-      blocked: 'no-delivery',
+      blocked: 'no-fleet',
       volumeM3: 0,
       massT: tons,
       truck: null,
       rides: 0,
       perRideM3: 0,
       materialCost: perTon === null ? null : Math.round(tons * perTon),
-      deliveryCost: null,
-      total: null,
-      totalPerM3: null,
       belowMinimum: false,
-      beyondRange: false,
     };
   }
 
   const density = material.density as number;
   const volumeM3 = round2(toM3(amount, input.unit, density));
   const massT = round2(volumeM3 * density);
-  const km = clamp(input.km, 0, MAX_KM * 2);
 
-  const { truck, rides, cost, perRideM3 } = pickTruck(Math.max(volumeM3, 0.01), density, km);
+  const { truck, rides, perRideM3 } = pickTruck(Math.max(volumeM3, 0.01), density);
   const perM3 = pricePerM3(material);
   const materialCost = perM3 === null ? null : Math.round(volumeM3 * perM3);
-  const deliveryCost = volumeM3 > 0 ? Math.round(cost) : 0;
-  const total = materialCost === null ? null : materialCost + deliveryCost;
 
   return {
     material,
@@ -244,19 +238,10 @@ export function calculate(input: CalcInput): CalcResult | null {
     rides,
     perRideM3: round2(perRideM3),
     materialCost,
-    deliveryCost,
-    total,
-    totalPerM3: total !== null && volumeM3 > 0 ? Math.round(total / volumeM3) : null,
     belowMinimum: volumeM3 > 0 && volumeM3 < MIN_ORDER_M3,
-    beyondRange: km > MAX_KM,
   };
 }
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
-}
-
-function clamp(n: number, min: number, max: number) {
-  if (!Number.isFinite(n)) return min;
-  return Math.min(max, Math.max(min, n));
 }

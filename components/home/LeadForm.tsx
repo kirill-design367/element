@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState, type FormEvent } from 'react';
 import { CATEGORIES, fractionLabel, materialById, materialsOf, sellUnit, unitLabel } from '@/lib/catalog';
-import { calculate, DESTINATIONS } from '@/lib/pricing';
+import { calculate } from '@/lib/pricing';
 import { nbsp, ON_REQUEST, phoneDigits, phoneMask, rub, tons, volume } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { useRequest } from '@/components/providers/RequestProvider';
@@ -63,17 +63,16 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           materialId: item.materialId,
           amount: item.amount,
           unit: item.unit,
-          km: req.brief.km,
         });
         const qty = item.unit === 'm3' ? volume(item.amount) : tons(item.amount);
         /* Позиция без цены уходит в письмо честно: той же формулировкой,
-           что на сайте, а не суммой одной доставки и не нулём. */
+           что на сайте, а не нулём. */
         const money =
           calc === null
             ? ''
-            : calc.total === null
+            : calc.materialCost === null
               ? ` · цена ${ON_REQUEST}`
-              : ` · ориентировочно ${rub(calc.total)} с доставкой`;
+              : ` · ориентировочно ${rub(calc.materialCost)}`;
         lines.push(
           `${i + 1}. ${material.name}, ${fractionLabel(material.fraction)} — ${qty}${money}`,
         );
@@ -96,11 +95,10 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     }
 
     lines.push('');
-    const dest = DESTINATIONS.find((d) => d.id === req.brief.destinationId);
+    /* Адрес объекта в письме остался — менеджеру полезно понимать объект, —
+       а расстояния от МКАД больше нет: доставки у нас нет, и километраж в
+       заявке ни на что не влиял бы. */
     lines.push(`Адрес объекта: ${req.brief.address || '—'}`);
-    lines.push(
-      `Расстояние от МКАД: ${req.brief.km} км${dest && dest.id !== 'other' ? ` (${dest.name})` : ''}`,
-    );
     lines.push(`Срок поставки: ${deadline || '—'}`);
     if (comment) lines.push(`Комментарий: ${comment}`);
     return lines.join('\n');

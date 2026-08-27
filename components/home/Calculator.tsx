@@ -13,9 +13,6 @@ import {
   unitLabel,
 } from '@/lib/catalog';
 import {
-  DEFAULT_DESTINATION_ID,
-  DESTINATIONS,
-  MAX_KM,
   MAX_ORDER_M3,
   MAX_ORDER_T,
   MIN_ORDER_M3,
@@ -33,15 +30,20 @@ const QUICK = [10, 20, 30, 60];
 /**
  * Калькулятор стоит вторым блоком и считает на месте: цифры пересчитываются
  * при любом изменении, без кнопки «рассчитать» и без отправки на сервер.
- * Тарифы и формулы — в lib/pricing.ts, здесь только интерфейс.
+ * Формулы — в lib/pricing.ts, здесь только интерфейс.
+ *
+ * ДОСТАВКИ ЗДЕСЬ БОЛЬШЕ НЕТ. Заказчик работает только на самовывоз: направления,
+ * тариф подачи и цена километра убраны вместе с расстоянием от МКАД. Расчёт
+ * отвечает на другой вопрос — сколько это стоит, во сколько рейсов увозится и
+ * на какой машине.
  */
 export function Calculator() {
   const uid = useId();
   const req = useRequest();
 
-  /* Начальные значения — из данных, а не из порядка записей: признак
-     isDefault у позиции и у направления. MATERIALS[0] и строка 'mkad' на их
-     месте молча менялись бы от любой сортировки списка. */
+  /* Начальное значение — из данных, а не из порядка записей: признак
+     isDefault у позиции. MATERIALS[0] на его месте молча менялся бы от любой
+     сортировки списка. */
   const [materialId, setMaterialId] = useState(DEFAULT_MATERIAL_ID);
   const [amountText, setAmountText] = useState('20');
   const [unit, setUnit] = useState<Unit>('m3');
@@ -53,13 +55,6 @@ export function Calculator() {
   const material = materialById(materialId);
   const forcedUnit: Unit | null = material && sellUnit(material) === 't' ? 't' : null;
   const effUnit: Unit = forcedUnit ?? unit;
-  const [destinationId, setDestinationId] = useState(DEFAULT_DESTINATION_ID);
-  const [km, setKm] = useState(0);
-  /* Отдельно от числа хранится набранный текст. Пока поле было привязано
-     прямо к числу, пустая строка мгновенно превращалась в 0, React не
-     переписывал значение обратно, и ноль прилипал: очистить поле было
-     нельзя, а набранное после него читалось как «025» и «07». */
-  const [kmText, setKmText] = useState('0');
   const [address, setAddress] = useState('');
 
   /* Разбор объёма терпит то, что человек реально набирает и вставляет.
@@ -82,8 +77,8 @@ export function Calculator() {
   const sent = sentStamp === stamp && sentStamp !== '';
 
   const computed = useMemo(
-    () => (valid ? calculate({ materialId, amount, unit: effUnit, km }) : null),
-    [materialId, amount, effUnit, km, valid],
+    () => (valid ? calculate({ materialId, amount, unit: effUnit }) : null),
+    [materialId, amount, effUnit, valid],
   );
 
   /* Потолок сравнивается с объёмом ПОСЛЕ приведения к кубам: в тоннах
@@ -95,43 +90,31 @@ export function Calculator() {
      раньше потолка. */
   const overCap =
     !!computed &&
-    (computed.blocked === 'no-delivery'
+    (computed.blocked === 'no-fleet'
       ? computed.massT > MAX_ORDER_T
       : computed.volumeM3 > MAX_ORDER_M3);
   const result = overCap ? null : computed;
-  /* Позиция без цены: считать нечего, и подставлять ноль нельзя. Расчёт
-     показывает доставку — она от цены не зависит, — а вместо итога говорит,
-     что цену уточняем, и ведёт в заявку. */
+  /* Позиция без цены: считать стоимость нечего, и подставлять ноль нельзя.
+     Объём, масса и рейсы при этом считаются — они от цены не зависят. */
   const noPrice = result?.blocked === 'no-price';
-  /* Металл: стоимость проката считается точно, доставки нет — тарифа под
-     него в проекте не заведено, и выдумывать его нельзя. Итога с доставкой у
-     металла поэтому не бывает, и крупным числом стоит стоимость материала. */
-  const noDelivery = result?.blocked === 'no-delivery';
-  const headline = noDelivery ? (result?.materialCost ?? null) : (result?.total ?? null);
+  /* Металл: стоимость проката считается точно, а рейсы не подбираются —
+     плотности у проката в данных нет, и самосвал ему не подходит. */
+  const noFleet = result?.blocked === 'no-fleet';
+
+  /* КРУПНЫМ ЧИСЛОМ — СТОИМОСТЬ, ЕСЛИ ОНА ИЗВЕСТНА, ИНАЧЕ КОЛИЧЕСТВО.
+     Прочерк или ноль на месте главного числа читались бы как «бесплатно» и
+     как ошибка вёрстки; количество известно всегда, и оно тоже ответ. */
+  const priced = result?.materialCost ?? null;
+  const headline =
+    priced !== null ? priced : result ? (noFleet ? result.massT : result.volumeM3) : null;
+  const headlineUnit = priced !== null ? '₽' : noFleet ? 'т' : 'м³';
   /** Разрядность крупного числа — по ней выбирается ступень кегля. */
   const totalDigits = headline != null ? String(Math.round(headline)).length : 0;
-
-  const onDestination = (id: string) => {
-    setDestinationId(id);
-    const d = DESTINATIONS.find((x) => x.id === id);
-    if (d) {
-      setKm(d.km);
-      setKmText(String(d.km));
-    }
-  };
-
-  const onKm = (value: string) => {
-    setKmText(value);
-    const n = Math.max(0, Math.min(MAX_KM * 2, Number(value) || 0));
-    setKm(n);
-    const match = DESTINATIONS.find((d) => d.km === n && d.id !== 'other');
-    setDestinationId(match ? match.id : 'other');
-  };
 
   const toRequest = () => {
     if (!result) return;
     req.add(materialId, amount, effUnit);
-    req.patchBrief({ address, km, destinationId });
+    req.patchBrief({ address });
     setSentStamp(stamp);
     document.getElementById('zayavka')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -251,39 +234,6 @@ export function Calculator() {
             </div>
           </div>
 
-          <div>
-            <label className={label} htmlFor={`${uid}-dest`}>
-              Куда везём
-            </label>
-            <select
-              id={`${uid}-dest`}
-              className={field}
-              value={destinationId}
-              onChange={(e) => onDestination(e.target.value)}
-            >
-              {DESTINATIONS.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                  {d.km > 0 ? ` — ${d.km} км` : ''}
-                </option>
-              ))}
-            </select>
-
-            <label className={`${label} mt-4`} htmlFor={`${uid}-km`}>
-              Расстояние от МКАД, км
-            </label>
-            <input
-              id={`${uid}-km`}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={MAX_KM * 2}
-              className={`${field} tnum`}
-              value={kmText}
-              onChange={(e) => onKm(e.target.value)}
-            />
-          </div>
-
           <div className="sm:col-span-2">
             <label className={label} htmlFor={`${uid}-address`}>
               Адрес объекта <span className="font-normal text-ink-2">— необязательно</span>
@@ -298,9 +248,10 @@ export function Calculator() {
               onChange={(e) => setAddress(e.target.value)}
               aria-describedby={`${uid}-address-hint`}
             />
+            {/* Адрес на расчёт не влияет — доставки нет. Поле остаётся,
+                потому что менеджеру полезно знать, куда пойдёт материал. */}
             <p id={`${uid}-address-hint`} className="mt-1.5 text-t1 text-ink-2">
-              На цену влияет расстояние от МКАД. Нет вашего адреса в списке — поставьте
-              километры руками.
+              Адрес на расчёт не влияет — он нужен менеджеру, чтобы понимать объект.
             </p>
           </div>
         </div>
@@ -331,8 +282,10 @@ export function Calculator() {
             <dl>
               {/* У металла итога с доставкой не бывает — крупным числом
                   стоит стоимость проката, и подпись говорит об этом. */}
+              {/* Подпись говорит, ЧТО за число стоит рядом: стоимость, если
+                  она известна, иначе количество. */}
               <dt className="text-t1 font-medium text-ink-2">
-                {noDelivery ? 'Материал, без доставки' : 'Итого'}
+                {priced !== null ? 'Материал' : noFleet ? 'Масса' : 'Объём'}
               </dt>
               {/* Кегль итога ступенчатый. Ступень t5 рассчитана на пять-шесть
                   разрядов; на семи число переставало помещаться в панель, а
@@ -350,24 +303,27 @@ export function Calculator() {
               >
                 {headline !== null ? (
                   <>
-                    <Counter value={headline} format={(n) => num(Math.round(n))} live />
-                    <span className={totalDigits > 6 ? 'text-t3' : 'text-t4'}>₽</span>
+                    <Counter
+                      value={headline}
+                      format={(n) => num(priced !== null ? Math.round(n) : n, priced !== null || Number.isInteger(headline) ? 0 : 1)}
+                      live
+                    />
+                    <span className={totalDigits > 6 ? 'text-t3' : 'text-t4'}>{headlineUnit}</span>
                   </>
                 ) : (
                   /* Прочерк ступенью t5 — это чёрточка в 128 px кегля: на
                      тёмной панели она читается замазанной строкой, а не
-                     отсутствием числа. Когда цены нет, на её месте стоят
-                     слова, и ступенью ниже. */
-                  <span className="text-t4">{noPrice ? ON_REQUEST : '—'}</span>
+                     отсутствием числа. Здесь он бывает только когда расчёта
+                     нет вовсе — объём не набран или выше потолка. */
+                  <span className="text-t4">—</span>
                 )}
               </dd>
             </dl>
-            {/* tnum висит только на числе: в CoFo Sans фича подменяет заодно
-                пробел широким, и фраза расходится разрядкой. */}
-            {result && result.totalPerM3 !== null && result.volumeM3 > 0 && (
-              <p className="mt-2 text-t1 text-ink-2">
-                <span className="tnum">{rub(result.totalPerM3)}</span> за м³ с доставкой на объект
-              </p>
+            {/* Когда крупным числом стоит количество, стоимость всё равно
+                должна быть сказана — строкой и той же формулировкой, что
+                везде на сайте. */}
+            {result && priced === null && (
+              <p className="mt-2 text-t1 text-ink-2">Стоимость — {ON_REQUEST}</p>
             )}
           </div>
 
@@ -375,22 +331,25 @@ export function Calculator() {
               объясняет цифру, а не подводит к ней. */}
           <div className="mt-5 space-y-3 border-t border-line pt-4 text-t2" aria-live="polite">
             <Row
-              label={noDelivery ? 'Масса' : 'Объём'}
+              label={noFleet ? 'Масса' : 'Объём и масса'}
               value={
                 result
-                  ? noDelivery
+                  ? noFleet
                     ? tons(result.massT)
                     : nbsp(`${volume(result.volumeM3)} · ${tons(result.massT)}`)
                   : '—'
               }
             />
             <Row label="Материал" value={result ? rubOr(result.materialCost) : '—'} />
+            {/* Рейсы у металла не подбираются: плотности у проката в данных
+                нет, и самосвал ему не подходит. Подставлять его ради числа
+                в панели нельзя — это была бы выдумка про товар. */}
             <Row
-              label="Доставка"
-              value={result ? (noDelivery ? 'считаем отдельно' : rubOr(result.deliveryCost)) : '—'}
+              label="Рейсов"
+              value={result ? (noFleet ? 'подбираем по вашей машине' : rides(result.rides)) : '—'}
               note={
                 result && result.truck
-                  ? typo(`${rides(result.rides)} · ${result.truck.name} · до ${volume(result.perRideM3)} за рейс`)
+                  ? typo(`${result.truck.name} · до ${volume(result.perRideM3)} за рейс`)
                   : undefined
               }
             />
@@ -410,20 +369,20 @@ export function Calculator() {
             </p>
           )}
 
-          {noDelivery && (
+          {noFleet && (
             <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
-              {typo('Доставку металла считаем отдельно, под адрес и объём.')}{' '}
+              {typo('Число рейсов у проката зависит от вашей машины: плотности и кузова.')}{' '}
               <a href="#zayavka" className="link-underline rounded font-medium text-accent">
                 Оставьте заявку
               </a>
-              {typo(' — назовём доставку и срок.')}
+              {typo(' — назовём срок и подскажем по погрузке.')}
             </p>
           )}
 
           {noPrice && (
             <p className="mt-4 rounded border-l-2 border-accent bg-accent-soft px-3 py-2 text-t1 leading-snug text-ink">
               {typo(
-                'Цену на эту позицию уточняем: в прайсе против неё числа нет. Доставку посчитали — она от цены не зависит.',
+                'Цену на эту позицию уточняем: в прайсе против неё числа нет. Объём и рейсы посчитали — они от цены не зависят.',
               )}{' '}
               <a href="#zayavka" className="link-underline rounded font-medium text-accent">
                 Оставьте заявку
@@ -434,12 +393,7 @@ export function Calculator() {
 
           {result?.belowMinimum && (
             <p className="mt-4 rounded border-l-2 border-warn bg-warn-soft px-3 py-2 text-t1 leading-snug text-ink">
-              Меньше {MIN_ORDER_M3} м³ не возим: машина оплачивается целиком независимо от загрузки.
-            </p>
-          )}
-          {result?.beyondRange && (
-            <p className="mt-4 rounded border-l-2 border-line-strong bg-surface-2 px-3 py-2 text-t1 leading-snug text-ink">
-              Дальше {MAX_KM} км от МКАД возим по согласованию — цена в расчёте ориентировочная.
+              Минимальная отгрузка — {MIN_ORDER_M3} м³, это одна машина.
             </p>
           )}
 
@@ -454,12 +408,10 @@ export function Calculator() {
             <ArrowIcon className="arrow-slide h-4 w-4" />
           </Button>
 
-          {/* Оговорка про самосвал к металлу не относится: его самосвалом не
-              возят, и доставки в расчёте нет вовсе. */}
           <p className="mt-3 text-t1 leading-snug text-ink-2">
-            {noDelivery
-              ? 'Цена проката за тонну из прайса. Доставку и срок называем по заявке.'
-              : 'Расчёт ориентировочный: в нём нет простоя под разгрузкой, ночной подачи и тяжёлого подъезда. Точную цену назовём по телефону.'}
+            {noFleet
+              ? 'Цена проката за тонну из прайса. Срок и погрузку называем по заявке.'
+              : 'Расчёт ориентировочный: рейсы считаны по кузову и грузоподъёмности, фактическая загрузка зависит от влажности материала. Точную цену назовём по телефону.'}
           </p>
         </div>
       </div>
