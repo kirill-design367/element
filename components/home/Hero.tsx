@@ -84,7 +84,7 @@ export function Hero() {
                 <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden="true" />
                 Инертные материалы и металлопрокат
               </span>
-              <span>Москва и Московская область</span>
+              <span>Площадка в Люберцах</span>
             </p>
 
             {/* Три строки заданы разметкой, а не переносом по ширине: точка
@@ -182,13 +182,16 @@ export function Hero() {
                 ))}
               </ul>
 
+              {/* Примечание говорит про то, что расчёт ниже теперь делает.
+                  Доставки нет: цены и есть цены отгрузки с площадки, а
+                  калькулятор считает объём, рейсы и время до объекта. */}
               <p className="mt-4 border-t border-ink/15 pt-4 text-t1 leading-snug text-ink">
-                Самовывоз с площадки. Доставку считаем отдельно,{' '}
+                Цены на отгрузку с площадки. Рейсы и время до объекта —{' '}
                 <Link
                   href="/#raschet"
                   className="link-underline rounded font-medium text-ink underline-offset-4"
                 >
-                  в калькуляторе ниже
+                  в расчёте ниже
                 </Link>
                 .
               </p>
