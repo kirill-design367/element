@@ -8,14 +8,13 @@ import { RequestProvider } from '@/components/providers/RequestProvider';
 import { Motion } from '@/components/providers/Motion';
 import { PHOTO_SCRIPT } from '@/lib/photo-script';
 import { COMPANY } from '@/lib/company';
+import { META } from '@/lib/meta';
 
+/* Тексты — в lib/meta.ts, рядом с прочими данными сайта. Здесь только
+   сборка объекта, который ждёт Next. */
 export const metadata: Metadata = {
-  title: {
-    default: 'Строительный Дом Элемент — щебень, песок, ПГС, грунт с доставкой по Москве и области',
-    template: '%s — Строительный Дом Элемент',
-  },
-  description:
-    'Поставка инертных материалов на объект: щебень, песок, ПГС, отсев, чернозём. Отсрочка до 30 дней, договор поставки, закрывающие документы. Расчёт стоимости с доставкой за минуту.',
+  title: { default: META.home.title, template: META.titleTemplate },
+  description: META.home.description,
   applicationName: COMPANY.shortName,
   formatDetection: { telephone: true },
 };

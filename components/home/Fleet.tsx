@@ -2,22 +2,8 @@ import { Counter } from './Counter';
 import { PHOTO } from '@/lib/assets';
 import { Photo } from '@/components/ui/Photo';
 import { typo } from '@/lib/format';
+import { FLEET_LEAD, FLEET_REST } from '@/lib/fleet-numbers';
 
-/**
- * Заглушки. Порядок величин правдоподобный для поставщика такого размера.
- * Экспортируется, чтобы страница сравнения шрифтов набирала ту же цифру,
- * что стоит в блоке, а не свою копию.
- */
-export const FLEET_NUMBERS = [
-  { value: 24, unit: '', label: 'единицы техники', note: 'самосвалы 10–30 м³, свои и партнёрские' },
-  { value: 1800, unit: 'м³', label: 'в сутки', note: 'пиковая отгрузка с трёх площадок' },
-  { value: 150, unit: 'км', label: 'радиус доставки', note: 'от МКАД по всем направлениям' },
-  { value: 11, unit: '', label: 'лет на рынке', note: 'с 2015 года, более 900 объектов' },
-];
-
-/** Главное число блока — пиковая отгрузка. Остальные идут сеткой справа. */
-const LEAD = FLEET_NUMBERS.find((n) => n.unit === 'м³')!;
-const REST = FLEET_NUMBERS.filter((n) => n !== LEAD);
 
 /**
  * Полноэкранный блок: кадр парка, одно крупное число слева и сетка цифр
@@ -66,6 +52,9 @@ export function Fleet() {
 
       <div className="shell grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-8">
         {/* ── Главное число ─────────────────────────────────────────────── */}
+        {/* Панель главного числа рисуется, только если такое число есть.
+            Пустой список цифр — пустое место, а не падение сборки. */}
+        {FLEET_LEAD && (
         <div className="glass-dark rounded-panel p-6 md:p-8 lg:col-span-6">
           {/* Шаблон один на весь блок: число с единицей, под ним подпись,
               под ней уточнение. Раньше уточнение стояло НАД числом, а в сетке
@@ -80,22 +69,23 @@ export function Fleet() {
             data-fleet="lead"
             className="font-black text-t5 leading-[.82] tracking-[-.04em]"
           >
-            <Counter value={LEAD.value} />
+            <Counter value={FLEET_LEAD.value} />
             <span className="ml-3 text-[.28em] font-medium tracking-normal text-ink-2">
-              {LEAD.unit}
+              {FLEET_LEAD.unit}
             </span>
           </p>
           <p data-fleet="label" className="mt-3 text-t2 font-medium">
-            {LEAD.label}
+            {FLEET_LEAD.label}
           </p>
           <p className="mt-1.5 max-w-[34ch] text-t1 leading-snug text-ink-2">
-            {typo(LEAD.note)}
+            {typo(FLEET_LEAD.note)}
           </p>
         </div>
+        )}
 
         {/* ── Остальные цифры сеткой ────────────────────────────────────── */}
         <dl className="glass-dark rounded-panel p-6 md:p-7 lg:col-span-5 lg:col-start-8">
-          {REST.map((n) => (
+          {FLEET_REST.map((n) => (
             <div
               key={n.label}
               data-fleet="rest"

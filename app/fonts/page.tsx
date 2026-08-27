@@ -6,7 +6,7 @@ import report from '@/lib/font-check.json';
 import { AVAILABILITY_LABEL, CATEGORIES, fractionLabel, MATERIALS, POSITIONS_TOTAL, priceFrom, pricePerM3 } from '@/lib/catalog';
 import { calculate } from '@/lib/pricing';
 import { num, plural, rub, typo, rubOr } from '@/lib/format';
-import { FLEET_NUMBERS } from '@/components/home/Fleet';
+import { FLEET_NUMBERS } from '@/lib/fleet-numbers';
 
 export const metadata: Metadata = {
   title: 'Типографика: что выбрано и почему',

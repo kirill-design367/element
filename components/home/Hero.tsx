@@ -1,17 +1,10 @@
 import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/Button';
 
-import { MIN_ORDER_M3, MAX_KM } from '@/lib/pricing';
 import { CATEGORIES, priceFrom } from '@/lib/catalog';
 import { nbsp, num, ON_REQUEST, typo } from '@/lib/format';
 import { PHOTO } from '@/lib/assets';
 import { Photo } from '@/components/ui/Photo';
-
-export const FACTS = [
-  { label: 'География', value: `Москва и область, до ${MAX_KM} км от МКАД` },
-  { label: 'Минимальная отгрузка', value: `${MIN_ORDER_M3} м³ — одна машина` },
-  { label: 'Документы', value: 'Паспорт качества на каждую партию' },
-];
 
 /**
  * Первый экран: кадр во всю высоту и две стеклянные панели поверх него.

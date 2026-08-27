@@ -1,4 +1,4 @@
-import { FACTS } from './Hero';
+import { FACTS } from '@/lib/facts';
 import { typo } from '@/lib/format';
 
 /**

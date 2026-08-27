@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { CatalogClient } from '@/components/catalog/CatalogClient';
 import { PREFILTER_SCRIPT, prefilterCss } from '@/lib/prefilter';
+import { META } from '@/lib/meta';
 
+/* Тексты — в lib/meta.ts. */
 export const metadata: Metadata = {
-  title: 'Каталог инертных материалов',
-  description:
-    'Щебень гранитный, известняковый и гравийный, песок карьерный и мытый, ПГС, отсев, чернозём. Цены за м³ и за тонну, фракции, ГОСТ, наличие.',
+  title: META.catalog.title,
+  description: META.catalog.description,
 };
 
 export default function CatalogPage() {
