@@ -39,7 +39,12 @@ export function CategoryCard({ category }: { category: Category }) {
       href={href}
       onClick={onClick}
       data-reveal
-      className="group flex select-none flex-col overflow-hidden rounded-panel bg-surface shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      /* h-full — то, чем карточки в ленте выравниваются по высоте. Лента это
+         flex, её элементы и так растягиваются по самому высокому, но сама
+         карточка внутри элемента брала высоту по содержимому, и низ с ценой
+         у шести карточек стоял на шести разных уровнях: разброс доходил до
+         33 px и читался сбоем сетки. */
+      className="group flex h-full select-none flex-col overflow-hidden rounded-panel bg-surface shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div ref={plateRef} data-flip-plate={category.id} className="relative">
         <PhotoSlot
@@ -68,19 +73,41 @@ export function CategoryCard({ category }: { category: Category }) {
         <h3 className="card-title text-t3 font-bold leading-tight tracking-[-.015em]">
           {typo(category.name)}
         </h3>
-        <p className="mt-1.5 text-t1 leading-snug text-ink-2">{typo(categorySpecLine(category.id))}</p>
+        {/* Ровно две строки, всегда: line-clamp-2 обрезает длинное многоточием,
+            min-h держит короткое. Без min-h карточка металла, у которой
+            характеристики в одну строку, поднимала бы всё, что ниже, на
+            16,5 px относительно соседей. 2,75em — это две строки при
+            leading-snug, то есть 2 × 1,375. */}
+        {/* Зазор до блока цены висит здесь нижним отступом, а не верхним у
+            самого блока: там стоит mt-auto, и своё значение он бы перебил. */}
+        <p className="mb-4 mt-1.5 line-clamp-2 min-h-[2.75em] text-t1 leading-snug text-ink-2">
+          {typo(categorySpecLine(category.id))}
+        </p>
 
-        <div className="mt-4 flex items-end justify-between gap-3 border-t border-line/70 pt-3">
+        {/* mt-auto прижимает блок цены к нижней кромке карточки. Строки цены
+            у разных категорий разной высоты — «уточняйте у менеджера» набрано
+            t2, а число t3, — и без этого низ карточек расходился на 3,2 px
+            даже там, где характеристики у всех в одну строку. */}
+        <div className="mt-auto flex items-end justify-between gap-3 border-t border-line/70 pt-3">
           <div>
             <div className="text-t1 text-ink-2">Цена</div>
             <div className="mt-0.5 text-t3 font-bold leading-none">
               {from === null ? (
-                <span className="text-t2 font-normal">{ON_REQUEST}</span>
+                /* leading-none — не украшение: у ступени t2 свой интерлиньяж
+                   1,55, и строка «уточняйте у менеджера» выходила на 3,2 px
+                   выше строки с ценой. Линия над блоком цены от этого стояла
+                   у трёх карточек из шести на 3,2 px ниже, чем у остальных. */
+                <span className="text-t2 font-normal leading-none">{ON_REQUEST}</span>
               ) : (
+                /* leading-none у мелких приписок — по той же причине, что у
+                   строки «уточняйте у менеджера»: у ступени t1 свой
+                   интерлиньяж 1,3, и строка значения выходила 21,6 px против
+                   21 у карточек без цены. Разница уезжала в линию над блоком
+                   цены. */
                 <>
-                  <span className="text-t1 font-normal text-ink-2">от</span>{' '}
+                  <span className="text-t1 font-normal leading-none text-ink-2">от</span>{' '}
                   <span className="tnum">{rub(from)}</span>
-                  <span className="ml-1.5 text-t1 font-normal text-ink-2">
+                  <span className="ml-1.5 text-t1 font-normal leading-none text-ink-2">
                     /{unitLabel(category.unit)}
                   </span>
                 </>
