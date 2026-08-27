@@ -3,10 +3,10 @@ import localFont from 'next/font/local';
 import Link from 'next/link';
 import { cofoSans } from '../type';
 import report from '@/lib/font-check.json';
-import { AVAILABILITY_LABEL, CATEGORIES, fractionLabel, MATERIALS, POSITIONS_TOTAL, priceFrom, pricePerM3 } from '@/lib/catalog';
+import { AVAILABILITY_LABEL, CATEGORIES, fractionLabel, MATERIALS, type Material, POSITIONS_TOTAL, priceFrom, pricePerM3 } from '@/lib/catalog';
 import { calculate } from '@/lib/pricing';
 import { num, plural, rub, typo, rubOr } from '@/lib/format';
-import { FLEET_NUMBERS } from '@/lib/fleet-numbers';
+import { FLEET_LEAD } from '@/lib/fleet-numbers';
 
 export const metadata: Metadata = {
   title: 'Типографика: что выбрано и почему',
@@ -40,12 +40,34 @@ const tektur = localFont({
 });
 
 type Row = (typeof report)[number];
-const byFile = (f: string): Row => report.find((r) => r.file === f)!;
+/* Строки отчёта тоже не берутся жёстко: нет строки — нет и её колонки, а не
+   падение сборки. Отчёт собирает scripts/verify-fonts.py, и список файлов в
+   нём меняется вместе со списком кандидатов. */
+const byFile = (...files: string[]): Row[] =>
+  files.map((f) => report.find((r) => r.file === f)).filter((r): r is Row => !!r);
 
-/** Данные для композиций берутся из тех же файлов, что и боевые страницы. */
-const SAMPLE = MATERIALS.find((m) => m.id === 'granit-20-40')!;
-const FLEET_PEAK = FLEET_NUMBERS.find((n) => n.unit === 'м³')!;
-const CALC = calculate({ materialId: SAMPLE.id, amount: 20, unit: 'm3', km: 22 })!;
+/**
+ * Данные для композиций берутся из тех же файлов, что и боевые страницы.
+ *
+ * Ни одна запись не берётся жёстко по идентификатору с восклицательным
+ * знаком. Раньше стояло три таких обращения — позиция «granit-20-40», цифра
+ * парка «та, у которой единица м³» и расчёт по ним, — и удаление любой из
+ * записей роняло сборку ВСЕГО сайта, включая лендинг и каталог, ради
+ * служебной страницы сравнения шрифтов.
+ *
+ * Теперь у каждой есть запасной путь, а если и он пуст — композиция просто
+ * не рисуется. Пустое место вместо падения.
+ */
+const SAMPLE: Material | undefined =
+  MATERIALS.find((m) => m.id === 'granit-20-40') ??
+  /* Запасной образец: любая позиция, у которой есть всё, что показывает
+     карточка, — цена, плотность и ГОСТ. */
+  MATERIALS.find((m) => m.pricePerTon !== null && m.density !== undefined && m.gost) ??
+  MATERIALS[0];
+const FLEET_PEAK = FLEET_LEAD;
+const CALC = SAMPLE
+  ? calculate({ materialId: SAMPLE.id, amount: 20, unit: 'm3', km: 22 })
+  : null;
 
 interface Pair {
   id: string;
@@ -79,7 +101,7 @@ const PAIRS: Pair[] = [
     price: 'Бесплатно, в том числе в коммерческом проекте',
     buyLabel: 'Unbounded и Golos Text на Google Fonts',
     buyHref: 'https://fonts.google.com/specimen/Unbounded',
-    checks: [byFile('Unbounded.ttf'), byFile('GolosText.ttf')],
+    checks: byFile('Unbounded.ttf', 'GolosText.ttf'),
     why: 'Единственная из трёх, у которой цифра выглядит дорого. Unbounded построен на круге: у нуля, восьмёрки и шестёрки почти идеальные овалы, окончания срезаны горизонтально, и на кегле 120 пикселей «1 800» читается как выбитая в металле цифра, а не как набранный текст. Для сайта, где число — главный товар, это ровно то, что нужно: итог калькулятора и цифры парка получают вес, которого у нынешней пары нет. Ж, Ф и Щ нарисованы строго геометрически, без каллиграфических хвостов, так что заголовок остаётся деловым. Рядом Golos Text от «Паратайпа» — русская гарнитура, нарисованная под русский текст, а не адаптированная с латиницы: ритм абзаца ровный, шесть начертаний закрывают и подписи, и акценты, табличные цифры на месте.',
     weak: 'Unbounded широкий, и это стоит строк. В одной и той же колонке 780 пикселей заголовок первого экрана занимает у него три строки против двух у нынешней пары, а на телефоне — четыре против трёх. Первый экран становится длиннее, а кнопка «Запросить прайс» уезжает ниже: для сайта, где путь до просчёта меряют в действиях, это плата, которую надо признать. Файл тоже самый тяжёлый из проверенных: 60 КБ против 20–38 у остальных. И это не русская словолитня — кириллицу рисовало британское бюро NaN, она грамотная, но не родная.',
   },
@@ -94,7 +116,7 @@ const PAIRS: Pair[] = [
     price: 'Бесплатно, в том числе в коммерческом проекте',
     buyLabel: 'Tektur и Golos Text на Google Fonts',
     buyHref: 'https://fonts.google.com/specimen/Tektur',
-    checks: [byFile('Tektur.ttf'), byFile('GolosText.ttf')],
+    checks: byFile('Tektur.ttf', 'GolosText.ttf'),
     why: 'Прямая ставка на характер отрасли. Tektur построен на прямоугольнике со срезанными углами — так рисуют шильдики на технике и трафареты на бортах самосвалов. У него единственного из проверенных есть перечёркнутый ноль (фича zero), а это ровно то, чем инженерная документация отличается от рекламной: ноль нельзя спутать с буквой «о» в марке прочности М1000. Живая ось ширины 75–100 решает главную беду русских заголовков. В колонке 780 пикселей заголовок первого экрана занимает две строки; на телефоне, в колонке 282 пикселя, поджатый до 82 процентов Tektur встаёт в две строки против трёх у самого себя при обычной ширине. На первом экране это выигранный экран прокрутки. Golos Text рядом работает молча: русская гарнитура «Паратайпа» с ровным ритмом абзаца и табличными цифрами.',
     weak: 'Квадратная основа тянет за собой ассоциацию с игровым интерфейсом и киберспортом — на грани, за которой B2B-поставщик начинает выглядеть несерьёзно. Кириллицу рисовал поляк Адам Ягош, она корректна, но Щ и Ж в квадратном скелете получаются заметно тяжелее остальных букв, и в крупном кегле заголовок местами комкается. Розничный покупатель, который просто строит дом, может прочитать это как «сложно и не для меня».',
   },
@@ -108,10 +130,7 @@ const PAIRS: Pair[] = [
     price: 'Файлы пробные (Trial). Для боевой выкладки нужна купленная веб-лицензия',
     buyLabel: 'CoFo Sans в Contrast Foundry',
     buyHref: 'https://contrastfoundry.com/ru/typeface/cofo-sans',
-    checks: [
-      byFile('CoFoSans-Regular-Trial.otf'),
-      byFile('CoFoSansMono-Regular-Trial.otf'),
-    ],
+    checks: byFile('CoFoSans-Regular-Trial.otf', 'CoFoSansMono-Regular-Trial.otf'),
     baseline: true,
     why: 'Единственный вариант от русской словолитни в списке. Contrast Foundry — московское бюро, которое рисует кириллицу первой, а не подгоняет её под готовую латиницу, и CoFo Sans задуман как рациональный гротеск с характером: формы простые, но не безличные. Семь начертаний закрывают всё — от подписи под фракцией до заголовка первого экрана, — а одна семья на обе роли означает одну лицензию, один ритм и одинаковые цифры в заголовке и в таблице цен. Для прайса это важнее, чем кажется: когда «2 450 ₽» в карточке и «2 450 ₽» в калькуляторе набраны разными гарнитурами, глаз каждый раз перенастраивается.',
     weak: 'Платная, и файлы пока пробные: рисунок тот же, права на боевую публикацию нет — до выкладки нужна купленная веб-лицензия. Три гарнитуры вместо двух весят 103 КБ против 59 у прежней пары, и это плата за роль моноширинного. Peshka узкая и очень тяжёлая: мелким кеглем ей нельзя набрать ничего, на 15 пикселях она становится чёрной полосой — поэтому в интерфейсе её нет вовсе, только заголовки блоков и крупные числа.',
@@ -303,6 +322,7 @@ function Specimen({ pair }: { pair: Pair }) {
         </Composition>
 
         {/* 3 — карточка материала из каталога */}
+        {SAMPLE && (
         <Composition n="3" title="Карточка материала в каталоге">
           <div className="rounded-card border border-line bg-surface p-4">
             <div className="flex items-baseline justify-between gap-3">
@@ -338,18 +358,22 @@ function Specimen({ pair }: { pair: Pair }) {
                 </div>
               ))}
             </div>
-            <p style={body} className="mt-3 text-[13px] text-ink-2">
-              Насыпная плотность{' '}
-              <span style={head} className="tnum font-semibold text-ink">
-                {String(SAMPLE.density).replace('.', ',')} т/м³
-              </span>
-            </p>
+            {SAMPLE.density !== undefined && (
+              <p style={body} className="mt-3 text-[13px] text-ink-2">
+                Насыпная плотность{' '}
+                <span style={head} className="tnum font-semibold text-ink">
+                  {String(SAMPLE.density).replace('.', ',')} т/м³
+                </span>
+              </p>
+            )}
           </div>
         </Composition>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* 4 — крупное число из «Парк и объёмы» */}
+        {FLEET_PEAK && (
         <Composition n="4" title="Цифра из блока «Парк и объёмы»">
           <div className="rounded-card border border-line bg-surface p-5">
             <div
@@ -367,8 +391,10 @@ function Specimen({ pair }: { pair: Pair }) {
             </p>
           </div>
         </Composition>
+        )}
 
         {/* 5 — строка калькулятора: итог крупно, разбивка мелко */}
+        {CALC && (
         <Composition n="5" title="Итог калькулятора">
           <div className="rounded-card border border-line bg-surface p-5">
             <p style={body} className="text-[13px] text-ink-2">
@@ -403,6 +429,7 @@ function Specimen({ pair }: { pair: Pair }) {
             </dl>
           </div>
         </Composition>
+        )}
       </div>
     </div>
   );
