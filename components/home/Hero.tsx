@@ -67,18 +67,22 @@ export function Hero() {
                 физически не может вытянуть #5a5f66 до 4,5:1 над тёмным
                 пикселем кадра — нужна была бы 0,87, то есть уже не стекло.
                 Иерархию внутри панели держат кегль и вес, а не светлота. */}
+            {/* Точки-разделителя между частями больше нет: границу держит
+                сам промежуток. gap-x-6 — это 24 px, то есть ровно 2em при
+                кегле t1: вдвое шире прежнего gap-x-3 и в девять с половиной
+                раз шире обычного пробела этого шрифта (2,52 px при 12 px).
+                Знак препинания на такой ширине уже ничего не добавляет, а
+                читается лишней меткой.
+
+                Точка-МАРКЕР в начале строки — другая вещь и остаётся: она не
+                разделяет части, а помечает начало надзаголовка. */}
             <p
               data-hero="eyebrow"
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 text-t1 font-medium text-ink"
+              className="flex flex-wrap items-center gap-x-6 gap-y-1 text-t1 font-medium text-ink"
             >
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden="true" />
                 Инертные материалы и металлопрокат
-              </span>
-              {/* Разделитель сплошным цветом, а не альфой: на прозрачной
-                  панели альфа даёт дымку. */}
-              <span className="hidden text-ink sm:inline" aria-hidden="true">
-                ·
               </span>
               <span>Москва и Московская область</span>
             </p>
