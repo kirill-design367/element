@@ -2,12 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { asset } from '@/lib/assets';
 import { ART, METRICS, PATHS, type Art } from './art';
-
-/* Палитра пока одна, парой красок: три пары приходят отдельным коммитом. */
-type Palette = { id: string; name: string; bg: string; ink: string };
-const PALETTES: Palette[] = [
-  { id: 'grafit', name: 'Графит на песке', bg: '#E8E2D5', ink: '#23262C' },
-];
+import { PALETTES, type Palette } from './palettes';
 import { COMMON, HEADER_CAP, VARIANTS, type Variant, type WordSet } from './variants';
 
 export const metadata: Metadata = {
@@ -120,8 +115,18 @@ function statesHtml(v: Variant, set: WordSet, p: Palette, short: boolean) {
     + `<div class="grid min-w-0 content-start gap-4${short ? '' : ' sm:grid-cols-2'}">${rest}</div></div>`;
 }
 
+/** Три пары красок на опорном состоянии: сравнивать палитры удобнее на одном
+ *  и том же показе, а не на разных. */
+function palettesHtml(v: Variant) {
+  return `<div class="mt-6 grid gap-4 sm:grid-cols-3">` + PALETTES.map((p) =>
+    `<div class="min-w-0 rounded-card border border-line bg-surface-2 p-4">`
+    + `<div class="flex h-24 items-center justify-center rounded" style="${paint(p)};background:${p.bg}">`
+    + logo(`${v.id}-caps`, { cap: 40 }, 'h-auto max-w-full') + `</div>`
+    + `<p class="mt-3 text-[12px] leading-snug text-ink-2">${p.name}</p></div>`).join('') + `</div>`;
+}
+
 function cardBody(v: Variant) {
-  return SETS.map((s) =>
+  return palettesHtml(v) + SETS.map((s) =>
     `<div class="mt-6"><h4 class="text-[13px] font-semibold uppercase tracking-[.08em] text-ink-3">`
     + `${s.label}</h4>${statesHtml(v, s.key, PALETTES[0], s.key === 'mixed')}</div>`).join('');
 }
@@ -198,6 +203,34 @@ export default function LogoPage() {
               </div>
             ))}
           </dl>
+        </section>
+
+        <section className="mt-10 rounded-card border border-line bg-surface p-5 shadow-card md:p-8">
+          <h2 className="text-t3 font-black leading-none tracking-[-.02em]">Палитры</h2>
+          <div className="mt-5 grid gap-6 sm:grid-cols-3">
+            {PALETTES.map((p) => (
+              <div key={p.id}>
+                <div className="flex gap-2">
+                  {[p.bg, p.ink].map((c) => (
+                    <span
+                      key={c}
+                      className="h-10 flex-1 rounded border border-line"
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
+                <h3 className="mt-3 text-[14px] font-semibold">{p.name}</h3>
+                <p className="mark mt-1 text-t1 text-ink-3">Контраст {p.ratio}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{p.why}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-5 max-w-[70ch] text-[14px] leading-relaxed text-ink-2">
+            Синего среди них нет намеренно: он у половины отрасли и уже стоит на сайте акцентом
+            интерфейса. Красок в паре две, и третьей здесь неоткуда взяться: у устройства ровно две
+            роли — плашка и то, что из неё вынуто. Покрасить скобу отдельно от букв нельзя, она
+            держится тем, что одного веса и цвета с ними.
+          </p>
         </section>
 
         {VARIANTS.map((v) => (
