@@ -1,7 +1,7 @@
 import { ART, type Art } from '../art';
 import { PATHS } from '../art';
 import { asset } from '@/lib/assets';
-import { CONTACTS, FACTS, LEGAL, LEGAL_NAME, OFFER, POSITIONS, ROWS, SHIPPING } from './data';
+import { CONTACTS, FACTS, LEGAL, LEGAL_NAME, OFFER, SHIPPING } from './data';
 
 /**
  * ВИЗИТКА, ТРИ ВАРИАНТА. Формат A4 книжной, 210×297 мм.
@@ -47,14 +47,6 @@ export const CARD_CSS = `
 .vc-offer{font-size:11.5mm;font-weight:900;letter-spacing:-.035em;line-height:.94}
 .vc-lead{font-size:3.6mm;line-height:1.45;color:var(--ink-2)}
 .vc-kicker{font-size:2.9mm;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.vc-rows{display:grid;gap:0}
-.vc-row{display:grid;grid-template-columns:44mm 12mm 1fr;align-items:baseline;
-  gap:0 3mm;padding:2.6mm 0;border-top:.3mm solid var(--line)}
-.vc-row:first-child{border-top:0}
-.vc-name{font-size:4.2mm;font-weight:700;letter-spacing:-.02em}
-.vc-count{font-size:3.1mm;color:var(--ink-3);text-align:right;
-  font-variant-numeric:tabular-nums}
-.vc-spec{font-size:3.1mm;line-height:1.35;color:var(--ink-2)}
 .vc-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}
 .vc-fact-v{font-size:14mm;font-weight:900;letter-spacing:-.04em;line-height:.9;
   font-variant-numeric:tabular-nums}
@@ -74,13 +66,6 @@ export const CARD_CSS = `
   .vc{box-shadow:none!important;page-break-after:avoid;break-after:avoid}
 }
 `;
-
-function rows(dark = false) {
-  return `<div class="vc-rows">` + ROWS.map((r) =>
-    `<div class="vc-row"><div class="vc-name">${r.name}</div>`
-    + `<div class="vc-count tnum">${r.count === null ? '' : r.count}</div>`
-    + `<div class="vc-spec">${r.spec}</div></div>`).join('') + `</div>`;
-}
 
 function facts() {
   return `<div class="vc-facts">` + FACTS.map((f) =>
@@ -106,11 +91,8 @@ function photoCard() {
     + `--c-bg:${'#f4f4f1'};--c-ink:${'#17191c'}">${logoSvg('o1', 13)}</div></div>`
     + `<div class="vc-pad" style="height:209mm;display:flex;flex-direction:column">`
     + `<h2 class="vc-offer" style="font-size:10mm;max-width:165mm">${OFFER}</h2>`
-    + `<p class="vc-lead" style="margin-top:4mm;max-width:150mm">`
-    + `${POSITIONS.total} позиций в ${POSITIONS.categories} категориях, `
-    + `${POSITIONS.inStock} в наличии. ${SHIPPING}.</p>`
-    + `<div style="margin-top:6mm">${rows()}</div>`
-    + `<div style="margin-top:auto;padding-top:6mm">${facts()}</div>`
+    + `<p class="vc-kicker" style="margin-top:7mm">${SHIPPING}</p>`
+    + `<div style="margin-top:auto;padding-top:10mm">${facts()}</div>`
     + `<div class="vc-rule" style="margin:6mm 0 4.5mm"></div>`
     + `<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8mm">`
     + `<div><a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`

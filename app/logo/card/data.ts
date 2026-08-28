@@ -7,52 +7,10 @@
  * lib/company.ts.
  */
 
-import {
-  CATEGORIES,
-  categoryName,
-  categorySpec,
-  materialsOf,
-  POSITIONS_TOTAL,
-  POSITIONS_IN_STOCK,
-} from '@/lib/catalog';
 import { COMPANY } from '@/lib/company';
 import { num, typo } from '@/lib/format';
 import { DEFERRAL_DAYS, MIN_ORDER_M3, PRICE_HOLD_DAYS } from '@/lib/pricing';
 import { TERMS } from '@/lib/workflow';
-
-/** Строка «что возим»: название, сколько позиций и характеристика. */
-export type Row = { name: string; count: number | null; spec: string };
-
-/**
- * ПГС и отсев идут одной строкой: на визитке шесть строк, а категорий пять
- * плюс документы. Характеристики обеих категорий складываются, потому что
- * считаются из позиций и разойтись с каталогом не могут.
- */
-function merged(ids: string[], name: string): Row {
-  return {
-    name,
-    count: ids.reduce((n, id) => n + materialsOf(id).length, 0),
-    spec: ids.flatMap((id) => categorySpec(id)).join(' · '),
-  };
-}
-
-/** Документы — не категория каталога, поэтому берутся из условий для юрлиц. */
-const DOC_TERMS = TERMS.filter((t) => /документ|паспорт/i.test(t.title));
-
-export const ROWS: Row[] = [
-  ...['shcheben', 'pesok'].map((id) => ({
-    name: categoryName(id),
-    count: materialsOf(id).length,
-    spec: categorySpec(id).join(' · '),
-  })),
-  merged(['pgs', 'otsev'], `${categoryName('pgs')} и ${categoryName('otsev').toLowerCase()}`),
-  ...['grunt', 'metall'].map((id) => ({
-    name: categoryName(id),
-    count: materialsOf(id).length,
-    spec: categorySpec(id).join(' · '),
-  })),
-  { name: 'Документы', count: null, spec: DOC_TERMS.map((t) => t.title).join(' · ') },
-];
 
 /** Три ключевых факта: число, единица и подпись. */
 export type Fact = { value: string; unit: string; label: string };
@@ -62,9 +20,6 @@ export const FACTS: Fact[] = [
   { value: num(DEFERRAL_DAYS), unit: 'дней', label: 'отсрочка для юрлиц' },
   { value: num(PRICE_HOLD_DAYS), unit: 'дней', label: 'держим названную цену' },
 ];
-
-export const POSITIONS = { total: POSITIONS_TOTAL, inStock: POSITIONS_IN_STOCK,
-  categories: CATEGORIES.length };
 
 /** Условия отгрузки одной строкой — то же, что в контактах сайта. */
 export const SHIPPING = COMPANY.shipping;
