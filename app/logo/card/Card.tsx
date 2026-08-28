@@ -42,7 +42,14 @@ export const CARD_CSS = `
   font-family:var(--font-text),system-ui,sans-serif;
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
 .vc *{box-sizing:border-box}
-.vc-pad{padding:14mm}
+.vc-photo{display:block;width:100%;height:100%;object-fit:cover}
+
+/* Логотип сидит НА СТЫКЕ кадра и светлого поля: половина на фотографии,
+   половина на бумаге. Стык от этого перестаёт быть линией разреза — знак
+   держит обе половины листа вместе. */
+.vc-seam{position:absolute;left:14mm;transform:translateY(-50%);z-index:2}
+
+.vc-body{display:flex;flex-direction:column;padding:0 14mm 14mm}
 .vc h2{font-weight:900;letter-spacing:-.03em;line-height:.95}
 .vc-offer{font-size:11.5mm;font-weight:900;letter-spacing:-.035em;line-height:.94}
 .vc-lead{font-size:3.6mm;line-height:1.45;color:var(--ink-2)}
@@ -72,7 +79,6 @@ export const CARD_CSS = `
 .vc-addr{margin-top:2.5mm;font-size:3.8mm;line-height:1.4;max-width:95mm}
 .vc-legal{font-size:2.7mm;line-height:1.5;color:var(--ink-3)}
 .vc-legal b{font-weight:400;color:var(--ink-2)}
-.vc-photo{display:block;width:100%;height:100%;object-fit:cover}
 .vc-rule{height:.3mm;background:var(--line)}
 
 /* Тёмный вариант: те же токены, что у .inv на сайте. */
@@ -119,15 +125,26 @@ function legal() {
       .join(' &nbsp; ') + `</p>`;
 }
 
-/** Фотографический: крупный кадр во всю ширину, типографика под ним. */
+/**
+ * Фотографический: крупный кадр во всю ширину, типографика под ним.
+ *
+ * Логотип стоит НА СТЫКЕ: середина знака совпадает с нижней кромкой кадра,
+ * верхняя половина лежит на фотографии, нижняя — на бумаге. Поэтому он вынут
+ * из кадра в собственный слой поверх обоих (`.vc-seam`), а не лежит внутри
+ * кадра, как раньше: изнутри кадра выйти за его границу нечем.
+ */
 function photoCard() {
   const src = asset('/img/park-1920.webp');
+  const PHOTO = 88;   // высота кадра, мм
+  const LOGO = 15;    // высота логотипа, мм — половина уходит на кадр
   return `<div class="vc">`
-    + `<div style="height:88mm;position:relative;background:var(--ink)">`
-    + `<img class="vc-photo" src="${src}" alt=""/>`
-    + `<div style="position:absolute;inset:auto 0 0 0;padding:0 14mm 7mm;`
-    + `--c-bg:${'#f4f4f1'};--c-ink:${'#17191c'}">${logoSvg('o1', 13)}</div></div>`
-    + `<div class="vc-pad" style="height:209mm;display:flex;flex-direction:column">`
+    + `<div style="height:${PHOTO}mm;background:var(--ink)">`
+    + `<img class="vc-photo" src="${src}" alt=""/></div>`
+    + `<div class="vc-seam" style="top:${PHOTO}mm;--c-bg:${'#f4f4f1'};`
+    + `--c-ink:${'#17191c'}">${logoSvg('o1', LOGO)}</div>`
+    /* Верхнее поле — половина знака плюс обычный воздух: текст не должен
+       подходить к логотипу ближе, чем к краям листа. */
+    + `<div class="vc-body" style="height:${297 - PHOTO}mm;padding-top:${LOGO / 2 + 7}mm">`
     + `<h2 class="vc-offer" style="font-size:11mm;max-width:170mm">${OFFER}</h2>`
     + `<p class="vc-kicker" style="margin-top:7mm">${SHIPPING}</p>`
     + `<div style="margin-top:auto;padding-top:10mm">${facts()}</div>`
