@@ -190,10 +190,123 @@ def word(track=0.0):
     return move(out, -b[0]), [e - b[0] for e in ends], fix
 
 
-# ─── сборка ───────────────────────────────────────────────────────────────
+# ─── скоба ────────────────────────────────────────────────────────────────
 #
-# Пока собирается одно: слово, набранное по оптике. Скоба, плашка и вариации
-# приходят следующим коммитом.
+# Вертикальный штрих у левого края и два горизонтальных плеча вправо. Углы,
+# где вертикаль встречается с плечами, срезаны под 45° снаружи и изнутри:
+# внутренний срез — параллельный контур наружного, поэтому толщина скобы в
+# углу остаётся равной штриху.
+#
+# Конец плеча — плоский вертикальный торец. Срезаны только два его угла,
+# верхний и нижний, короткой фаской: длинных скосов и клиньев здесь нет,
+# плоская часть занимает бо́льшую часть высоты торца.
+
+
+def facet(pts, legs):
+    """Срезать углы под 45°: у каждой вершины свой катет, ноль — не резать."""
+    n = len(pts)
+    legs = list(legs)
+    for _ in range(4):
+        for i in range(n):
+            j = (i + 1) % n
+            L = math.dist(pts[i], pts[j])
+            t = legs[i] + legs[j]
+            if t > L + 1e-9:
+                k = L / t
+                legs[i] *= k
+                legs[j] *= k
+    out = []
+    for i in range(n):
+        p, a, b = pts[i], pts[i - 1], pts[(i + 1) % n]
+        if legs[i] < 1e-9:
+            out.append(p)
+            continue
+        for q in (a, b):
+            d = math.dist(p, q)
+            out.append((p[0] + (q[0] - p[0]) * legs[i] / d,
+                        p[1] + (q[1] - p[1]) * legs[i] / d))
+    res = [out[0]]
+    for p in out[1:]:
+        if math.dist(p, res[-1]) > 1e-9:
+            res.append(p)
+    if math.dist(res[0], res[-1]) < 1e-9:
+        res.pop()
+    return res
+
+
+def brace(bx, yb0, yb1, s, x_top, x_bot, end):
+    c, ci = CHAMFER, max(CHAMFER_IN, 0.0)
+    return facet(
+        [(bx, yb0), (x_bot, yb0), (x_bot, yb0 + s),
+         (bx + s, yb0 + s), (bx + s, yb1 - s),
+         (x_top, yb1 - s), (x_top, yb1), (bx, yb1)],
+        [c, end, end, ci, ci, end, end, c])
+
+
+def mark(cover_top=4, cover_bot=2, track=0.0, pad=0.40, gy=0.22, gx=0.30,
+         end=0.15, plate=True):
+    """Логотип целиком. Доли — от высоты прописных, end — доля штриха."""
+    w, ends, fix = word(track * CAP)
+    x0, y0, x1, y1 = bbox(w)
+    s = STEM
+    bx = -(gx * CAP + s)
+    yb0 = -gy * CAP - s
+    yb1 = yb0 + CAP + 2 * gy * CAP + 2 * s
+    shape = brace(bx, yb0, yb1, s,
+                  ends[min(cover_top, len(ends)) - 1],
+                  ends[min(cover_bot, len(ends)) - 1], end * s)
+    p = pad * CAP
+    sx0, sy0, sx1, sy1 = bbox([shape])
+    if plate:
+        box = (bx - p, yb0 - p, max(x1, sx1) + p, yb1 + p)
+        pl = facet(rect(*box), [CHAMFER] * 4)
+    else:
+        box = (min(sx0, x0), min(sy0, y0), max(sx1, x1), max(sy1, y1))
+        pl = None
+    return {'plate': pl, 'shape': shape, 'word': w, 'box': box, 'fix': fix}
+
+
+def compact(pad=0.28, gy=0.22, gx=0.30, end=0.15, frac=(0.62, 0.30), square=True):
+    """Квадратная форма: та же плашка, та же скоба, одна буква Э."""
+    g = glyph('Э')
+    b = bbox(g)
+    w = move(g, -b[0])
+    x1 = bbox(w)[2]
+    s = STEM
+    bx = -(gx * CAP + s)
+    yb0 = -gy * CAP - s
+    yb1 = yb0 + CAP + 2 * gy * CAP + 2 * s
+    shape = brace(bx, yb0, yb1, s, frac[0] * x1, frac[1] * x1, end * s)
+    p = pad * CAP
+    box = [bx - p, yb0 - p, x1 + p, yb1 + p]
+    if square:
+        side = max(box[2] - box[0], box[3] - box[1])
+        dx, dy = (side - (box[2] - box[0])) / 2, (side - (box[3] - box[1])) / 2
+        box = [box[0] - dx, box[1] - dy, box[2] + dx, box[3] + dy]
+    return {'plate': facet(rect(*box), [CHAMFER] * 4), 'shape': shape,
+            'word': w, 'box': tuple(box)}
+
+
+# ─── вариации ─────────────────────────────────────────────────────────────
+#
+# Десять. Отличаются тремя вещами: длиной плеч, набором слова и глубиной
+# фаски на торцах плеч.
+
+MARKS = [
+    ('o1',  dict()),
+    ('o2',  dict(cover_top=1, cover_bot=1, gx=0.18)),
+    ('o3',  dict(cover_top=6, cover_bot=5, gx=0.50)),
+    ('o4',  dict(cover_top=3, cover_bot=3)),
+    ('o5',  dict(cover_top=2, cover_bot=5)),
+    ('o6',  dict(track=-0.05)),
+    ('o7',  dict(track=0.10)),
+    ('o8',  dict(pad=0.22, gy=0.14)),
+    ('o9',  dict(end=0.08)),
+    ('o10', dict(end=0.33)),
+]
+
+# Форма под 16 px: буква крупнее, поле и просвет ужаты.
+SMALL = dict(pad=0.10, gy=0.14, gx=0.22, end=0.15)
 
 
 def _d(cs, x0, y1):
@@ -202,20 +315,74 @@ def _d(cs, x0, y1):
 
 
 def main():
-    arts, paths = {}, {}
-    w, ends, fix = word()
-    b = bbox(w)
-    paths['w+0'] = _d(w, b[0], b[3])
-    arts['word'] = {'w': round(b[2] - b[0]), 'h': round(b[3] - b[1]), 'cap': CAP,
-                    'parts': [{'ref': 'w+0', 'role': 'ink'}]}
+    arts, paths, fixes = {}, {}, {}
+
+    def art(key, box, parts):
+        x0, y0, x1, y1 = box
+        arts[key] = {'w': round(x1 - x0), 'h': round(y1 - y0),
+                     'cap': CAP, 'parts': parts}
+
+    def shared(key, cs):
+        b = bbox(cs)
+        if key not in paths:
+            paths[key] = _d(cs, b[0], b[3])
+        return b
+
+    for name, kw in MARKS:
+        track = kw.get('track', 0.0)
+        wk = f'w{round(track * 100):+d}'
+        m = mark(**kw)
+        fixes[name] = m['fix']
+        x0, y0, x1, y1 = m['box']
+        wb = shared(wk, m['word'])
+        art(name, m['box'], [
+            {'d': _d([m['plate']], x0, y1), 'role': 'ink'},
+            {'d': _d([m['shape']], x0, y1), 'role': 'bg'},
+            {'ref': wk, 'role': 'bg',
+             'x': round(wb[0] - x0), 'y': round(y1 - wb[3])},
+        ])
+
+        c = compact(pad=min(kw.get('pad', 0.40) - 0.12, 0.28),
+                    gy=kw.get('gy', 0.22), end=kw.get('end', 0.15))
+        x0, y0, x1, y1 = c['box']
+        eb = shared('e', c['word'])
+        art(f'{name}-c', c['box'], [
+            {'d': _d([c['plate']], x0, y1), 'role': 'ink'},
+            {'d': _d([c['shape']], x0, y1), 'role': 'bg'},
+            {'ref': 'e', 'role': 'bg',
+             'x': round(eb[0] - x0), 'y': round(y1 - eb[3])},
+        ])
+
+    s16 = compact(**SMALL)
+    x0, y0, x1, y1 = s16['box']
+    eb = shared('e16', s16['word'])
+    art('small', s16['box'], [
+        {'d': _d([s16['plate']], x0, y1), 'role': 'ink'},
+        {'d': _d([s16['shape']], x0, y1), 'role': 'bg'},
+        {'ref': 'e16', 'role': 'bg',
+         'x': round(eb[0] - x0), 'y': round(y1 - eb[3])},
+    ])
+
+    # Крупный показ конца плеча: кусок плеча с торцом, три глубины фаски.
+    # Строится тем же facet(), что и сама скоба, — чтобы показ не разошёлся
+    # с геометрией.
+    for key, end in (('end-08', 0.08), ('end-15', 0.15), ('end-33', 0.33)):
+        s = STEM
+        e = end * s
+        piece = facet(rect(0, 0, 2.6 * s, s), [0, e, e, 0])
+        b = (0.0, -0.28 * s, 2.6 * s + 0.5 * s, s + 0.28 * s)
+        art(key, b, [{'d': _d([piece], b[0], b[3]), 'role': 'ink'}])
+
     head = (
         '/* Файл собран scripts/build-marks.py — руками не править.\n\n'
         '   Слово набрано ГОТОВЫМ ШРИФТОМ TT Octosquares Trial Expanded Black.\n'
         '   Буквы не перерисованы и не правлены: контуры взяты как есть, руками\n'
-        '   правится только межбуквенный интервал.\n\n'
+        '   правится только межбуквенный интервал. Гранёность даёт сам шрифт —\n'
+        '   у Э срезано плечо, у Л и М скошены углы, под 39, 40 и 65 градусами.\n\n'
         f'   Единицы шрифта при upem {UPEM}. Высота прописных {CAP}, строчных {XH},\n'
-        f'   штрих {STEM} измерен по Н.\n\n'
-        f'   Поправки набора к метрикам шрифта: {json.dumps(fix)}.\n\n'
+        f'   штрих {STEM} измерен по Н. Фаска скобы {CHAMFER} — размах плечевой\n'
+        f'   фаски Э по горизонтали; внутренняя {CHAMFER_IN:.1f} = c − (2 − √2)·s.\n\n'
+        f'   Поправки набора к метрикам шрифта: {json.dumps(fixes["o1"])}.\n\n'
         '   Пересобрать:  python3 scripts/build-marks.py\n*/\n\n'
     )
     body = (
@@ -235,8 +402,11 @@ def main():
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write(head + body)
     print(f'{OUT}: композиций {len(arts)}, {os.path.getsize(OUT)} байт')
-    print(f'  прописные {CAP}, штрих {STEM}')
-    print('  поправки набора:', fix)
+    print(f'  прописные {CAP}, штрих {STEM}, фаска {CHAMFER}, внутренняя {CHAMFER_IN:.1f}')
+    print('  поправки набора (o1):', fixes['o1'])
+    for k in ('o1', 'o2', 'o3'):
+        a = arts[k]
+        print(f'  {k}: {a["w"]}×{a["h"]}, отношение {a["w"]/a["h"]:.2f}')
 
 
 if __name__ == '__main__':
