@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """Геометрия логотипа для служебной страницы /logo.
 
-Устройство одно: тёмная плашка, внутри слева светлая скоба из вертикали и
-двух плеч, слово вывороткой того же веса выходит вправо за открытый конец
-скобы. Верхние левые и нижние левые углы скобы и буквы Э срезаны одной и
-той же фаской под 45°.
+ГОТОВОГО ШРИФТА ЗДЕСЬ НЕТ. Все семь букв слова ЭЛЕМЕНТ нарисованы с нуля,
+своей геометрией: каждая буква — многоугольник из прямоугольников, у
+которого часть углов срезана фаской под 45°. CoFo Sans не участвует ни как
+основа, ни как источник контуров, и fontTools этому скрипту больше не нужен.
 
-Всё в единицах шрифта при upem 1000; высота прописных 680 и высота
-строчных 495 — из таблицы OS/2, ни одно число не подобрано на глаз.
+Ни одной кривой: в файле нет ни одной команды, кроме M, L и Z.
 
-Межбуквенные интервалы не метрические: они выровнены по ОПТИЧЕСКОЙ ПЛОЩАДИ
-просвета между соседями, см. place().
+Всё считается в МОДУЛЯХ. Модуль — единственная величина, от которой
+берутся остальные; ниже они выведены из него, а не подобраны на глаз.
 
 Пересобрать:  python3 scripts/build-marks.py
 """
@@ -18,324 +17,281 @@ import json
 import math
 import os
 
-from fontTools.pens.recordingPen import RecordingPen
-from fontTools.ttLib import TTFont
-
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FONT = os.path.join(ROOT, 'assets/fonts/CoFoSans-Black-Trial.otf')
 OUT = os.path.join(ROOT, 'app/logo/art.ts')
 
-_f = TTFont(FONT)
-UPEM = _f['head'].unitsPerEm       # 1000
-CAP = _f['OS/2'].sCapHeight        # 680
-XH = _f['OS/2'].sxHeight           # 495
-_cmap = _f.getBestCmap()
-_gs = _f.getGlyphSet()
-_hmtx = _f['hmtx']
+# ─── модульная сетка ──────────────────────────────────────────────────────
 
-STEM = 176        # ширина штриха, измерена по Н
-TOL = 3.5         # допуск разбиения кривых; при высоте прописных 104 px это 0,5 px
-PHI = (1 + 5 ** 0.5) / 2
+M = 40                     # модуль, единиц
+CAP = 18 * M               # высота прописных — 720
+STEM = 4 * M               # толщина штриха — 160, она же у скобы
+GAP = 3 * M                # просвет внутри буквы и между буквами — 120
+CHAMFER = 3 * M            # глубина наружной фаски — 120
+
+# Внутренняя фаска — не второе число, а следствие первого. Внутренний контур
+# идёт параллельно наружному на толщину штриха, поэтому его фаска мельче
+# ровно на этот сдвиг: перпендикулярное расстояние между двумя срезами под
+# 45° должно остаться равным толщине штриха.
+#
+#   c' = c − (2 − √2)·s
+#
+# При c = 3M и s = 4M это 0,657 модуля. Толщина скобы от этого постоянна по
+# всей длине, включая углы, — а это и есть условие задания.
+CHAMFER_IN = CHAMFER - (2 - math.sqrt(2)) * STEM
 
 
-def _cubic(p0, p1, p2, p3):
-    n = max(2, min(64, int(math.sqrt(
-        sum(math.dist(a, b) for a, b in zip((p0, p1, p2), (p1, p2, p3))) / TOL)) + 2))
-    return [((1-t)**3*p0[0] + 3*(1-t)**2*t*p1[0] + 3*(1-t)*t*t*p2[0] + t**3*p3[0],
-             (1-t)**3*p0[1] + 3*(1-t)**2*t*p1[1] + 3*(1-t)*t*t*p2[1] + t**3*p3[1])
-            for t in (i / n for i in range(1, n + 1))]
+def facet(pts, flags):
+    """Срезать помеченные углы фаской под 45°.
+
+    Все рёбра букв и скобы осевые, поэтому равные катеты по обе стороны угла
+    дают ровно 45°. Флаг 'o' — наружный угол, 'i' — внутренний, пусто — угол
+    остаётся прямым.
+
+    Если два среза на одном ребре не помещаются, оба ужимаются
+    пропорционально. Ребро длиной ровно в два катета при этом схлопывается в
+    точку — так и сделана вершина у М.
+    """
+    n = len(pts)
+    leg = [CHAMFER if f == 'o' else CHAMFER_IN if f == 'i' else 0.0 for f in flags]
+    for _ in range(4):
+        for i in range(n):
+            j = (i + 1) % n
+            L = math.dist(pts[i], pts[j])
+            t = leg[i] + leg[j]
+            if t > L + 1e-9:
+                k = L / t
+                leg[i] *= k
+                leg[j] *= k
+    out = []
+    for i in range(n):
+        p, a, b = pts[i], pts[i - 1], pts[(i + 1) % n]
+        if leg[i] < 1e-9:
+            out.append(p)
+            continue
+        for q in (a, b):
+            d = math.dist(p, q)
+            out.append((p[0] + (q[0] - p[0]) * leg[i] / d,
+                        p[1] + (q[1] - p[1]) * leg[i] / d))
+    res = [out[0]]
+    for p in out[1:]:
+        if math.dist(p, res[-1]) > 1e-9:
+            res.append(p)
+    if math.dist(res[0], res[-1]) < 1e-9:
+        res.pop()
+    return res
 
 
-def glyph(ch):
-    """Контуры знака в единицах шрифта, y вверх, базовая на нуле."""
-    pen = RecordingPen()
-    _gs[_cmap[ord(ch)]].draw(pen)
-    out, cur = [], []
-    for op, args in pen.value:
-        if op == 'moveTo':
-            if cur:
-                out.append(cur)
-            cur = [args[0]]
-        elif op == 'lineTo':
-            cur.append(args[0])
-        elif op == 'curveTo':
-            cur += _cubic(cur[-1], *args)
-        elif op == 'closePath':
-            if cur:
-                out.append(cur)
-            cur = []
-    if cur:
-        out.append(cur)
-    return out
+def poly(width, verts):
+    """Буква: ширина в модулях и обход против часовой с флагами углов."""
+    pts = [(x * M, y * M) for x, y, _ in verts]
+    return {'w': width * M, 'pts': facet(pts, [f for _, _, f in verts])}
+
+
+# ─── семь букв, нарисованных с нуля ───────────────────────────────────────
+#
+# Обход против часовой, начало координат — левый край и базовая линия.
+# Высота прописных 18 модулей, штрих 4, просветы 3 и 4.
+#
+# Правило срезов одно на всю гарнитуру: режется НАРУЖНЫЙ угол силуэта и
+# внутренний угол стыка; торец штриха режется только со стороны силуэта, а
+# со стороны просвета остаётся прямым. Иначе торец шириной в штрих, срезанный
+# с двух сторон, схлопывается в остриё, и буква теряет опору.
+
+LETTERS = {
+    # Э — зеркальная Е с гранёным плечом справа: вместо дуги две фаски.
+    'Э': poly(13, [
+        (0, 0, 'o'), (13, 0, 'o'), (13, 18, 'o'), (0, 18, 'o'),
+        (0, 14, ''), (9, 14, 'i'), (9, 11, 'i'), (4, 11, ''),
+        (4, 7, ''), (9, 7, 'i'), (9, 4, 'i'), (0, 4, ''),
+    ]),
+    # Л — вертикальная стойка с лапой, уходящей влево: тем и отличается от П.
+    'Л': poly(15, [
+        (0, 0, 'o'), (8, 0, ''), (8, 14, 'i'), (11, 14, 'i'),
+        (11, 0, ''), (15, 0, 'o'), (15, 18, 'o'), (4, 18, 'o'),
+        (4, 4, 'i'), (0, 4, ''),
+    ]),
+    'Е': poly(11, [
+        (0, 0, 'o'), (11, 0, 'o'), (11, 4, ''), (4, 4, 'i'),
+        (4, 7, 'i'), (11, 7, ''), (11, 11, ''), (4, 11, 'i'),
+        (4, 14, 'i'), (11, 14, ''), (11, 18, 'o'), (0, 18, 'o'),
+    ]),
+    # М — три стойки под общей перекладиной; средняя сходится в остриё,
+    # потому что два среза по 3 модуля на торце шириной 4 не помещаются и
+    # ужимаются до 2 каждый, встречаясь ровно посередине.
+    'М': poly(18, [
+        (0, 0, 'o'), (4, 0, ''), (4, 14, 'i'), (7, 14, 'i'),
+        (7, 0, 'o'), (11, 0, 'o'), (11, 14, 'i'), (14, 14, 'i'),
+        (14, 0, ''), (18, 0, 'o'), (18, 18, 'o'), (0, 18, 'o'),
+    ]),
+    'Н': poly(12, [
+        (0, 0, 'o'), (4, 0, ''), (4, 7, 'i'), (8, 7, 'i'),
+        (8, 0, ''), (12, 0, 'o'), (12, 18, 'o'), (8, 18, ''),
+        (8, 11, 'i'), (4, 11, 'i'), (4, 18, ''), (0, 18, 'o'),
+    ]),
+    'Т': poly(12, [
+        (4, 0, ''), (8, 0, ''), (8, 14, 'i'), (12, 14, ''),
+        (12, 18, 'o'), (0, 18, 'o'), (0, 14, ''), (4, 14, 'i'),
+    ]),
+}
+
+WORD = 'ЭЛЕМЕНТ'
+
+
+def move(pts, dx, dy=0.0):
+    return [(x + dx, y + dy) for x, y in pts]
 
 
 def bbox(cs):
     xs = [p[0] for c in cs for p in c]
     ys = [p[1] for c in cs for p in c]
-    return (min(xs), min(ys), max(xs), max(ys))
-
-
-def move(cs, dx=0.0, dy=0.0):
-    return [[(x + dx, y + dy) for x, y in c] for c in cs]
-
-
-# ─── оптический набор ─────────────────────────────────────────────────────
-
-STEP = 8            # шаг сканирования по вертикали, единиц шрифта
-DEPTH = 0.30        # глубже этой доли высоты прописных выемка не считается
-
-
-def _profile(cs, rows):
-    """Силуэт знака: на каждой высоте крайняя левая и крайняя правая точка."""
-    left, right = {}, {}
-    for c in cs:
-        n = len(c)
-        for i in range(n):
-            (xa, ya), (xb, yb) = c[i], c[(i + 1) % n]
-            if ya == yb:
-                continue
-            lo, hi = (ya, yb) if ya < yb else (yb, ya)
-            k = int(math.ceil(lo / STEP))
-            while k * STEP < hi:
-                y = k * STEP
-                x = xa + (xb - xa) * (y - ya) / (yb - ya)
-                left[y] = x if y not in left else min(left[y], x)
-                right[y] = x if y not in right else max(right[y], x)
-                k += 1
-    return left, right
-
-
-def place(gs, advs, target=None):
-    """Расставить готовые контуры, выровняв ОПТИЧЕСКУЮ ПЛОЩАДЬ просвета.
-
-    Классический приём, а не расстояние между рамками. У каждого знака с
-    каждой стороны считается площадь выемки: насколько его контур отступает
-    внутрь от собственной крайней кромки, на каждой высоте; глубже DEPTH не
-    считаем. Просвет пары — сумма двух выемок плюс расстояние между рамками
-    на всю высоту полосы. Пары ставятся так, чтобы сумма была одинаковой:
-    круглая Э и косая Л подтягиваются, прямая Н отодвигается.
-    """
-    boxes = [bbox(g) for g in gs]
-    y0, y1 = min(b[1] for b in boxes), max(b[3] for b in boxes)
-    rows = [y0 + i * STEP for i in range(int((y1 - y0) / STEP) + 1)]
-    band = len(rows) * STEP
-    depth = DEPTH * CAP
-
-    def recess(g, box, side):
-        left, right = _profile(g, rows)
-        edge = box[0] if side == 'l' else box[2]
-        s = 0.0
-        for y in rows:
-            x = (left if side == 'l' else right).get(y)
-            if x is None:
-                s += depth
-            else:
-                s += min(depth, x - edge if side == 'l' else edge - x)
-        return s * STEP
-
-    rl = [recess(g, b, 'l') for g, b in zip(gs, boxes)]
-    rr = [recess(g, b, 'r') for g, b in zip(gs, boxes)]
-    if len(gs) < 2:                      # один знак набирать нечем
-        return [-boxes[0][0]], [], target or 0.0
-    seps0 = [advs[i] - boxes[i][2] + boxes[i + 1][0] for i in range(len(gs) - 1)]
-    totals = [seps0[i] * band + rr[i] + rl[i + 1] for i in range(len(seps0))]
-    goal = target if target is not None else sorted(totals)[len(totals) // 2]
-    seps = [(goal - rr[i] - rl[i + 1]) / band for i in range(len(seps0))]
-
-    xs, x = [], 0.0
-    for i, b in enumerate(boxes):
-        xs.append(x - b[0])
-        if i < len(gs) - 1:
-            x += (b[2] - b[0]) + seps[i]
-    deltas = [round(seps[i] - seps0[i], 1) for i in range(len(seps))]
-    return xs, deltas, goal
-
-
-def optical(text, target=None):
-    gs = [glyph(ch) for ch in text]
-    advs = [_hmtx[_cmap[ord(ch)]][0] for ch in text]
-    xs, deltas, goal = place(gs, advs, target)
-    return gs, xs, deltas, goal
-
-
-def word(text, target=None):
-    """Слово, набранное по оптике; левый край и базовая линия в нуле."""
-    gs, xs, deltas, goal = optical(text, target)
-    out = []
-    for g, x in zip(gs, xs):
-        out += move(g, x)
-    return out, deltas
+    return min(xs), min(ys), max(xs), max(ys)
 
 
 def rect(x0, y0, x1, y1):
-    """Прямоугольник против часовой при y вверх — как внешние контуры глифов."""
-    return [[(x0, y0), (x1, y0), (x1, y1), (x0, y1)]]
+    return [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
 
 
-# ─── фаска ────────────────────────────────────────────────────────────────
+# ─── набор ────────────────────────────────────────────────────────────────
 #
-# ОДНА операция на обе фигуры, и это главное в устройстве. Срез — это
-# отсечение полуплоскостью под 45°: для верхнего левого угла режем всё, где
-# x − y меньше собственной диагональной крайности фигуры плюс глубина; для
-# нижнего левого — то же по x + y.
+# Промежуток модульный — 3 модуля, — но у Л лапа уходит влево внизу, а у Э и
+# Т силуэт срезан по углам, и на глаз просветы разъезжаются. Поэтому к
+# модульному промежутку добавлена оптическая поправка, и она тоже модульная:
+# считается по площади просвета между соседями и округляется до половины
+# модуля. Числа поправок печатаются при сборке и записаны в отчёте.
+
+STEP = M / 8            # шаг сканирования по вертикали
+DEPTH = 2 * M           # глубже половины штриха выемку не считаем
+
+
+def _edge(pts, y, side):
+    xs = []
+    n = len(pts)
+    for i in range(n):
+        (xa, ya), (xb, yb) = pts[i], pts[(i + 1) % n]
+        if (ya <= y < yb) or (yb <= y < ya):
+            xs.append(xa + (xb - xa) * (y - ya) / (yb - ya))
+    if not xs:
+        return None
+    return min(xs) if side == 'l' else max(xs)
+
+
+def _recess(pts, side):
+    x0, y0, x1, y1 = bbox([pts])
+    edge = x0 if side == 'l' else x1
+    rows = [y0 + i * STEP for i in range(int((y1 - y0) / STEP) + 1)]
+    s = 0.0
+    for y in rows:
+        x = _edge(pts, y, side)
+        s += DEPTH if x is None else min(DEPTH, (x - edge) if side == 'l' else (edge - x))
+    return s * STEP / CAP          # приведено к единицам длины
+
+
+def word(text=WORD):
+    """Слово: модульный промежуток плюс оптическая поправка до половины модуля."""
+    gs = [LETTERS[ch]['pts'] for ch in text]
+    if len(gs) < 2:                      # одну букву набирать нечем
+        b = bbox([gs[0]])
+        return [move(gs[0], -b[0])], []
+    rr = [_recess(g, 'r') for g in gs]
+    rl = [_recess(g, 'l') for g in gs]
+    pairs = [rr[i] + rl[i + 1] for i in range(len(gs) - 1)]
+    goal = sorted(pairs)[len(pairs) // 2]
+    fix, out, x = [], [], 0.0
+    for i, ch in enumerate(text):
+        b = bbox([gs[i]])
+        out += [move(gs[i], x - b[0])]
+        if i < len(text) - 1:
+            d = round((goal - pairs[i]) / (M / 2)) * (M / 2)
+            d = max(-M, min(M, d))
+            fix.append(round(d / M, 2))
+            x += (b[2] - b[0]) + GAP + d
+    return out, fix
+
+
+# ─── скоба и плашка ───────────────────────────────────────────────────────
 #
-# У скобы угол прямой, и такой срез даёт обычную фаску с катетом c: линия
-# отходит на c по вертикали и на c по горизонтали от вершины.
+# Скоба — один контур: вертикаль у левого края и два плеча вправо, закрыта
+# слева, открыта справа. Наружные углы срезаны фаской c, внутренние — фаской
+# c', и это не два независимых среза, а параллельный контур: толщина скобы
+# остаётся постоянной по всей длине, включая углы.
 #
-# У Э прямых углов нет вовсе — чаша круглая, и в углы габаритной рамки
-# буква не заходит: до верхнего левого 322 единицы пустоты, до нижнего 298.
-# Фаска, построенная от рамки, буквы бы не коснулась. Построенная от
-# собственной диагональной крайности контура, она садится ровно на верхнее
-# и нижнее плечо чаши — (124, 606) и (111, 73), то есть на тот самый верхний
-# левый и нижний левый угол буквы. Число c при этом одно на скобу и на Э.
-
-
-def _clip(cs, fn, limit):
-    """Отсечь всё, где fn(точка) < limit. Полуплоскость выпукла, поэтому
-    достаточно классического обхода Сазерленда — Ходжмена по каждому контуру."""
-    out = []
-    for c in cs:
-        res = []
-        n = len(c)
-        for i in range(n):
-            a, b = c[i], c[(i + 1) % n]
-            fa, fb = fn(a) - limit, fn(b) - limit
-            if fa >= 0:
-                res.append(a)
-            if (fa >= 0) != (fb >= 0):
-                t = fa / (fa - fb)
-                res.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
-        if len(res) > 2:
-            out.append(res)
-    return out
-
-
-_TL = lambda p: p[0] - p[1]          # верхний левый угол: минимум x − y
-_BL = lambda p: p[0] + p[1]          # нижний левый угол:  минимум x + y
-
-
-def chamfer(cs, c):
-    """Срезать верхний левый и нижний левый углы фигуры под 45° на глубину c."""
-    if c <= 0:
-        return cs
-    for fn in (_TL, _BL):
-        pts = [p for ct in cs for p in ct]
-        cs = _clip(cs, fn, min(fn(p) for p in pts) + c)
-    return cs
-
-
-# ─── устройство: слово в плашке со скобой ─────────────────────────────────
-#
-# Тёмный прямоугольник, внутри слева светлая скоба: вертикаль у левого края
-# и два плеча вправо. Скоба закрыта слева, открыта справа; концы плеч
-# обрезаны ровно, загибов и утолщений нет — их неоткуда взять, фигура
-# собрана из отрезков. Верхний левый и нижний левый углы скобы срезаны той
-# же фаской, что и у буквы Э.
-#
-# Слово того же веса, что штрих скобы, выходит вправо за открытый конец.
+# Концы плеч обрезаны ровно. Срезан у них только наружный угол — тот, что
+# смотрит в поле плашки; со стороны букв угол прямой, как и у торцов букв.
 
 
 def brace(bx, yb0, yb1, s, x_top, x_bot):
-    """Скоба одним контуром: вертикаль и два плеча, обход против часовой.
+    # Внутренние углы скобы пока прямые — они приходят следующим коммитом.
+    return facet(
+        [(bx, yb0), (x_bot, yb0), (x_bot, yb0 + s),
+         (bx + s, yb0 + s), (bx + s, yb1 - s),
+         (x_top, yb1 - s), (x_top, yb1), (bx, yb1)],
+        ['o', 'o', '', '', '', '', 'o', 'o'])
 
-    x_top и x_bot — координаты, ДО которых доходят плечи, а не их длины:
-    плечо задаётся тем, сколько слова оно накрывает, и мерить его от
-    внешнего края вертикали нельзя — в компактной форме нижнее плечо тогда
-    оказывается короче самой вертикали и пропадает.
+
+def mark(text=WORD, cover_top=4, cover_bot=2, pad=8, gy=4, gx=5, frac=None):
+    """Логотип целиком. Все размеры — в модулях.
+
+    cover_top — сколько букв накрывает верхнее плечо;
+    cover_bot — то же для нижнего;
+    pad       — поле плашки, gy — просвет скобы над буквами, gx — отступ
+                вертикали скобы от первой буквы.
     """
-    return [[
-        (bx, yb0), (x_bot, yb0), (x_bot, yb0 + s),
-        (bx + s, yb0 + s), (bx + s, yb1 - s),
-        (x_top, yb1 - s), (x_top, yb1), (bx, yb1),
-    ]]
-
-
-def mark(text, ch=0.14, arm_top=0.62, arm_bot=0.30, sb=1.0,
-         pad=0.42, gy=0.22, gx=0.30):
-    """Логотип целиком. Все размеры — доли высоты прописных.
-
-    ch       — глубина фаски;
-    arm_top  — какую долю слова накрывает верхнее плечо;
-    arm_bot  — то же для нижнего;
-    sb       — вес штриха скобы к штриху буквы (STEM);
-    pad      — поле плашки вокруг композиции;
-    gy       — просвет скобы над буквами и под ними;
-    gx       — отступ вертикали скобы от первой буквы.
-    """
-    gs, xs, deltas, _ = optical(text)
-    c = ch * CAP
-    # Срез — только на Э, и только на первой букве слова. Остальные не
-    # режутся ни здесь, ни где-либо ещё.
-    gs = [chamfer(g, c) if i == 0 and t == 'Э' else g
-          for i, (g, t) in enumerate(zip(gs, text))]
-    w = []
-    for g, x in zip(gs, xs):
-        w += move(g, x)
-    x0, y0, x1, y1 = bbox(w)
-    ww = x1 - x0
-    wx = -x0
-    w = move(w, wx)
-
-    s = sb * STEM
-    bx = -(gx * CAP + s)                       # вертикаль скобы левее слова
-    yb0 = -gy * CAP - s
-    yb1 = yb0 + CAP + 2 * gy * CAP + 2 * s
-    shape = chamfer(brace(bx, yb0, yb1, s, arm_top * ww, arm_bot * ww), c)
-
-    p = pad * CAP
+    gs, fix = word(text)
+    ends = [bbox([g])[2] for g in gs]
+    x0, y0, x1, y1 = bbox(gs)
+    s = STEM
+    bx = -(gx * M + s)
+    yb0 = -gy * M - s
+    yb1 = yb0 + CAP + 2 * gy * M + 2 * s
+    if frac:                                  # компактная форма: доля буквы
+        x_top, x_bot = frac[0] * x1, frac[1] * x1
+    else:
+        x_top = ends[min(cover_top, len(ends)) - 1]
+        x_bot = ends[min(cover_bot, len(ends)) - 1]
+    shape = brace(bx, yb0, yb1, s, x_top, x_bot)
+    p = pad * M
     px0, py0 = bx - p, yb0 - p
-    px1 = max(ww, arm_top * ww, arm_bot * ww) + p
-    py1 = yb1 + p
+    px1, py1 = max(x1, max(ends)) + p, yb1 + p
     return {
-        'plate': rect(px0, py0, px1, py1),
+        'plate': facet(rect(px0, py0, px1, py1), ['o'] * 4),
         'shape': shape,
-        'word': w,
+        'word': gs,
         'box': (px0, py0, px1, py1),
-        'deltas': deltas,
+        'fix': fix,
     }
 
 
-def compact(ch=0.14, sb=1.0, pad=0.30, gy=0.22, gx=0.30,
-            arm_top=0.72, arm_bot=0.34, square=True):
-    """Квадратная форма: та же плашка, та же скоба, одна буква Э со срезами.
+def compact(pad=6, gy=4, gx=5, frac=(0.62, 0.30), square=True):
+    """Квадратная форма: та же плашка, та же скоба, одна буква Э.
 
-    Плечи накрывают доли самой Э — верхнее почти всю, нижнее треть, — то же
-    отношение, что и в полном логотипе. Скоба остаётся скобой, а не
-    превращается в рамку вокруг буквы.
+    Плечи здесь мерятся долей ширины буквы, а не числом букв: накрыв Э
+    целиком, скоба замыкается в рамку и перестаёт быть скобой.
     """
-    m = mark('Э', ch=ch, arm_top=arm_top, arm_bot=arm_bot, sb=sb,
-             pad=pad, gy=gy, gx=gx)
+    m = mark('Э', pad=pad, gy=gy, gx=gx, frac=frac)
     if not square:
         return m
     x0, y0, x1, y1 = m['box']
     side = max(x1 - x0, y1 - y0)
     dx, dy = (side - (x1 - x0)) / 2, (side - (y1 - y0)) / 2
-    m['plate'] = rect(x0 - dx, y0 - dy, x1 + dx, y1 + dy)
+    m['plate'] = facet(rect(x0 - dx, y0 - dy, x1 + dx, y1 + dy), ['o'] * 4)
     m['box'] = (x0 - dx, y0 - dy, x1 + dx, y1 + dy)
     return m
 
 
 # ─── сборка ───────────────────────────────────────────────────────────────
+#
+# Два варианта, и отличаются они заметно, а не на волос: у просторного поле
+# плашки вдвое шире, просвет скобы вдвое больше, а скоба накрывает четыре
+# буквы из семи против двух у тесного.
 
-WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
-
-# Два варианта. Отличаются заметно, а не на волос: поле плашки, просвет
-# скобы над буквами и вес скобы.
 MARKS = [
-    ('l1', dict(ch=0.14, arm_top=0.62, arm_bot=0.30, sb=1.00, pad=0.42, gy=0.22)),
-    ('l8', dict(ch=0.14, arm_top=0.62, arm_bot=0.30, sb=1.14, pad=0.24, gy=0.14)),
+    ('v1', dict(cover_top=4, cover_bot=2, pad=8, gy=4)),
+    ('v2', dict(cover_top=2, cover_bot=1, pad=4, gy=2)),
 ]
 
-# Отдельная форма под 16 px. Мешает на этом кегле не толщина скобы, а
-# размер буквы: в обычной компактной форме на плашку 16 px приходится Э
-# высотой 6,0 px, и она заплывает раньше, чем сливается скоба.
-#
-# Числа выведены из пиксельного бюджета, а не подобраны. Высота плашки —
-# это буква плюс два просвета, два штриха скобы и два поля; на 16 px нужно
-# 8,0 на букву, 1,9 на штрих, 1,4 на просвет и 0,7 на поле. Отсюда
-# H = 1360 единиц, то есть сумма всего, кроме буквы, равна ей самой.
-SMALL = dict(ch=0.14, sb=0.90, pad=0.085, gy=0.18, gx=0.24,
-             arm_top=0.72, arm_bot=0.34)
+# Форма под 16 px: буква крупнее, поле и просвет ужаты. Числа выведены из
+# пиксельного бюджета — см. отчёт, — а не подобраны.
+SMALL = dict(pad=2, gy=3, gx=3, frac=(0.62, 0.30))
 
 
 def _d(cs, x0, y1):
@@ -344,7 +300,7 @@ def _d(cs, x0, y1):
 
 
 def main():
-    arts, paths, corr = {}, {}, {}
+    arts, paths = {}, {}
 
     def art(key, box, parts):
         x0, y0, x1, y1 = box
@@ -352,87 +308,94 @@ def main():
                      'cap': CAP, 'parts': parts}
 
     def shared(key, cs):
-        """Общий контур объявляется по разу: слово при одной глубине фаски у
-        всех отрисовок одно и то же, и дублировать его в разметке незачем."""
         b = bbox(cs)
         if key not in paths:
             paths[key] = _d(cs, b[0], b[3])
         return b
 
+    fix = None
     for name, kw in MARKS:
-        for key, text in WORDS.items():
-            m = mark(text, **kw)
-            x0, y0, x1, y1 = m['box']
-            corr[f'{name}-{key}'] = m['deltas']
-            wk = f'w-{key}-{round(kw["ch"] * 100):03d}'
-            wb = shared(wk, m['word'])
-            art(f'{name}-{key}', m['box'], [
-                {'d': _d(m['plate'], x0, y1), 'role': 'ink'},
-                {'d': _d(m['shape'], x0, y1), 'role': 'bg'},
-                {'ref': wk, 'role': 'bg',
-                 'x': round(wb[0] - x0), 'y': round(y1 - wb[3])},
-            ])
-        c = compact(ch=kw['ch'], sb=kw['sb'], gy=kw['gy'],
-                    pad=min(kw['pad'], 0.30))
+        m = mark(**kw)
+        fix = m['fix']
+        x0, y0, x1, y1 = m['box']
+        wb = shared('w', m['word'])
+        art(name, m['box'], [
+            {'d': _d([m['plate']], x0, y1), 'role': 'ink'},
+            {'d': _d([m['shape']], x0, y1), 'role': 'bg'},
+            {'ref': 'w', 'role': 'bg',
+             'x': round(wb[0] - x0), 'y': round(y1 - wb[3])},
+        ])
+        c = compact(pad=max(kw['pad'] - 2, 4), gy=max(kw['gy'] - 1, 2))
         x0, y0, x1, y1 = c['box']
-        ek = f'w-e-{round(kw["ch"] * 100):03d}'
-        eb = shared(ek, c['word'])
+        eb = shared('e', c['word'])
         art(f'{name}-c', c['box'], [
-            {'d': _d(c['plate'], x0, y1), 'role': 'ink'},
-            {'d': _d(c['shape'], x0, y1), 'role': 'bg'},
-            {'ref': ek, 'role': 'bg',
+            {'d': _d([c['plate']], x0, y1), 'role': 'ink'},
+            {'d': _d([c['shape']], x0, y1), 'role': 'bg'},
+            {'ref': 'e', 'role': 'bg',
              'x': round(eb[0] - x0), 'y': round(y1 - eb[3])},
         ])
 
-    # Форма под 16 px одна на все отрисовки: на этом кегле различать
-    # пропорции нечем, а слипание скобы с буквой лечится одними и теми же
-    # числами. Объявляется по разу.
     s16 = compact(**SMALL)
     x0, y0, x1, y1 = s16['box']
-    ek = 'w-e-small'
-    eb = shared(ek, s16['word'])
+    eb = shared('e16', s16['word'])
     art('small', s16['box'], [
-        {'d': _d(s16['plate'], x0, y1), 'role': 'ink'},
-        {'d': _d(s16['shape'], x0, y1), 'role': 'bg'},
-        {'ref': ek, 'role': 'bg',
+        {'d': _d([s16['plate']], x0, y1), 'role': 'ink'},
+        {'d': _d([s16['shape']], x0, y1), 'role': 'bg'},
+        {'ref': 'e16', 'role': 'bg',
          'x': round(eb[0] - x0), 'y': round(y1 - eb[3])},
     ])
 
+    # Показы рисовки: семь букв в ряд, Э отдельно, построение по сетке.
+    gs, _ = word()
+    b = bbox(gs)
+    art('alphabet', (b[0], b[1], b[2], b[3]),
+        [{'d': _d(gs, b[0], b[3]), 'role': 'ink'}])
+    for key, ch in (('letter-э', 'Э'), ('letter-м', 'М'), ('letter-н', 'Н')):
+        g = [LETTERS[ch]['pts']]
+        bb = bbox(g)
+        art(key, bb, [{'d': _d(g, bb[0], bb[3]), 'role': 'ink'}])
+
     head = (
         '/* Файл собран scripts/build-marks.py — руками не править.\n\n'
-        '   Контуры вынуты из assets/fonts/CoFoSans-Black-Trial.otf. Набор НЕ\n'
-        '   метрический: межбуквенные интервалы выровнены по оптической площади\n'
-        '   просвета, см. place() в скрипте. Поправки к метрике шрифта в единицах\n'
-        f'   шрифта: {json.dumps(corr["l1-caps"], ensure_ascii=False)} для ЭЛЕМЕНТ и\n'
-        f'   {json.dumps(corr["l1-mixed"], ensure_ascii=False)} для Элемент.\n\n'
-        '   Фаска — одна операция на скобу и на букву Э: отсечение полуплоскостью\n'
-        '   под 45° от собственной диагональной крайности фигуры, глубина одна и\n'
-        '   та же. Ни одна другая буква не режется.\n\n'
-        f'   Единицы — единицы шрифта при upem 1000. Высота прописных {CAP} и высота\n'
-        f'   строчных {XH} из таблицы OS/2, ширина штриха {STEM} измерена по Н. Кривые\n'
-        f'   разбиты с допуском {TOL} единицы и округлены до целых.\n\n'
+        '   ГОТОВОГО ШРИФТА ЗДЕСЬ НЕТ: все семь букв нарисованы с нуля, каждая —\n'
+        '   многоугольник из прямоугольников со срезанными углами. Ни одной\n'
+        '   кривой: в файле нет ни одной команды, кроме M, L и Z.\n\n'
+        f'   Модуль {M} единиц. Высота прописных {CAP} = 18 модулей, толщина штриха\n'
+        f'   {STEM} = 4, просвет {GAP} = 3, наружная фаска {CHAMFER} = 3.\n'
+        f'   Внутренняя фаска {CHAMFER_IN:.1f} = {CHAMFER_IN/M:.3f} модуля — не отдельное\n'
+        '   число, а параллельный контур: c − (2 − √2)·s.\n\n'
+        f'   Оптические поправки к модульному промежутку, в модулях: {json.dumps(fix)}.\n\n'
         '   Пересобрать:  python3 scripts/build-marks.py\n*/\n\n'
     )
     body = (
-        '/** Роль краски в палитре: фон, основная, акцентная. */\n'
-        "export type Role = 'bg' | 'ink' | 'accent';\n\n"
+        '/** Роль краски в палитре: фон и основная. */\n'
+        "export type Role = 'bg' | 'ink';\n\n"
         '/** Кусок композиции: свой контур или ссылка на общий. */\n'
         'export type Part = { d?: string; ref?: string; x?: number; y?: number; role: Role };\n\n'
-        '/** Композиция: коробка в единицах шрифта и куски по порядку отрисовки. */\n'
+        '/** Композиция: коробка в единицах и куски по порядку отрисовки. */\n'
         'export type Art = { w: number; h: number; cap: number; parts: Part[] };\n\n'
-        f'export const METRICS = {{ upem: {UPEM}, cap: {CAP}, xh: {XH}, stem: {STEM} }};\n\n'
-        '/** Общие контуры: слово объявляется по разу на каждую глубину фаски. */\n'
+        'export const METRICS = {\n'
+        f'  module: {M}, cap: {CAP}, stem: {STEM}, gap: {GAP},\n'
+        f'  chamfer: {CHAMFER}, chamferInner: {round(CHAMFER_IN, 1)},\n'
+        '};\n\n'
+        '/** Ширины букв в модулях. */\n'
+        'export const WIDTHS: [string, number][] = '
+        + json.dumps([[k, v['w'] // M] for k, v in LETTERS.items()], ensure_ascii=False)
+        + ';\n\n'
+        '/** Общие контуры: слово и буква Э объявлены по разу. */\n'
         f'export const PATHS: Record<string, string> = {json.dumps(paths, ensure_ascii=False)};\n\n'
         f'export const ART: Record<string, Art> = {json.dumps(arts, ensure_ascii=False)};\n'
     )
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write(head + body)
     print(f'{OUT}: композиций {len(arts)}, {os.path.getsize(OUT)} байт')
-    for k in ('l1-caps', 'l1-mixed'):
-        if k in arts:
-            a = arts[k]
-            print(f'  {k}: {a["w"]}×{a["h"]}, отношение {a["w"]/a["h"]:.2f}')
-    print('  поправки набора:', json.dumps(corr['l1-caps'], ensure_ascii=False))
+    print(f'  модуль {M}, прописные {CAP}, штрих {STEM}, фаска {CHAMFER}, '
+          f'внутренняя {CHAMFER_IN:.1f} ({CHAMFER_IN/M:.3f} модуля)')
+    print('  ширины букв, модулей:', {k: v['w'] // M for k, v in LETTERS.items()})
+    print('  оптические поправки, модулей:', fix)
+    for k in ('v1', 'v2'):
+        a = arts[k]
+        print(f'  {k}: {a["w"]}×{a["h"]}, отношение {a["w"]/a["h"]:.2f}')
 
 
 if __name__ == '__main__':
