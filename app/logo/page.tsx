@@ -99,6 +99,16 @@ function statesHtml(v: Variant, set: WordSet, p: Palette, short: boolean) {
   let rest = cell('3. Мелко: высота 20 px — проверка на визитку', light,
     logo(id, { height: 20 }, 'h-auto max-w-full'));
   if (!short) {
+    rest += cell('4. Компактная форма: 96, 32 и 16 px. Третий квадрат — отдельная версия под 16',
+      light,
+      `<div class="flex items-end gap-3">`
+      + [96, 32].map((sz) =>
+        `<span class="flex items-center justify-center" style="width:${sz}px;height:${sz}px">`
+        + logo(`${v.id}-c`, { fit: { w: sz, h: sz } }) + `</span>`).join('')
+      + `<span class="flex items-center justify-center" style="width:16px;height:16px">`
+      + logo(`${v.id}-c`, { fit: { w: 16, h: 16 } }) + `</span>`
+      + `<span class="flex items-center justify-center" style="width:16px;height:16px">`
+      + logo('small', { fit: { w: 16, h: 16 } }) + `</span></div>`);
     rest += cell('5. На фотографии первого экрана',
       `${paint(p)};background-image:url(${HERO});background-size:cover;background-position:center`,
       logo(id, { cap: 30 }, 'h-auto max-w-full'));
