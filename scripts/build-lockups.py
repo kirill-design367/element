@@ -292,6 +292,55 @@ def cuts_all(text):
     return [(i, 'tr') for i, ch in enumerate(text) if ch in ANGULAR]
 
 
+# ─── направление 2: скол как контейнер ────────────────────────────────────
+
+def monogram(kind):
+    """Плашка «Скола» с вывороткой Э. Буква — дырка, заливка одна."""
+    plate = skol(CAP, x=0, y=0)
+    px0, py0, px1, py1 = bbox(plate)
+    e, _, _ = glyph('Э')
+    ex0, ey0, ex1, ey1 = bbox(e)
+
+    def placed(f, cx, cy):
+        s = f * CAP / (ey1 - ey0)
+        return [[(cx + (x - (ex0 + ex1) / 2) * s, cy + (y - (ey0 + ey1) / 2) * s)
+                 for x, y in c] for c in e]
+
+    if kind == 'centr':
+        # Буква в геометрическом центре фигуры.
+        letter = placed(0.52, (px0 + px1) / 2, (py0 + py1) / 2)
+    elif kind == 'gran':
+        # Буква прижата к срезанной грани. Линия глубокой фаски в этих
+        # координатах — x + y = 1,5 · CAP; буква ставится так, чтобы её самая
+        # дальняя точка отстояла от линии ровно на MARGIN по нормали.
+        cut = 1.5 * CAP
+        margin = 0.10 * CAP
+        letter = placed(0.52, (px0 + px1) / 2, (py0 + py1) / 2)
+        far = max(x + y for c in letter for x, y in c)
+        step = (cut - margin * math.sqrt(2) - far) / 2
+        letter = [[(x + step, y + step) for x, y in c] for c in letter]
+    else:
+        # naskvoz — буква режет плашку насквозь: её левый край выходит за
+        # вертикальную грань фигуры на OVER, сверху и снизу она остаётся внутри.
+        over = 0.09 * CAP
+        letter = placed(0.72, (px0 + px1) / 2, (py0 + py1) / 2)
+        lx0 = min(x for c in letter for x, _ in c)
+        step = px0 - over - lx0
+        letter = [[(x + step, y) for x, y in c] for c in letter]
+
+    return plate + letter
+
+
+def d2(text, kind):
+    mono = monogram(kind)
+    letters, _ = word(text, x0=0)
+    wx0 = bbox(collect(letters))[0]
+    shift = bbox(mono)[2] + GAP - wx0
+    for l in letters:
+        l['cs'] = [[(x + shift, y) for x, y in c] for c in l['cs']]
+    return collect(letters, [mono])
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -300,6 +349,9 @@ BUILD = [
     ('faska-krajnie', lambda t: d1(t, cuts_edges, 0.25), None),
     ('faska-s-e',     lambda t: d1(t, cuts_with_e, 1 / 6), None),
     ('faska-vse',     lambda t: d1(t, cuts_all, 0.125), None),
+    ('mono-centr',    lambda t: d2(t, 'centr'),    lambda t: monogram('centr')),
+    ('mono-gran',     lambda t: d2(t, 'gran'),     lambda t: monogram('gran')),
+    ('mono-naskvoz',  lambda t: d2(t, 'naskvoz'),  lambda t: monogram('naskvoz')),
 ]
 
 
