@@ -89,15 +89,26 @@ export const CARD_CSS = `
 .vc-call::before{content:'';align-self:stretch;width:2.5mm;border-radius:1.25mm;
   background:var(--accent);flex:none}
 .vc-call p{font-size:5.4mm;font-weight:700;line-height:1.25;letter-spacing:-.015em}
-.vc-contacts{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm}
-.vc-site{margin-top:1.8mm;font-size:4mm;color:var(--ink-2)}
-.vc-qr{width:26mm;height:26mm;flex:none;color:var(--ink)}
-.vc-hours{margin-top:6mm;font-size:4.2mm;font-weight:700;letter-spacing:-.01em}
-/* СИНИЙ, ОБЪЕКТ ТРЕТИЙ: телефон. Он и есть действие на визитке, а синий на
-   всём сайте работает только на действиях. */
+/* СИНИЙ, ОБЪЕКТ ТРЕТИЙ: контакты — единственная сплошная синяя плашка на
+   листе. Телефон, адрес и часы отгрузки лежали тремя отдельными кусками
+   текста внизу; теперь это один объект во всю ширину полосы набора. */
+.vc-contacts{background:var(--accent);color:#fff;border-radius:6mm;padding:6mm}
+.vc-contacts-top{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:8mm}
+/* nowrap: номер с кодом города при 12 мм не влезал в свою колонку и рвался
+   после «+7», а разорванный телефон читается двумя числами. */
 .vc-phone{font-size:12mm;font-weight:900;letter-spacing:-.03em;line-height:1;
-  color:var(--accent);text-decoration:none;display:block}
-.vc-addr{margin-top:2.5mm;font-size:3.8mm;line-height:1.4;max-width:95mm}
+  color:#fff;text-decoration:none;display:block;white-space:nowrap}
+.vc-addr{font-size:3.8mm;line-height:1.4;max-width:64mm;color:#dde3f8;text-align:right}
+.vc-site{margin-top:2mm;font-size:4mm;color:#dde3f8;text-align:right}
+/* Часы отгрузки — своей строкой под линией: это не адрес и не телефон, а
+   условие работы площадки. */
+.vc-hours{margin-top:5mm;padding-top:5mm;border-top:.3mm solid rgba(255,255,255,.28);
+  font-size:4.4mm;font-weight:700;letter-spacing:-.01em}
+/* QR лежит на белом квадрате: тёмные модули по светлому читает любой
+   сканер, светлые по синему — не любой. */
+.vc-qr-box{background:#fff;border-radius:3mm;padding:2.5mm;flex:none}
+.vc-qr{display:block;width:24mm;height:24mm;color:var(--ink)}
 .vc-legal{font-size:2.7mm;line-height:1.5;color:var(--ink-3)}
 .vc-legal b{font-weight:400;color:var(--ink-2)}
 .vc-rule{height:.3mm;background:var(--line)}
@@ -137,11 +148,13 @@ function contacts() {
   const site = CONTACTS.site
     ? `<p class="vc-site">${CONTACTS.site.replace(/^https?:\/\//, '')}</p>` : '';
   const qr = QR
-    ? `<svg class="vc-qr" viewBox="0 0 ${QR.size} ${QR.size}" aria-hidden="true">`
-      + `<path d="${QR.path}" fill="currentColor"/></svg>` : '';
+    ? `<div class="vc-qr-box"><svg class="vc-qr" viewBox="0 0 ${QR.size} ${QR.size}"`
+      + ` aria-hidden="true"><path d="${QR.path}" fill="currentColor"/></svg></div>` : '';
   return `<div class="vc-contacts">`
-    + `<div><a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
-    + `<p class="vc-addr">${CONTACTS.address}</p>${site}</div>${qr}</div>`;
+    + `<div class="vc-contacts-top">`
+    + `<a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
+    + `<div><p class="vc-addr">${CONTACTS.address}</p>${site}</div>${qr}</div>`
+    + `<p class="vc-hours">${CONTACTS.hours}</p></div>`;
 }
 
 function legal() {
@@ -177,7 +190,6 @@ function photoCard() {
     + `<div style="margin-top:auto;padding-top:10mm">${facts()}</div>`
     + `<div style="margin-top:9mm">${call()}</div>`
     + `<div style="margin-top:auto;padding-top:10mm">${contacts()}</div>`
-    + `<p class="vc-hours">${CONTACTS.hours}</p>`
     + `<div class="vc-rule" style="margin:5mm 0 4mm"></div>`
     + legal()
     + `</div></div>`;
