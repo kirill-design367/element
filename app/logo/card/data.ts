@@ -7,18 +7,18 @@
  * lib/company.ts.
  */
 
-import { COMPANY } from '@/lib/company';
-import { qrMatrix, qrPath } from '@/lib/qr';
+import { COMPANY, SHIPPING_HOURS_SHORT } from '@/lib/company';
 import { num, typo } from '@/lib/format';
 import { DEFERRAL_DAYS, MIN_ORDER_M3, PRICE_HOLD_DAYS } from '@/lib/pricing';
-import { TERMS } from '@/lib/workflow';
+import { qrMatrix, qrPath } from '@/lib/qr';
 
 /** Три ключевых факта: число, единица и подпись. */
 export type Fact = { value: string; unit: string; label: string };
 
 /**
- * Три показателя — главный блок визитки вместо таблицы товара. Подписи
- * звучат условиями работы, а не справкой.
+ * Три показателя — теперь главный блок визитки вместо таблицы товара.
+ * Подписи звучат условиями работы, а не справкой: «минимальная партия
+ * отгрузки», а не «минимальная отгрузка».
  */
 export const FACTS: Fact[] = [
   { value: num(MIN_ORDER_M3), unit: 'м³', label: 'минимальная партия отгрузки' },
@@ -26,15 +26,14 @@ export const FACTS: Fact[] = [
   { value: num(PRICE_HOLD_DAYS), unit: 'дней', label: 'держим названную цену' },
 ];
 
-/**
- * Призыв к действию. Обещает ровно то, что компания и делает по шагам
- * работы: цену называют по телефону, окно погрузки согласуют. Ничего
- * сверх этого на визитке обещать нельзя.
- */
-export const CALL = typo('Позвоните с объёмом и сроком — назовём цену и согласуем окно погрузки');
-
 /** Условия отгрузки одной строкой — то же, что в контактах сайта. */
 export const SHIPPING = COMPANY.shipping;
+
+/**
+ * Призыв к действию. Обещает ровно то, что компания и делает по шагам
+ * работы: цену называют по телефону, окно погрузки согласуют.
+ */
+export const CALL = typo('Позвоните с объёмом и сроком — назовём цену и согласуем окно погрузки');
 
 /**
  * Заголовок-предложение. Это не данные, а тот же текст, что в заголовке
@@ -47,7 +46,8 @@ export const CONTACTS = {
   phone: COMPANY.phoneLabel,
   phoneHref: `tel:${COMPANY.phone}`,
   address: COMPANY.address,
-  hours: COMPANY.hoursShipping,
+  /** Короткая форма для футера: «Отгрузка круглосуточно». */
+  hours: `Отгрузка ${SHIPPING_HOURS_SHORT}`,
   /** Адрес сайта. Пусто — на визитке не рисуется ни строка, ни QR-код. */
   site: COMPANY.site,
 };
