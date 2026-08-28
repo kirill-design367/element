@@ -51,17 +51,12 @@ export const CARD_CSS = `
 
 .vc-body{display:flex;flex-direction:column;padding:0 14mm 14mm}
 .vc h2{font-weight:900;letter-spacing:-.03em;line-height:.95}
-.vc-offer{font-size:11.5mm;font-weight:900;letter-spacing:-.035em;line-height:.94}
-.vc-lead{font-size:3.6mm;line-height:1.45;color:var(--ink-2)}
-.vc-kicker{font-size:2.9mm;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.vc-rows{display:grid;gap:0}
-.vc-row{display:grid;grid-template-columns:44mm 12mm 1fr;align-items:baseline;
-  gap:0 3mm;padding:2.6mm 0;border-top:.3mm solid var(--line)}
-.vc-row:first-child{border-top:0}
-.vc-name{font-size:4.2mm;font-weight:700;letter-spacing:-.02em}
-.vc-count{font-size:3.1mm;color:var(--ink-3);text-align:right;
-  font-variant-numeric:tabular-nums}
-.vc-spec{font-size:3.1mm;line-height:1.35;color:var(--ink-2)}
+/* Ширина заголовка объявлена здесь, а не инлайном: 172 мм — это полоса
+   набора (210 минус два поля по 14) плюс запас на выносной элемент. */
+.vc-offer{font-size:12mm;font-weight:900;letter-spacing:-.035em;line-height:.94;
+  max-width:172mm}
+.vc-kicker{font-size:3mm;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
 /* Показатели — карточки, а не три колонки текста: белый лист поверх
    цементного поля, крупное скругление, тонкая обводка. Тот же рецепт, что у
    карточек на сайте, только радиус крупнее — на A4 6 мм читаются как 10 px
@@ -78,6 +73,7 @@ export const CARD_CSS = `
    разной высоте от числа — три линейки на трёх уровнях. */
 .vc-card-l{margin-top:5mm;padding-top:4mm;border-top:.3mm solid var(--line);
   font-size:3.6mm;line-height:1.3;color:var(--ink-2)}
+
 /* Призыв — ВЫНОСКА, отдельный объект: тот же белый лист со скруглением, что
    у карточек показателей, и синяя грань слева. Грань — псевдоэлемент, а не
    border: у border скругление коробки срезает ему концы, и вместо стойки
@@ -89,6 +85,7 @@ export const CARD_CSS = `
 .vc-call::before{content:'';align-self:stretch;width:2.5mm;border-radius:1.25mm;
   background:var(--accent);flex:none}
 .vc-call p{font-size:5.4mm;font-weight:700;line-height:1.25;letter-spacing:-.015em}
+
 /* СИНИЙ, ОБЪЕКТ ТРЕТИЙ: контакты — единственная сплошная синяя плашка на
    листе. Телефон, адрес и часы отгрузки лежали тремя отдельными кусками
    текста внизу; теперь это один объект во всю ширину полосы набора. */
@@ -109,19 +106,11 @@ export const CARD_CSS = `
    сканер, светлые по синему — не любой. */
 .vc-qr-box{background:#fff;border-radius:3mm;padding:2.5mm;flex:none}
 .vc-qr{display:block;width:24mm;height:24mm;color:var(--ink)}
-.vc-legal{font-size:2.7mm;line-height:1.5;color:var(--ink-3)}
-.vc-legal b{font-weight:400;color:var(--ink-2)}
-.vc-rule{height:.3mm;background:var(--line)}
 
-/* Тёмный вариант: те же токены, что у .inv на сайте. */
-.vc-dark{background:var(--ink);color:var(--surface)}
-.vc-dark .vc-lead,.vc-dark .vc-spec,.vc-dark .vc-fact-l{color:#b9bec6}
-.vc-dark .vc-kicker,.vc-dark .vc-count,.vc-dark .vc-legal{color:#8b929c}
-.vc-dark .vc-legal b{color:#b9bec6}
-.vc-dark .vc-row{border-top-color:rgba(255,255,255,.14)}
-.vc-dark .vc-rule{background:rgba(255,255,255,.14)}
-.vc-dark .vc-phone{color:#9db4f2}
-.vc-dark .vc-fact-v{color:#9db4f2}
+/* Реквизиты стоят последней строкой листа без линии над ними: линия здесь
+   отделяла бы их от плашки контактов, у которой и так есть свой край. */
+.vc-legal{font-size:2.8mm;line-height:1.5;color:var(--ink-3)}
+.vc-legal b{font-weight:400;color:var(--ink-2)}
 
 @media print{
   @page{size:210mm 297mm;margin:0}
@@ -166,16 +155,23 @@ function legal() {
 }
 
 /**
- * Фотографический: крупный кадр во всю ширину, типографика под ним.
+ * Визитка. Сверху кадр площадки, логотип на стыке кадра и бумаги, ниже —
+ * заголовок, карточки показателей, выноска призыва и синий блок контактов.
  *
  * Логотип стоит НА СТЫКЕ: середина знака совпадает с нижней кромкой кадра,
  * верхняя половина лежит на фотографии, нижняя — на бумаге. Поэтому он вынут
  * из кадра в собственный слой поверх обоих (`.vc-seam`), а не лежит внутри
  * кадра, как раньше: изнутри кадра выйти за его границу нечем.
+ *
+ * РИТМ ЛИСТА. Между всеми пятью блоками стоит одна и та же гибкая отбивка
+ * `margin-top:auto` с минимумом в 5-7 мм: свободная высота делится между
+ * ними поровну, а не копится внизу одним провалом. Поэтому кадр и опущен с
+ * 88 до 78 мм — на 88 свободного места оставалось меньше, чем нужно пяти
+ * промежуткам, и блоки сбивались в верхние две трети.
  */
 function photoCard() {
   const src = asset('/img/park-1920.webp');
-  const PHOTO = 88;   // высота кадра, мм
+  const PHOTO = 78;   // высота кадра, мм
   const LOGO = 15;    // высота логотипа, мм — половина уходит на кадр
   return `<div class="vc">`
     + `<div style="height:${PHOTO}mm;background:var(--ink)">`
@@ -185,13 +181,12 @@ function photoCard() {
     /* Верхнее поле — половина знака плюс обычный воздух: текст не должен
        подходить к логотипу ближе, чем к краям листа. */
     + `<div class="vc-body" style="height:${297 - PHOTO}mm;padding-top:${LOGO / 2 + 7}mm">`
-    + `<h2 class="vc-offer" style="font-size:11mm;max-width:170mm">${OFFER}</h2>`
-    + `<p class="vc-kicker" style="margin-top:7mm">${SHIPPING}</p>`
-    + `<div style="margin-top:auto;padding-top:10mm">${facts()}</div>`
-    + `<div style="margin-top:9mm">${call()}</div>`
-    + `<div style="margin-top:auto;padding-top:10mm">${contacts()}</div>`
-    + `<div class="vc-rule" style="margin:5mm 0 4mm"></div>`
-    + legal()
+    + `<h2 class="vc-offer">${OFFER}</h2>`
+    + `<p class="vc-kicker" style="margin-top:5mm">${SHIPPING}</p>`
+    + `<div style="margin-top:auto;padding-top:7mm">${facts()}</div>`
+    + `<div style="margin-top:auto;padding-top:5mm">${call()}</div>`
+    + `<div style="margin-top:auto;padding-top:5mm">${contacts()}</div>`
+    + `<div style="margin-top:auto;padding-top:5mm">${legal()}</div>`
     + `</div></div>`;
 }
 
