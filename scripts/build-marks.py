@@ -312,6 +312,39 @@ def ridge(text, rise=PHI, span=1.0, apex=0.5, widen=0.0):
     return flat
 
 
+# ─── направление В: слово в плашке со скобой ──────────────────────────────
+#
+# Тёмный прямоугольник, внутри слева светлая скоба: вертикаль у левого края и
+# два плеча вправо. Скоба закрыта слева, открыта справа, верхнее плечо
+# длиннее нижнего. Плечи заканчиваются ровным срезом — без загибов и крючков.
+# Слово того же веса, что скоба, выходит вправо за открытый конец.
+
+
+def bracket(text, arm_top=0.62, arm_bot=0.30, sb=1.0, pad=0.42, gy=0.22, gx=0.30):
+    """Плашка со скобой. arm_* — доли ширины слова, sb — вес скобы к штриву."""
+    w, _ = word(text)
+    x0, y0, x1, y1 = bbox(w)
+    ww = x1 - x0
+    s = sb * STEM
+    wx = -x0                                    # слово от нуля
+    bx = -(gx * CAP + s)                        # вертикаль скобы левее слова
+    inner = CAP + 2 * gy * CAP
+    yb0 = -gy * CAP - s
+    yb1 = yb0 + inner + 2 * s
+    shape = (rect(bx, yb0, bx + s, yb1)                       # вертикаль
+             + rect(bx + s, yb1 - s, bx + s + arm_top * ww, yb1)   # верхнее плечо
+             + rect(bx + s, yb0, bx + s + arm_bot * ww, yb0 + s))  # нижнее плечо
+    p = pad * CAP
+    px0, py0 = bx - p, yb0 - p
+    px1, py1 = max(x1 + wx, bx + s + arm_top * ww) + p, yb1 + p
+    return {
+        'plate': rect(px0, py0, px1, py1),
+        'shape': shape,
+        'word': move(w, wx),
+        'box': (px0, py0, px1, py1),
+    }
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -329,6 +362,13 @@ RIDGE = [
     ('b3', dict(rise=PHI, span=1.0, apex=0.36, widen=0.0)),
     ('b5', dict(rise=PHI, span=1.0, apex=0.5, widen=0.14)),
     ('b6', dict(rise=1.35, span=1.0, apex=0.5, widen=0.0)),
+]
+BRACKET = [
+    ('v1', dict(arm_top=0.62, arm_bot=0.30, sb=1.0, pad=0.42, gy=0.22, gx=0.30)),
+    ('v2', dict(arm_top=0.92, arm_bot=0.30, sb=1.0, pad=0.42, gy=0.22, gx=0.30)),
+    ('v3', dict(arm_top=0.38, arm_bot=0.18, sb=1.0, pad=0.42, gy=0.22, gx=0.30)),
+    ('v4', dict(arm_top=0.62, arm_bot=0.30, sb=0.72, pad=0.42, gy=0.22, gx=0.30)),
+    ('v5', dict(arm_top=0.62, arm_bot=0.30, sb=1.0, pad=0.24, gy=0.15, gx=0.24)),
 ]
 
 
@@ -369,6 +409,17 @@ def main():
             r = ridge(text, **kw)
             b = bbox(r)
             art(f'{name}-{key}', b, [{'d': _d(r, b[0], b[3]), 'role': 'ink'}])
+
+    for name, kw in BRACKET:
+        for key, text in WORDS.items():
+            v = bracket(text, **kw)
+            x0, y0, x1, y1 = v['box']
+            wb = bbox(v['word'])
+            art(f'{name}-{key}', v['box'], [
+                {'d': _d(v['plate'], x0, y1), 'role': 'ink'},
+                {'d': _d(v['shape'], x0, y1), 'role': 'bg'},
+                {'ref': f'w-{key}', 'role': 'bg',
+                 'x': round(wb[0] - x0), 'y': round(y1 - wb[3])}])
 
     j = lambda o: json.dumps(o, ensure_ascii=False, separators=(',', ':'))
     with open(OUT, 'w', encoding='utf-8') as fh:
