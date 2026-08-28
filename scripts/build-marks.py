@@ -331,16 +331,19 @@ def main():
     for name, kw in MARKS:
         track = kw.get('track', 0.0)
         wk = f'w{round(track * 100):+d}'
-        m = mark(**kw)
-        fixes[name] = m['fix']
-        x0, y0, x1, y1 = m['box']
-        wb = shared(wk, m['word'])
-        art(name, m['box'], [
-            {'d': _d([m['plate']], x0, y1), 'role': 'ink'},
-            {'d': _d([m['shape']], x0, y1), 'role': 'bg'},
-            {'ref': wk, 'role': 'bg',
-             'x': round(wb[0] - x0), 'y': round(y1 - wb[3])},
-        ])
+        for plate in (True, False):
+            m = mark(plate=plate, **kw)
+            fixes[name] = m['fix']
+            x0, y0, x1, y1 = m['box']
+            wb = shared(wk, m['word'])
+            role = 'bg' if plate else 'ink'
+            parts = []
+            if m['plate']:
+                parts.append({'d': _d([m['plate']], x0, y1), 'role': 'ink'})
+            parts.append({'d': _d([m['shape']], x0, y1), 'role': role})
+            parts.append({'ref': wk, 'role': role,
+                          'x': round(wb[0] - x0), 'y': round(y1 - wb[3])})
+            art(name if plate else f'{name}-n', m['box'], parts)
 
         c = compact(pad=min(kw.get('pad', 0.40) - 0.12, 0.28),
                     gy=kw.get('gy', 0.22), end=kw.get('end', 0.15))

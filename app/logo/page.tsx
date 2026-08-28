@@ -8,7 +8,7 @@ import { BRACE, FONT_CHECK, HEADER_CAP, VARIANTS, type Variant } from './variant
 export const metadata: Metadata = {
   title: 'Логотип: десять вариаций',
   description:
-    'Служебная страница выбора: слово в плашке со скобой, набор TT Octosquares Expanded Black, десять вариаций.',
+    'Служебная страница выбора: слово в плашке со скобой, набор TT Octosquares Expanded Black, десять вариаций и версии без плашки.',
   /* В поиск страницу не отдаём: она для заказчика, а не для покупателя.
      Ссылок на неё нет ни в меню, ни в подвале — открывается прямым адресом. */
   robots: { index: false, follow: false },
@@ -104,6 +104,20 @@ function statesHtml(v: Variant, p: Palette) {
     + `<div class="grid min-w-0 content-start gap-4 sm:grid-cols-2">${rest}</div></div>`;
 }
 
+/** Версия без плашки: скоба и слово прямо на фоне, тёмным по светлому.
+ *  Показывается там, где плашка мешает больше всего, — крупно, в шапке и
+ *  мелко. */
+function plainHtml(v: Variant, p: Palette) {
+  const light = `${paint(p)};background:${p.bg}`;
+  return `<div class="mt-4 grid gap-4 sm:grid-cols-3">`
+    + cell('Без плашки: крупно', light, logo(`${v.id}-n`, { cap: 52 }, 'h-auto max-w-full'))
+    + cell('Без плашки: в размере шапки', light,
+      logo(`${v.id}-n`, { cap: HEADER_CAP }, 'h-auto max-w-full'))
+    + cell('Без плашки: мелко, высота 20 px', light,
+      logo(`${v.id}-n`, { height: 20 }, 'h-auto max-w-full'))
+    + `</div>`;
+}
+
 /** Три пары красок на опорном состоянии. */
 function palettesHtml(v: Variant) {
   return `<div class="mt-6 grid gap-4 sm:grid-cols-3">` + PALETTES.map((p) =>
@@ -129,7 +143,7 @@ function VariantCard({ v }: { v: Variant }) {
 
       <div
         dangerouslySetInnerHTML={{
-          __html: palettesHtml(v) + statesHtml(v, PALETTES[0]),
+          __html: palettesHtml(v) + statesHtml(v, PALETTES[0]) + plainHtml(v, PALETTES[0]),
         }}
       />
 
@@ -177,7 +191,7 @@ export default function LogoPage() {
         </p>
         <p className="mt-3 max-w-[64ch] text-[16px] leading-relaxed text-ink-2 md:text-[17px]">
           Вариаций десять, и отличаются они тремя вещами: длиной плеч, набором слова и глубиной
-          фаски на торцах плеч. Версии без плашки приходят следующим коммитом.
+          фаски на торцах плеч. К каждой показана версия без плашки — скоба и слово прямо на фоне.
         </p>
 
         <section className="mt-10 rounded-card border border-line bg-surface p-5 shadow-card md:p-8">
