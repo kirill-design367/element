@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Геометрия логотипов для служебной страницы /logo.
+"""Геометрия логотипа для служебной страницы /logo.
 
-Три направления: насыпь из слоёв со словом внутри, силуэт слова как насыпь,
-слово в плашке со скобой. Всё в единицах шрифта при upem 1000; высота
-прописных 680 и высота строчных 495 — из таблицы OS/2, ни одно число не
-подобрано на глаз.
+Устройство одно: тёмная плашка, внутри слева светлая скоба из вертикали и
+двух плеч, слово вывороткой того же веса выходит вправо за открытый конец
+скобы. Верхние левые и нижние левые углы скобы и буквы Э срезаны одной и
+той же фаской под 45°.
 
-Главная работа здесь — набор. Межбуквенные интервалы не метрические:
-они выровнены по ОПТИЧЕСКОЙ ПЛОЩАДИ просвета между соседями, см. optical().
+Всё в единицах шрифта при upem 1000; высота прописных 680 и высота
+строчных 495 — из таблицы OS/2, ни одно число не подобрано на глаз.
+
+Межбуквенные интервалы не метрические: они выровнены по ОПТИЧЕСКОЙ ПЛОЩАДИ
+просвета между соседями, см. place().
 
 Пересобрать:  python3 scripts/build-marks.py
 """
@@ -161,15 +164,6 @@ def word(text, target=None):
     out = []
     for g, x in zip(gs, xs):
         out += move(g, x)
-    return out, deltas, goal
-
-
-def word(text, target=None):
-    """Слово, набранное по оптике; левый край и базовая линия в нуле."""
-    gs, xs, deltas, goal = optical(text, target)
-    out = []
-    for g, x in zip(gs, xs):
-        out += move(g, x)
     return out, deltas
 
 
@@ -178,349 +172,16 @@ def rect(x0, y0, x1, y1):
     return [[(x0, y0), (x1, y0), (x1, y1), (x0, y1)]]
 
 
-# ─── направление А: насыпь из слоёв, слово внутри ─────────────────────────
-#
-# Трапеция шире внизу, рёбра под заданным углом. Слои растут сверху вниз в
-# золотом отношении: каждый нижний в 1,618 раза выше верхнего. Слово лежит
-# целиком внутри нижнего слоя, поэтому просветы между слоями его не режут.
-
-
-def heap(text, angle=45, layers=3, gap=0.05, mv=0.30, ms=0.55, aspect=None):
-    """Насыпь со словом. Все размеры — доли высоты прописных."""
-    w, _ = word(text)
-    x0, y0, x1, y1 = bbox(w)
-    ww, wh = x1 - x0, y1 - y0
-    k = 1 / math.tan(math.radians(angle))       # вылет ребра на единицу высоты
-    g = gap * CAP
-    # Снизу вверх высоты убывают в золотом отношении: нижний слой самый
-    # высокий, в него и ложится слово целиком.
-    hs = [(wh + 2 * mv * CAP) / PHI ** i for i in range(layers)]
-    H = sum(hs) + (layers - 1) * g
-    y_top_word = mv * CAP + wh                  # верх слова от низа трапеции
-    Wb = ww + 2 * ms * CAP + 2 * k * y_top_word
-    if aspect:                                  # компактная форма: заданная доля
-        Wb = H / aspect
-    def edge(y):
-        return k * y, Wb - k * y
-    slices, y = [], 0.0
-    for h in hs:
-        a, b = edge(y), edge(y + h)
-        slices.append([[(a[0], y), (a[1], y), (b[1], y + h), (b[0], y + h)]])
-        y += h + g
-    wx = (Wb - ww) / 2 - x0
-    return {
-        'slices': slices,                       # снизу вверх
-        'word': move(w, wx, mv * CAP - y0),
-        'box': (0.0, 0.0, Wb, H),
-        'top': Wb - 2 * k * H,
-    }
-
-
-# ─── направление Б: силуэт слова как насыпь ───────────────────────────────
-#
-# Знака нет: форму держит сам силуэт. Высота букв разная, ТОЛЩИНА ШТРИХА
-# одна на всё слово. Достигается растяжением полосы: у каждой буквы ищется
-# самый высокий участок, где горизонтальное сечение не меняет числа
-# пересечений — там нет ни одной горизонтальной кромки, — и растягивается
-# только он. Перекладины и наплывы при этом не трогаются вовсе.
-
-
-def _crossings(cs, y):
-    n = 0
-    for c in cs:
-        for i in range(len(c)):
-            (xa, ya), (xb, yb) = c[i], c[(i + 1) % len(c)]
-            if (ya <= y < yb) or (yb <= y < ya):
-                n += 1
-    return n
-
-
-def _split_at(cs, ys):
-    """Вставить вершины на заданных высотах, чтобы излом лёг ровно на них."""
-    out = []
-    for c in cs:
-        res = []
-        for i in range(len(c)):
-            (xa, ya), (xb, yb) = c[i], c[(i + 1) % len(c)]
-            res.append((xa, ya))
-            for y in sorted(ys, reverse=yb < ya):
-                if (ya < y < yb) or (yb < y < ya):
-                    res.append((xa + (xb - xa) * (y - ya) / (yb - ya), y))
-        out.append(res)
-    return out
-
-
-def stretch(cs, dy):
-    """Поднять верх знака на dy, растянув только прямую полосу."""
-    if abs(dy) < 1e-6:
-        return cs
-    _, y0, _, y1 = bbox(cs)
-    rows = [y0 + i * STEP for i in range(1, int((y1 - y0) / STEP))]
-    counts = [_crossings(cs, y) for y in rows]
-    best = (0, 0, 0)
-    i = 0
-    while i < len(rows):
-        j = i
-        while j + 1 < len(rows) and counts[j + 1] == counts[i]:
-            j += 1
-        if rows[j] - rows[i] > best[0]:
-            best = (rows[j] - rows[i], rows[i], rows[j])
-        i = j + 1
-    _, ya, yb = best
-    if yb - ya < STEP:
-        ya, yb = y0, y1
-    cs = _split_at(cs, (ya, yb))
-    out = []
-    for c in cs:
-        out.append([(x, y + dy if y >= yb else
-                     (y + dy * (y - ya) / (yb - ya) if y > ya else y)) for x, y in c])
-    return out
-
-
-def ridge(text, rise=PHI, span=1.0, apex=0.5, widen=0.0):
-    """Слово, у которого верхняя кромка — пологий склон из прямых отрезков.
-
-    rise  — во сколько раз самая высокая буква выше самой низкой;
-    span  — какая доля ширины слова участвует в подъёме (1 — вся);
-    apex  — где вершина по ширине слова;
-    widen — насколько буквы шире на вершине (0 — ширина постоянная).
-
-    Набор пересчитывается ПОСЛЕ изменения высот: выросшая буква иначе видна
-    соседям, и просветы, выровненные до растяжения, разъезжаются.
-    """
-    gs, xs, _, _ = optical(text)
-    boxes = [bbox(g) for g in gs]
-    centers = [(b[0] + b[2]) / 2 + x for b, x in zip(boxes, xs)]
-    lo, hi = min(centers), max(centers)
-    ax = lo + (hi - lo) * apex
-    half = max(ax - lo, hi - ax) / max(span, 1e-6)
-    out, advs = [], []
-    for ch, g, b, c in zip(text, gs, boxes, centers):
-        t = max(0.0, 1 - abs(c - ax) / half)     # 0 у края склона, 1 на вершине
-        s2 = stretch(g, (b[3] - b[1]) * (rise - 1) * t)
-        if widen:
-            k = 1 + widen * t
-            x0 = bbox(s2)[0]
-            s2 = [[(x0 + (px - x0) * k, py) for px, py in c2] for c2 in s2]
-        out.append(s2)
-        adv = _hmtx[_cmap[ord(ch)]][0]
-        advs.append(adv + (bbox(s2)[2] - bbox(s2)[0]) - (b[2] - b[0]))
-    xs2, _, _ = place(out, advs)
-    flat = []
-    for g, x in zip(out, xs2):
-        flat += move(g, x)
-    return flat
-
-
-# ─── направление В: слово в плашке со скобой ──────────────────────────────
-#
-# Тёмный прямоугольник, внутри слева светлая скоба: вертикаль у левого края и
-# два плеча вправо. Скоба закрыта слева, открыта справа, верхнее плечо
-# длиннее нижнего. Плечи заканчиваются ровным срезом — без загибов и крючков.
-# Слово того же веса, что скоба, выходит вправо за открытый конец.
-
-
-def bracket(text, arm_top=0.62, arm_bot=0.30, sb=1.0, pad=0.42, gy=0.22, gx=0.30):
-    """Плашка со скобой. arm_* — доли ширины слова, sb — вес скобы к штриву."""
-    w, _ = word(text)
-    x0, y0, x1, y1 = bbox(w)
-    ww = x1 - x0
-    s = sb * STEM
-    wx = -x0                                    # слово от нуля
-    bx = -(gx * CAP + s)                        # вертикаль скобы левее слова
-    inner = CAP + 2 * gy * CAP
-    yb0 = -gy * CAP - s
-    yb1 = yb0 + inner + 2 * s
-    shape = (rect(bx, yb0, bx + s, yb1)                       # вертикаль
-             + rect(bx + s, yb1 - s, bx + s + arm_top * ww, yb1)   # верхнее плечо
-             + rect(bx + s, yb0, bx + s + arm_bot * ww, yb0 + s))  # нижнее плечо
-    p = pad * CAP
-    px0, py0 = bx - p, yb0 - p
-    px1, py1 = max(x1 + wx, bx + s + arm_top * ww) + p, yb1 + p
-    return {
-        'plate': rect(px0, py0, px1, py1),
-        'shape': shape,
-        'word': move(w, wx),
-        'box': (px0, py0, px1, py1),
-    }
-
-
-# ─── компактные формы ─────────────────────────────────────────────────────
-
-
-def heap_compact(angle, layers, gap):
-    """Насыпь под аватарку: буква Э в нижнем слое, рёбра круче.
-
-    Угол здесь свой и это осознанно: при 45° трапеция не бывает у́же чем два
-    к одному — верхняя грань уходит в ноль. Для квадрата склон приходится
-    ставить круче, иначе в аватарке остаются пустые поля сверху и снизу.
-    """
-    e, _ = word('Э')
-    x0, y0, x1, y1 = bbox(e)
-    ew, eh = x1 - x0, y1 - y0
-    mv, ms = 0.34 * CAP, 0.44 * CAP
-    g = gap * CAP
-    hs = [(eh + 2 * mv) / PHI ** i for i in range(layers)]
-    H = sum(hs) + (layers - 1) * g
-    Wb = H * 1.06                                # почти квадрат
-    k = (Wb - 0.34 * Wb) / (2 * H)               # верхняя грань — треть нижней
-    def edge(y):
-        return k * y, Wb - k * y
-    slices, y = [], 0.0
-    for h in hs:
-        a, b = edge(y), edge(y + h)
-        slices.append([[(a[0], y), (a[1], y), (b[1], y + h), (b[0], y + h)]])
-        y += h + g
-    return {'slices': slices, 'word': move(e, (Wb - ew) / 2 - x0, mv - y0),
-            'box': (0.0, 0.0, Wb, H)}
-
-
-def ridge_compact(rise=PHI, widen=0.0, **_):
-    """У направления Б компактной формы нет по построению: логотип — это
-    слово целиком. Поэтому она сделана ВЫРЕЗКОЙ: первые две буквы с тем же
-    подъёмом. Э остаётся в базовой высоте, Л поднята — склон виден, штрих
-    тот же, ничего нового не выдумано."""
-    return ridge('ЭЛ', rise=rise, span=1.0, apex=1.0, widen=widen)
-
-
-def bracket_compact(**kw):
-    """Плашка со скобой и буквой Э: та же конструкция, слово ужато до
-    инициала, плечи укорочены до его ширины."""
-    return bracket('Э', **kw)
-
-
 # ─── сборка ───────────────────────────────────────────────────────────────
-
-WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
-
-HEAP = [
-    ('a1', dict(angle=45, layers=3, gap=0.05, mv=0.30, ms=0.55)),
-    ('a2', dict(angle=34, layers=3, gap=0.05, mv=0.30, ms=0.55)),
-    ('a4', dict(angle=45, layers=4, gap=0.05, mv=0.30, ms=0.55)),
-    ('a5', dict(angle=45, layers=3, gap=0.11, mv=0.30, ms=0.55)),
-    ('a6', dict(angle=45, layers=3, gap=0.05, mv=0.18, ms=0.32)),
-]
-RIDGE = [
-    ('b1', dict(rise=PHI, span=1.0, apex=0.5, widen=0.0)),
-    ('b2', dict(rise=PHI, span=0.62, apex=0.5, widen=0.0)),
-    ('b3', dict(rise=PHI, span=1.0, apex=0.36, widen=0.0)),
-    ('b5', dict(rise=PHI, span=1.0, apex=0.5, widen=0.14)),
-    ('b6', dict(rise=1.35, span=1.0, apex=0.5, widen=0.0)),
-]
-BRACKET = [
-    ('v1', dict(arm_top=0.62, arm_bot=0.30, sb=1.0, pad=0.42, gy=0.22, gx=0.30)),
-    ('v2', dict(arm_top=0.92, arm_bot=0.30, sb=1.0, pad=0.42, gy=0.22, gx=0.30)),
-    ('v3', dict(arm_top=0.38, arm_bot=0.18, sb=1.0, pad=0.42, gy=0.22, gx=0.30)),
-    ('v4', dict(arm_top=0.62, arm_bot=0.30, sb=0.72, pad=0.42, gy=0.22, gx=0.30)),
-    ('v5', dict(arm_top=0.62, arm_bot=0.30, sb=1.0, pad=0.24, gy=0.15, gx=0.24)),
-]
-
-
-def _d(cs, x0, y1):
-    return ''.join('M' + 'L'.join(f'{round(p[0]-x0)} {round(y1-p[1])}' for p in c) + 'Z'
-                   for c in cs)
+#
+# Три прошлых направления убраны целиком: насыпь из слоёв, силуэт слова и
+# лок-апы на знаке «Скол». Направление выбрано, устройство одно, и строится
+# оно следующим коммитом. Здесь остаются метрики шрифта и оптический набор —
+# они не зависят от того, что именно из слова собирают.
 
 
 def main():
-    arts, paths = {}, {}
-    deltas = {}
-    for key, text in WORDS.items():
-        w, dl = word(text)
-        x0, y0, x1, y1 = bbox(w)
-        paths[f'w-{key}'] = {'d': _d(w, x0, y1), 'w': round(x1 - x0), 'h': round(y1 - y0)}
-        deltas[text] = dl
-    ew, _ = word('Э')
-    ex0, ey0, ex1, ey1 = bbox(ew)
-    paths['w-e'] = {'d': _d(ew, ex0, ey1), 'w': round(ex1 - ex0), 'h': round(ey1 - ey0)}
-
-    def art(aid, box, parts):
-        x0, y0, x1, y1 = box
-        arts[aid] = {'w': round(x1 - x0), 'h': round(y1 - y0), 'cap': CAP, 'parts': parts}
-
-    for name, kw in HEAP:
-        for key, text in WORDS.items():
-            h = heap(text, **kw)
-            x0, y0, x1, y1 = h['box']
-            wb = bbox(h['word'])
-            parts = [{'d': _d(s, x0, y1), 'role': 'accent' if i == len(h['slices']) - 1 else 'ink'}
-                     for i, s in enumerate(h['slices'])]
-            parts.append({'ref': f'w-{key}', 'role': 'bg',
-                          'x': round(wb[0] - x0), 'y': round(y1 - wb[3])})
-            art(f'{name}-{key}', h['box'], parts)
-        c = heap_compact(kw['angle'], kw['layers'], kw['gap'])
-        x0, y0, x1, y1 = c['box']
-        wb = bbox(c['word'])
-        parts = [{'d': _d(s, x0, y1), 'role': 'accent' if i == len(c['slices']) - 1 else 'ink'}
-                 for i, s in enumerate(c['slices'])]
-        parts.append({'ref': 'w-e', 'role': 'bg',
-                      'x': round(wb[0] - x0), 'y': round(y1 - wb[3])})
-        art(f'{name}-c', c['box'], parts)
-
-    for name, kw in RIDGE:
-        for key, text in WORDS.items():
-            r = ridge(text, **kw)
-            b = bbox(r)
-            art(f'{name}-{key}', b, [{'d': _d(r, b[0], b[3]), 'role': 'ink'}])
-        c = ridge_compact(**kw)
-        b = bbox(c)
-        art(f'{name}-c', b, [{'d': _d(c, b[0], b[3]), 'role': 'ink'}])
-
-    for name, kw in BRACKET:
-        for key, text in WORDS.items():
-            v = bracket(text, **kw)
-            x0, y0, x1, y1 = v['box']
-            wb = bbox(v['word'])
-            art(f'{name}-{key}', v['box'], [
-                {'d': _d(v['plate'], x0, y1), 'role': 'ink'},
-                {'d': _d(v['shape'], x0, y1), 'role': 'bg'},
-                {'ref': f'w-{key}', 'role': 'bg',
-                 'x': round(wb[0] - x0), 'y': round(y1 - wb[3])}])
-        c = bracket_compact(**kw)
-        x0, y0, x1, y1 = c['box']
-        wb = bbox(c['word'])
-        art(f'{name}-c', c['box'], [
-            {'d': _d(c['plate'], x0, y1), 'role': 'ink'},
-            {'d': _d(c['shape'], x0, y1), 'role': 'bg'},
-            {'ref': 'w-e', 'role': 'bg', 'x': round(wb[0] - x0), 'y': round(y1 - wb[3])}])
-
-    j = lambda o: json.dumps(o, ensure_ascii=False, separators=(',', ':'))
-    with open(OUT, 'w', encoding='utf-8') as fh:
-        fh.write(f'''/* Файл собран scripts/build-marks.py — руками не править.
-
-   Контуры вынуты из assets/fonts/CoFoSans-Black-Trial.otf. Набор НЕ
-   метрический: межбуквенные интервалы выровнены по оптической площади
-   просвета, см. place() в скрипте. Поправки к метрике шрифта в единицах
-   шрифта: {j(deltas)}.
-
-   Единицы — единицы шрифта при upem {UPEM}. Высота прописных {CAP} и высота
-   строчных {XH} из таблицы OS/2, ширина штриха {STEM} измерена по Н. Кривые
-   разбиты с допуском {TOL} единицы и округлены до целых.
-
-   Пересобрать:  python3 scripts/build-marks.py
-*/
-
-/** Роль краски в палитре: фон, основная, акцентная. */
-export type Role = 'bg' | 'ink' | 'accent';
-
-/** Кусок композиции: свой контур или ссылка на общий. */
-export type Part = {{ d?: string; ref?: string; x?: number; y?: number; role: Role }};
-
-/** Композиция: рамка в единицах шрифта, cap — высота прописных внутри неё. */
-export type Art = {{ w: number; h: number; cap: number; parts: Part[] }};
-
-export const METRICS = {{ upem: {UPEM}, cap: {CAP}, xHeight: {XH}, stem: {STEM} }};
-
-/** Общие контуры: слово в двух наборах и одна буква для компактных форм. */
-export const PATHS: Record<string, {{ d: string; w: number; h: number }}> = {j(paths)};
-
-export const ART: Record<string, Art> = {j(arts)};
-''')
-    total = sum(len(p['d']) for p in paths.values()) + sum(
-        len(pt.get('d', '')) for a in arts.values() for pt in a['parts'])
-    print(f'композиций {len(arts)}, общих контуров {len(paths)}, байт путей {total}')
-    for k in ('a1-caps', 'b1-caps', 'v1-caps', 'a1-c', 'b1-c', 'v1-c'):
-        if k in arts:
-            print(f"  {k:9} {arts[k]['w']}×{arts[k]['h']}")
+    print('геометрия ещё не собрана: устройство строится следующим коммитом')
 
 
 if __name__ == '__main__':
