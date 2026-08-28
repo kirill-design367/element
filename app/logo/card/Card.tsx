@@ -59,7 +59,12 @@ export const CARD_CSS = `
    набора (210 минус два поля по 14) плюс запас на выносной элемент. */
 .vc-offer{font-size:12mm;font-weight:900;letter-spacing:-.035em;line-height:.94;
   max-width:172mm}
-.vc-kicker{font-size:3mm;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+/* Строка про самовывоз набрана обычным текстом, а не служебной пометкой:
+   прописными вразрядку бледно-серым она читалась подписью к чему-то, хотя
+   это условие работы — то, ради чего к нам едут. Подчёркивание отбивает её
+   от заголовка сверху и от карточек снизу без второго цвета и без линеек. */
+.vc-kicker{font-size:4mm;line-height:1.4;color:var(--ink);text-decoration:underline;
+  text-underline-offset:.24em;text-decoration-thickness:.055em}
 
 /* Показатели — карточки, а не три колонки текста: белый лист поверх
    цементного поля, крупное скругление, тонкая обводка. Тот же рецепт, что у
