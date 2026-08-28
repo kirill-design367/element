@@ -166,6 +166,14 @@ def rect(x0, y0, x1, y1):
     return [[(x0, y0), (x1, y0), (x1, y1), (x0, y1)]]
 
 
+def arc(cx, cy, r, a0, a1):
+    """Дуга ломаной. Число шагов — из допуска: стрелка прогиба r·θ²/8 ≤ TOL."""
+    span = abs(a1 - a0)
+    n = max(4, int(span / (2 * math.sqrt(2 * TOL / r))) + 1)
+    return [(cx + r * math.cos(a0 + (a1 - a0) * i / n),
+             cy + r * math.sin(a0 + (a1 - a0) * i / n)) for i in range(n + 1)]
+
+
 # ─── вывод ────────────────────────────────────────────────────────────────
 
 def art(cs, rule='evenodd'):
@@ -195,6 +203,10 @@ def art(cs, rule='evenodd'):
 SLOT = 0.14 * CAP          # 4. толщина сквозной прорези
 SREZ = 0.42 * CAP          # 5. глубина среза блока по 45°
 BASE = 0.22 * CAP          # 6. толщина сплошного основания
+BADGE = 1.60 * CAP         # 7. диаметр круга монограммы
+BADGE_FILL = 0.55          # 7. доля буквы в круге
+TILE = 1.70 * CAP          # 9. сторона квадрата двухбуквенной монограммы
+TILE_FILL = 0.78           # 9. доля пары букв по ширине квадрата
 
 
 def prorez(text):
@@ -222,6 +234,26 @@ def osnovanie(text):
     return cs + rect(x0, y0, x1, y0 + BASE)
 
 
+def _fit(cs, height=None, width=None):
+    x0, y0, x1, y1 = bbox(cs)
+    s = height / (y1 - y0) if height else width / (x1 - x0)
+    return [[((x - (x0 + x1) / 2) * s, (y - (y0 + y1) / 2) * s) for x, y in c] for c in cs]
+
+
+def badge(letters=('Э',)):
+    """7. Круг с буквой вывороткой. Буква — дырка, заливка одна."""
+    r = BADGE / 2
+    letter = _fit(word(''.join(letters)), height=BADGE * BADGE_FILL)
+    return [arc(0, 0, r, 0, 2 * math.pi)] + letter
+
+
+def tile():
+    """9. Квадрат с двухбуквенной монограммой ЭЛ вывороткой."""
+    h = TILE / 2
+    letters = _fit(word('ЭЛ'), width=TILE * TILE_FILL)
+    return rect(-h, -h, h, h) + letters
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -236,6 +268,8 @@ BY_SET = {
 
 # Формы, от набора не зависящие: монограммы и компактные формы контейнеров.
 SOLO = {
+    'badge-e': badge,                                                            # монограмма
+    'tile-el': tile,                                                             # монограмма
 }
 
 

@@ -39,6 +39,14 @@ export const SECHENIE: MarkSpec = {
   rule: 'evenodd',
 };
 
+/**
+ * 8. Э-модуль: буква из брусков одной толщины 20. Просветы тоже 20 — штрих,
+ * просвет и шаг сетки одно число, поэтому подгонять здесь нечего.
+ */
+export const E_MODUL: MarkSpec = {
+  w: 0.88,
+  d: 'M0 0H88V100H0V80H68V60H34V40H68V20H0Z',
+};
 
 /** Знак нужного роста. Высота задаётся в долях высоты прописных. */
 export function Mark({ spec, cap, className }: {
