@@ -1,7 +1,7 @@
 import { ART, type Art } from '../art';
 import { PATHS } from '../art';
 import { asset } from '@/lib/assets';
-import { CONTACTS, FACTS, LEGAL, LEGAL_NAME, OFFER, SHIPPING } from './data';
+import { CALL, CONTACTS, FACTS, LEGAL, LEGAL_NAME, OFFER, SHIPPING } from './data';
 
 /**
  * ВИЗИТКА, ТРИ ВАРИАНТА. Формат A4 книжной, 210×297 мм.
@@ -47,11 +47,14 @@ export const CARD_CSS = `
 .vc-offer{font-size:11.5mm;font-weight:900;letter-spacing:-.035em;line-height:.94}
 .vc-lead{font-size:3.6mm;line-height:1.45;color:var(--ink-2)}
 .vc-kicker{font-size:2.9mm;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.vc-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}
-.vc-fact-v{font-size:14mm;font-weight:900;letter-spacing:-.04em;line-height:.9;
+.vc-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8mm}
+.vc-fact-v{font-size:22mm;font-weight:900;letter-spacing:-.045em;line-height:.86;
   font-variant-numeric:tabular-nums}
-.vc-fact-u{font-size:4mm;font-weight:700;color:var(--ink-3);letter-spacing:0;margin-left:1.8mm;display:inline-block}
-.vc-fact-l{margin-top:1.6mm;font-size:3.1mm;line-height:1.3;color:var(--ink-2)}
+.vc-fact-u{font-size:5.5mm;font-weight:700;color:var(--ink-3);letter-spacing:0;
+  margin-left:2.2mm;display:inline-block}
+.vc-fact-l{margin-top:3mm;font-size:3.6mm;line-height:1.3;color:var(--ink-2);max-width:44mm}
+.vc-call{font-size:5.2mm;font-weight:700;line-height:1.25;letter-spacing:-.015em;
+  max-width:150mm}
 .vc-phone{font-size:12mm;font-weight:900;letter-spacing:-.03em;line-height:1;
   color:var(--ink);text-decoration:none;display:block}
 .vc-addr{margin-top:2.5mm;font-size:3.8mm;line-height:1.4;max-width:95mm}
@@ -90,9 +93,10 @@ function photoCard() {
     + `<div style="position:absolute;inset:auto 0 0 0;padding:0 14mm 7mm;`
     + `--c-bg:${'#f4f4f1'};--c-ink:${'#17191c'}">${logoSvg('o1', 13)}</div></div>`
     + `<div class="vc-pad" style="height:209mm;display:flex;flex-direction:column">`
-    + `<h2 class="vc-offer" style="font-size:10mm;max-width:165mm">${OFFER}</h2>`
+    + `<h2 class="vc-offer" style="font-size:11mm;max-width:170mm">${OFFER}</h2>`
     + `<p class="vc-kicker" style="margin-top:7mm">${SHIPPING}</p>`
     + `<div style="margin-top:auto;padding-top:10mm">${facts()}</div>`
+    + `<p class="vc-call" style="margin-top:9mm">${CALL}</p>`
     + `<div class="vc-rule" style="margin:6mm 0 4.5mm"></div>`
     + `<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8mm">`
     + `<div><a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
