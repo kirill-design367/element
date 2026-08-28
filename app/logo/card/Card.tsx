@@ -42,6 +42,15 @@ export const CARD_CSS = `
   font-family:var(--font-text),system-ui,sans-serif;
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
 .vc *{box-sizing:border-box}
+
+/* СИНИЙ У ВИЗИТКИ СВОЙ, И ОН ТЕМНЕЕ КНОПОЧНОГО. Экранный --accent #173fa6
+   на бумаге читается лёгким: сплошная заливка на принтере всегда выходит
+   светлее экранной. Тон и насыщенность взяты у кнопки знак в знак — H 223,2°,
+   S 75,7%, — опущена только светлота: 37,1% → 25,9%.
+   Токен живёт ТОЛЬКО здесь и только на печатной вёрстке. Второго акцента в
+   интерфейсе от этого не появляется: --accent сайта не трогается вовсе, и
+   ни одна страница, кроме визитки, этих правил не видит. */
+.vc{--vc-sin:#102c74}
 /* Кадр лежит не от края до края, а КАРТОЧКОЙ: те же поля 14 мм, что у
    остального набора, и то же скругление 6 мм, что у карточек показателей и
    выноски. Прямоугольник встык к кромке листа читался обрезком. */
@@ -74,7 +83,7 @@ export const CARD_CSS = `
 .vc-card{display:flex;flex-direction:column;background:var(--surface);
   border:.3mm solid var(--line);border-radius:6mm;padding:5mm}
 .vc-card-v{font-size:18mm;font-weight:900;letter-spacing:-.045em;line-height:.86;
-  color:var(--accent);font-variant-numeric:tabular-nums}
+  color:var(--vc-sin);font-variant-numeric:tabular-nums}
 .vc-card-u{font-size:5mm;font-weight:700;letter-spacing:0;margin-left:2mm;
   display:inline-block}
 /* Отбивка над линией ФИКСИРОВАННАЯ, а не margin-top:auto. С auto линия
@@ -92,13 +101,13 @@ export const CARD_CSS = `
 /* СИНИЙ, ОБЪЕКТ ВТОРОЙ. Заливка призыва осталась белой: синей плашки на
    листе ровно одна, и она у контактов. */
 .vc-call::before{content:'';align-self:stretch;width:2.5mm;border-radius:1.25mm;
-  background:var(--accent);flex:none}
+  background:var(--vc-sin);flex:none}
 .vc-call p{font-size:5.4mm;font-weight:700;line-height:1.25;letter-spacing:-.015em}
 
 /* СИНИЙ, ОБЪЕКТ ТРЕТИЙ: контакты — единственная сплошная синяя плашка на
    листе. Телефон, адрес и часы отгрузки лежали тремя отдельными кусками
    текста внизу; теперь это один объект во всю ширину полосы набора. */
-.vc-contacts{background:var(--accent);color:#fff;border-radius:6mm;padding:6mm}
+.vc-contacts{background:var(--vc-sin);color:#fff;border-radius:6mm;padding:6mm}
 .vc-contacts-top{display:flex;align-items:flex-start;justify-content:space-between;
   gap:8mm}
 /* С QR-КОДОМ ПЛАШКА ПЕРЕСТРАИВАЕТСЯ В ДВЕ КОЛОНКИ, и это не украшение.
