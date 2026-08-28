@@ -6,7 +6,7 @@ import { PALETTES, type Palette } from './palettes';
 import { COMMON, HEADER_CAP, VARIANTS, type Variant, type WordSet } from './variants';
 
 export const metadata: Metadata = {
-  title: 'Логотип: восемь отрисовок',
+  title: 'Логотип: два варианта',
   description:
     'Служебная страница выбора: одно устройство — слово в плашке со скобой, — восемь отрисовок, два набора слова, три пары красок и шесть состояний.',
   /* В поиск страницу не отдаём: она для заказчика, а не для покупателя.
@@ -169,7 +169,7 @@ export default function LogoPage() {
         </p>
 
         <h1 className="mt-5 max-w-[20ch] font-black text-[clamp(30px,5vw,46px)] leading-[1.06] tracking-[-.025em]">
-          Логотип: восемь отрисовок
+          Логотип: два варианта
         </h1>
         <p className="mt-4 max-w-[64ch] text-[16px] leading-relaxed text-ink-2 md:text-[17px]">
           Служебная страница выбора: ссылки на неё нет ни в меню, ни в подвале, в поиск она не
@@ -194,7 +194,7 @@ export default function LogoPage() {
         </p>
 
         <section className="mt-10 rounded-card border border-line bg-surface p-5 shadow-card md:p-8">
-          <h2 className="text-t3 font-black leading-none tracking-[-.02em]">Что общее у всех восьми</h2>
+          <h2 className="text-t3 font-black leading-none tracking-[-.02em]">Что общее у обоих</h2>
           <dl className="mt-5 grid gap-x-10 gap-y-3 sm:grid-cols-2">
             {COMMON.map(([k, val]) => (
               <div key={k} className="border-t border-line pt-3">
