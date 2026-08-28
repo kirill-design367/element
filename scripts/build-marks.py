@@ -345,6 +345,50 @@ def bracket(text, arm_top=0.62, arm_bot=0.30, sb=1.0, pad=0.42, gy=0.22, gx=0.30
     }
 
 
+# ─── компактные формы ─────────────────────────────────────────────────────
+
+
+def heap_compact(angle, layers, gap):
+    """Насыпь под аватарку: буква Э в нижнем слое, рёбра круче.
+
+    Угол здесь свой и это осознанно: при 45° трапеция не бывает у́же чем два
+    к одному — верхняя грань уходит в ноль. Для квадрата склон приходится
+    ставить круче, иначе в аватарке остаются пустые поля сверху и снизу.
+    """
+    e, _ = word('Э')
+    x0, y0, x1, y1 = bbox(e)
+    ew, eh = x1 - x0, y1 - y0
+    mv, ms = 0.34 * CAP, 0.44 * CAP
+    g = gap * CAP
+    hs = [(eh + 2 * mv) / PHI ** i for i in range(layers)]
+    H = sum(hs) + (layers - 1) * g
+    Wb = H * 1.06                                # почти квадрат
+    k = (Wb - 0.34 * Wb) / (2 * H)               # верхняя грань — треть нижней
+    def edge(y):
+        return k * y, Wb - k * y
+    slices, y = [], 0.0
+    for h in hs:
+        a, b = edge(y), edge(y + h)
+        slices.append([[(a[0], y), (a[1], y), (b[1], y + h), (b[0], y + h)]])
+        y += h + g
+    return {'slices': slices, 'word': move(e, (Wb - ew) / 2 - x0, mv - y0),
+            'box': (0.0, 0.0, Wb, H)}
+
+
+def ridge_compact(rise=PHI, widen=0.0, **_):
+    """У направления Б компактной формы нет по построению: логотип — это
+    слово целиком. Поэтому она сделана ВЫРЕЗКОЙ: первые две буквы с тем же
+    подъёмом. Э остаётся в базовой высоте, Л поднята — склон виден, штрих
+    тот же, ничего нового не выдумано."""
+    return ridge('ЭЛ', rise=rise, span=1.0, apex=1.0, widen=widen)
+
+
+def bracket_compact(**kw):
+    """Плашка со скобой и буквой Э: та же конструкция, слово ужато до
+    инициала, плечи укорочены до его ширины."""
+    return bracket('Э', **kw)
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -403,12 +447,23 @@ def main():
             parts.append({'ref': f'w-{key}', 'role': 'bg',
                           'x': round(wb[0] - x0), 'y': round(y1 - wb[3])})
             art(f'{name}-{key}', h['box'], parts)
+        c = heap_compact(kw['angle'], kw['layers'], kw['gap'])
+        x0, y0, x1, y1 = c['box']
+        wb = bbox(c['word'])
+        parts = [{'d': _d(s, x0, y1), 'role': 'accent' if i == len(c['slices']) - 1 else 'ink'}
+                 for i, s in enumerate(c['slices'])]
+        parts.append({'ref': 'w-e', 'role': 'bg',
+                      'x': round(wb[0] - x0), 'y': round(y1 - wb[3])})
+        art(f'{name}-c', c['box'], parts)
 
     for name, kw in RIDGE:
         for key, text in WORDS.items():
             r = ridge(text, **kw)
             b = bbox(r)
             art(f'{name}-{key}', b, [{'d': _d(r, b[0], b[3]), 'role': 'ink'}])
+        c = ridge_compact(**kw)
+        b = bbox(c)
+        art(f'{name}-c', b, [{'d': _d(c, b[0], b[3]), 'role': 'ink'}])
 
     for name, kw in BRACKET:
         for key, text in WORDS.items():
@@ -420,6 +475,13 @@ def main():
                 {'d': _d(v['shape'], x0, y1), 'role': 'bg'},
                 {'ref': f'w-{key}', 'role': 'bg',
                  'x': round(wb[0] - x0), 'y': round(y1 - wb[3])}])
+        c = bracket_compact(**kw)
+        x0, y0, x1, y1 = c['box']
+        wb = bbox(c['word'])
+        art(f'{name}-c', c['box'], [
+            {'d': _d(c['plate'], x0, y1), 'role': 'ink'},
+            {'d': _d(c['shape'], x0, y1), 'role': 'bg'},
+            {'ref': 'w-e', 'role': 'bg', 'x': round(wb[0] - x0), 'y': round(y1 - wb[3])}])
 
     j = lambda o: json.dumps(o, ensure_ascii=False, separators=(',', ':'))
     with open(OUT, 'w', encoding='utf-8') as fh:
