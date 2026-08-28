@@ -68,6 +68,16 @@ export const CARD_CSS = `
 .vc-photo{display:block;width:100%;height:100%;object-fit:cover}
 .vc-rule{height:.3mm;background:var(--line)}
 
+/* Тёмный вариант: те же токены, что у .inv на сайте. */
+.vc-dark{background:var(--ink);color:var(--surface)}
+.vc-dark .vc-lead,.vc-dark .vc-spec,.vc-dark .vc-fact-l{color:#b9bec6}
+.vc-dark .vc-kicker,.vc-dark .vc-count,.vc-dark .vc-legal{color:#8b929c}
+.vc-dark .vc-legal b{color:#b9bec6}
+.vc-dark .vc-row{border-top-color:rgba(255,255,255,.14)}
+.vc-dark .vc-rule{background:rgba(255,255,255,.14)}
+.vc-dark .vc-phone{color:#9db4f2}
+.vc-dark .vc-fact-v{color:#9db4f2}
+
 @media print{
   @page{size:210mm 297mm;margin:0}
   html,body{margin:0!important;padding:0!important;background:#fff!important}
@@ -145,11 +155,24 @@ function typeCard() {
     + `</div>`;
 }
 
-/** Пока пустой лист: тёмный вариант приходит следующим коммитом. */
-function blank(name: string) {
-  return `<div class="vc vc-pad" style="display:flex;align-items:center;`
-    + `justify-content:center;text-align:center">`
-    + `<p class="vc-kicker">${name} — вариант собирается следующим коммитом</p></div>`;
+/** 3. Тёмный: светлый текст на тёмном поле, акцент цветом. */
+function darkCard() {
+  return `<div class="vc vc-dark vc-pad" style="display:flex;flex-direction:column">`
+    + `<div style="--c-ink:${'#f4f4f1'}">${logoSvg('o1-n', 12)}</div>`
+    + `<h2 class="vc-offer" style="margin-top:11mm;font-size:13mm;max-width:165mm">${OFFER}</h2>`
+    + `<p class="vc-lead" style="margin-top:5mm;max-width:150mm">`
+    + `${POSITIONS.total} позиций в ${POSITIONS.categories} категориях, `
+    + `${POSITIONS.inStock} в наличии. ${SHIPPING}.</p>`
+    + `<div class="vc-rule" style="margin:8mm 0"></div>`
+    + `<div>${rows(true)}</div>`
+    + `<div class="vc-rule" style="margin:8mm 0"></div>`
+    + `<div>${facts()}</div>`
+    + `<div style="margin-top:auto">`
+    + `<a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
+    + `<p class="vc-addr">${CONTACTS.address}</p>`
+    + `<p class="vc-kicker" style="margin-top:3mm">${CONTACTS.hours}</p>`
+    + `<div class="vc-rule" style="margin:6mm 0 4mm"></div>${legal()}</div>`
+    + `</div>`;
 }
 
 export const CARDS = [
@@ -159,5 +182,7 @@ export const CARDS = [
   { n: 2, name: 'Типографический', html: typeCard,
     diff: 'Фотографии нет вовсе: работают набор, крупные числа и воздух. Логотип без плашки.',
     weak: 'Без кадра визитка ничем не показывает товар: она про цифры и условия, а не про материал.' },
-  { n: 3, name: 'Тёмный', html: () => blank('Тёмный'), diff: '', weak: '' },
+  { n: 3, name: 'Тёмный', html: darkCard,
+    diff: 'Инвертированный: светлый текст на тёмном поле, телефон и числа акцентом.',
+    weak: 'Тёмное поле A4 — это заливка почти всей страницы: на струйном принтере она сожрёт картридж и покоробит бумагу.' },
 ];
