@@ -4,11 +4,12 @@ import { asset } from '@/lib/assets';
 import { ART, METRICS, PATHS, type Art } from './art';
 import { PALETTES, type Palette } from './palettes';
 import { BRACE, FONT_CHECK, HEADER_CAP, VARIANTS, type Variant } from './variants';
+import { CARDS, CARD_CSS } from './card/Card';
 
 export const metadata: Metadata = {
-  title: 'Логотип: десять вариаций',
+  title: 'Логотип и визитка',
   description:
-    'Служебная страница выбора: слово в плашке со скобой, набор TT Octosquares Expanded Black, десять вариаций и версии без плашки.',
+    'Служебная страница выбора: десять вариаций логотипа и три варианта электронной визитки.',
   /* В поиск страницу не отдаём: она для заказчика, а не для покупателя.
      Ссылок на неё нет ни в меню, ни в подвале — открывается прямым адресом. */
   robots: { index: false, follow: false },
@@ -161,6 +162,10 @@ export default function LogoPage() {
   return (
     <div>
       <Defs />
+      {/* Стили визитки приходят только на страницы, где она показана: в
+          globals.css их держать нельзя — файл встраивается в каждую
+          страницу сайта. */}
+      <style dangerouslySetInnerHTML={{ __html: CARD_CSS }} />
       {/* Шапка сайта — плавающая пилюля поверх содержимого, её нижняя кромка на
           70 px. Верхнее поле поднято до 96 и 112, иначе она накрывает крошку. */}
       <div className="shell py-8 pt-24 md:py-14 md:pt-28">
@@ -265,6 +270,70 @@ export default function LogoPage() {
         {VARIANTS.map((v) => (
           <VariantCard key={v.id} v={v} />
         ))}
+
+        <section className="mt-12 rounded-card border border-line bg-surface p-5 shadow-card md:mt-16 md:p-8">
+          <h2 className="text-t4 font-black leading-[1.05] tracking-[-.025em]">
+            Электронная визитка
+          </h2>
+          <p className="mt-4 max-w-[70ch] text-[16px] leading-relaxed text-ink-2 md:text-[17px]">
+            Три варианта, A4 книжной ориентации, 210×297 мм: печатается на обычном принтере и
+            читается с телефона. Отличаются устройством, а не оттенком. Логотип берётся тем же
+            кодом, что и вариации выше; состав, характеристики, пороги, сроки и реквизиты — из
+            файлов данных сайта, руками не набрано ни одно число.
+          </p>
+          <p className="mt-3 max-w-[70ch] text-[16px] leading-relaxed text-ink-2 md:text-[17px]">
+            Кнопка открывает отдельный маршрут, где лежит только сама визитка, и сразу вызывает
+            печать браузера. Сервера у сайта нет, поэтому PDF собирает сам браузер — зато в него
+            попадают настоящие контуры букв, а не растр.
+          </p>
+
+          <div className="mt-8 grid gap-8 lg:grid-cols-3">
+            {CARDS.map((c) => (
+              <div key={c.n} className="min-w-0">
+                {/* Показ в масштабе: 210 мм это 793,7 px, множитель 0,349
+                    даёт 277×392 — коробка задана ровно этими числами, иначе
+                    рядом с уменьшенной визиткой остаётся пустое поле. */}
+                <div
+                  className="mx-auto overflow-hidden rounded-card border border-line"
+                  style={{ width: '277px', height: '392px', position: 'relative' }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute', top: 0, left: 0, transform: 'scale(.349)',
+                      transformOrigin: 'top left', width: '793.7px', height: '1122.5px',
+                    }}
+                    dangerouslySetInnerHTML={{ __html: c.html() }}
+                  />
+                </div>
+                <h3 className="mt-4 flex gap-3 text-t3 font-black leading-none tracking-[-.02em]">
+                  <span className="text-ink-3">{c.n}</span>
+                  {c.name}
+                </h3>
+                <p className="mt-3 text-[15px] leading-snug text-ink-2">{c.diff}</p>
+                <p className="mt-3 text-[15px] leading-snug">
+                  <span className="font-semibold text-warn">Слабое место. </span>
+                  <span className="text-ink-2">{c.weak}</span>
+                </p>
+                <Link
+                  href={`/logo/card/${c.n}#print`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex h-11 items-center rounded-pill bg-accent px-5 text-t2 font-semibold text-white hover:bg-accent-hover"
+                >
+                  Скачать PDF
+                </Link>
+                <Link
+                  href={`/logo/card/${c.n}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ml-3 text-t2 text-ink-2 underline underline-offset-4 hover:text-accent"
+                >
+                  Открыть
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
