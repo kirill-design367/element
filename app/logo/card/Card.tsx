@@ -63,19 +63,25 @@ export const CARD_CSS = `
   font-variant-numeric:tabular-nums}
 .vc-spec{font-size:3.1mm;line-height:1.35;color:var(--ink-2)}
 .vc-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8mm}
+/* СИНИЙ, ОБЪЕКТ ПЕРВЫЙ: числа показателей. Подпись и единица остаются
+   тёмными — синим отмечена величина, а не блок целиком. */
 .vc-fact-v{font-size:22mm;font-weight:900;letter-spacing:-.045em;line-height:.86;
-  font-variant-numeric:tabular-nums}
-.vc-fact-u{font-size:5.5mm;font-weight:700;color:var(--ink-3);letter-spacing:0;
+  color:var(--accent);font-variant-numeric:tabular-nums}
+.vc-fact-u{font-size:5.5mm;font-weight:700;letter-spacing:0;
   margin-left:2.2mm;display:inline-block}
 .vc-fact-l{margin-top:3mm;font-size:3.6mm;line-height:1.3;color:var(--ink-2);max-width:44mm}
+/* СИНИЙ, ОБЪЕКТ ВТОРОЙ: грань у призыва. Линия, а не заливка: призыв стоит
+   абзацем, и плашка под ним спорила бы с плашкой контактов. */
 .vc-call{font-size:5.2mm;font-weight:700;line-height:1.25;letter-spacing:-.015em;
-  max-width:150mm}
+  max-width:150mm;border-left:2.5mm solid var(--accent);padding-left:6mm}
 .vc-contacts{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm}
 .vc-site{margin-top:1.8mm;font-size:4mm;color:var(--ink-2)}
 .vc-qr{width:26mm;height:26mm;flex:none;color:var(--ink)}
 .vc-hours{margin-top:6mm;font-size:4.2mm;font-weight:700;letter-spacing:-.01em}
+/* СИНИЙ, ОБЪЕКТ ТРЕТИЙ: телефон. Он и есть действие на визитке, а синий на
+   всём сайте работает только на действиях. */
 .vc-phone{font-size:12mm;font-weight:900;letter-spacing:-.03em;line-height:1;
-  color:var(--ink);text-decoration:none;display:block}
+  color:var(--accent);text-decoration:none;display:block}
 .vc-addr{margin-top:2.5mm;font-size:3.8mm;line-height:1.4;max-width:95mm}
 .vc-legal{font-size:2.7mm;line-height:1.5;color:var(--ink-3)}
 .vc-legal b{font-weight:400;color:var(--ink-2)}
