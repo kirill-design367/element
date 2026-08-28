@@ -42,6 +42,10 @@ export const CARD_CSS = `
   font-family:var(--font-text),system-ui,sans-serif;
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
 .vc *{box-sizing:border-box}
+/* Кадр лежит не от края до края, а КАРТОЧКОЙ: те же поля 14 мм, что у
+   остального набора, и то же скругление 6 мм, что у карточек показателей и
+   выноски. Прямоугольник встык к кромке листа читался обрезком. */
+.vc-frame{margin:14mm 14mm 0;border-radius:6mm;overflow:hidden;background:var(--ink)}
 .vc-photo{display:block;width:100%;height:100%;object-fit:cover}
 
 /* Логотип сидит НА СТЫКЕ кадра и светлого поля: половина на фотографии,
@@ -185,19 +189,24 @@ function legal() {
  */
 function photoCard() {
   const src = asset('/img/park-1920.webp');
-  /* Кадр отдаёт высоту QR-коду: с ним плашка контактов выше на 13 мм, а
-     свободного места на листе всего 7. Число одно и считается признаком, а
-     не правится руками, когда заполнят домен. */
-  const PHOTO = QR ? 66 : 78;   // высота кадра, мм
+  const PAD = 14;     // поле листа, мм — то же, что у всего набора
   const LOGO = 15;    // высота логотипа, мм — половина уходит на кадр
+  /* СЧИТАЕТСЯ ОТ СТЫКА, А НЕ ОТ ВЫСОТЫ КАДРА. На стыке стоит логотип, и
+     всё, что ниже, отмеряется от него: пока считали высотой кадра, поля
+     сверху пришлось бы вычитать из каждого числа ниже. Кадр — это то, что
+     осталось между верхним полем и стыком.
+     Стык отдаёт высоту QR-коду: с кодом плашка контактов выше на 13 мм, а
+     свободного места на листе всего 7. Число считается признаком, а не
+     правится руками, когда заполнят домен. */
+  const SEAM = QR ? 66 : 78;    // отметка стыка, мм от верхней кромки листа
   return `<div class="vc">`
-    + `<div style="height:${PHOTO}mm;background:var(--ink)">`
+    + `<div class="vc-frame" style="height:${SEAM - PAD}mm">`
     + `<img class="vc-photo" src="${src}" alt=""/></div>`
-    + `<div class="vc-seam" style="top:${PHOTO}mm;--c-bg:${'#f4f4f1'};`
+    + `<div class="vc-seam" style="top:${SEAM}mm;--c-bg:${'#f4f4f1'};`
     + `--c-ink:${'#17191c'}">${logoSvg('o1', LOGO)}</div>`
     /* Верхнее поле — половина знака плюс обычный воздух: текст не должен
        подходить к логотипу ближе, чем к краям листа. */
-    + `<div class="vc-body" style="height:${297 - PHOTO}mm;padding-top:${LOGO / 2 + 7}mm">`
+    + `<div class="vc-body" style="height:${297 - SEAM}mm;padding-top:${LOGO / 2 + 7}mm">`
     + `<h2 class="vc-offer">${OFFER}</h2>`
     + `<p class="vc-kicker" style="margin-top:5mm">${SHIPPING}</p>`
     + `<div style="margin-top:auto;padding-top:7mm">${facts()}</div>`
