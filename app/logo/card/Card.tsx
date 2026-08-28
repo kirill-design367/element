@@ -120,7 +120,32 @@ function photoCard() {
     + `</div></div>`;
 }
 
-/** Пока пустой лист: второй и третий варианты приходят следующими коммитами. */
+/** 2. Типографический: фотографии нет, работают набор и крупные числа. */
+function typeCard() {
+  return `<div class="vc vc-pad" style="display:flex;flex-direction:column">`
+    + `<div style="--c-bg:${'#f4f4f1'};--c-ink:${'#17191c'}">${logoSvg('o1-n', 11)}</div>`
+    + `<h2 class="vc-offer" style="margin-top:12mm;font-size:15mm;max-width:170mm">${OFFER}</h2>`
+    + `<p class="vc-kicker" style="margin-top:6mm">${SHIPPING}</p>`
+    + `<div class="vc-rule" style="margin:8mm 0"></div>`
+    + `<div class="vc-facts" style="gap:8mm">`
+    + `<div><div class="vc-fact-v tnum" style="font-size:20mm">${POSITIONS.total}</div>`
+    + `<div class="vc-fact-l">позиций в ${POSITIONS.categories} категориях</div></div>`
+    + FACTS.slice(0, 2).map((f) =>
+      `<div><div class="vc-fact-v tnum" style="font-size:20mm">${f.value}`
+      + `<span class="vc-fact-u">${f.unit}</span></div>`
+      + `<div class="vc-fact-l">${f.label}</div></div>`).join('')
+    + `</div>`
+    + `<div class="vc-rule" style="margin:8mm 0"></div>`
+    + `<div>${rows()}</div>`
+    + `<div style="margin-top:auto">`
+    + `<a class="vc-phone" href="${CONTACTS.phoneHref}" style="font-size:16mm">${CONTACTS.phone}</a>`
+    + `<p class="vc-addr" style="font-size:4.2mm;max-width:120mm">${CONTACTS.address}</p>`
+    + `<p class="vc-kicker" style="margin-top:3mm">${CONTACTS.hours}</p>`
+    + `<div class="vc-rule" style="margin:6mm 0 4mm"></div>${legal()}</div>`
+    + `</div>`;
+}
+
+/** Пока пустой лист: тёмный вариант приходит следующим коммитом. */
 function blank(name: string) {
   return `<div class="vc vc-pad" style="display:flex;align-items:center;`
     + `justify-content:center;text-align:center">`
@@ -131,6 +156,8 @@ export const CARDS = [
   { n: 1, name: 'Фотографический', html: photoCard,
     diff: 'Крупный кадр площадки во всю ширину, логотип на нём, вся типографика под ним.',
     weak: 'Кадр съедает треть высоты, и на строки характеристик остаётся меньше воздуха, чем в двух других.' },
-  { n: 2, name: 'Типографический', html: () => blank('Типографический'), diff: '', weak: '' },
+  { n: 2, name: 'Типографический', html: typeCard,
+    diff: 'Фотографии нет вовсе: работают набор, крупные числа и воздух. Логотип без плашки.',
+    weak: 'Без кадра визитка ничем не показывает товар: она про цифры и условия, а не про материал.' },
   { n: 3, name: 'Тёмный', html: () => blank('Тёмный'), diff: '', weak: '' },
 ];
