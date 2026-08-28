@@ -81,7 +81,7 @@ export const CARD_CSS = `
    на экране. Высота выравнивается сеткой, отбивки равные. */
 .vc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm}
 .vc-card{display:flex;flex-direction:column;background:var(--surface);
-  border:.3mm solid var(--line);border-radius:6mm;padding:5mm}
+  border:.3mm solid var(--line);border-radius:6mm;padding:4mm}
 .vc-card-v{font-size:18mm;font-weight:900;letter-spacing:-.045em;line-height:.86;
   color:var(--vc-sin);font-variant-numeric:tabular-nums}
 .vc-card-u{font-size:5mm;font-weight:700;letter-spacing:0;margin-left:2mm;
@@ -89,7 +89,7 @@ export const CARD_CSS = `
 /* Отбивка над линией ФИКСИРОВАННАЯ, а не margin-top:auto. С auto линия
    вставала по низу самой высокой карточки, и у соседей она оказывалась на
    разной высоте от числа — три линейки на трёх уровнях. */
-.vc-card-l{margin-top:5mm;padding-top:4mm;border-top:.3mm solid var(--line);
+.vc-card-l{margin-top:4mm;padding-top:3mm;border-top:.3mm solid var(--line);
   font-size:3.6mm;line-height:1.3;color:var(--ink-2)}
 
 /* Призыв — ВЫНОСКА, отдельный объект: тот же белый лист со скруглением, что
@@ -97,7 +97,7 @@ export const CARD_CSS = `
    border: у border скругление коробки срезает ему концы, и вместо стойки
    получается запятая. */
 .vc-call{display:flex;align-items:center;gap:6mm;background:var(--surface);
-  border:.3mm solid var(--line);border-radius:6mm;padding:5mm}
+  border:.3mm solid var(--line);border-radius:6mm;padding:4mm}
 /* СИНИЙ, ОБЪЕКТ ВТОРОЙ. Заливка призыва осталась белой: синей плашки на
    листе ровно одна, и она у контактов. */
 .vc-call::before{content:'';align-self:stretch;width:2.5mm;border-radius:1.25mm;
@@ -212,7 +212,7 @@ function photoCard() {
      Стык отдаёт высоту QR-коду: с кодом плашка контактов выше на 13 мм, а
      свободного места на листе всего 7. Число считается признаком, а не
      правится руками, когда заполнят домен. */
-  const SEAM = QR ? 66 : 78;    // отметка стыка, мм от верхней кромки листа
+  const SEAM = QR ? 78 : 92;    // отметка стыка, мм от верхней кромки листа
   return `<div class="vc">`
     + `<div class="vc-frame" style="height:${SEAM - PAD}mm">`
     + `<img class="vc-photo" src="${src}" alt=""/></div>`
@@ -222,11 +222,11 @@ function photoCard() {
        подходить к логотипу ближе, чем к краям листа. */
     + `<div class="vc-body" style="height:${297 - SEAM}mm;padding-top:${LOGO / 2 + 7}mm">`
     + `<h2 class="vc-offer">${OFFER}</h2>`
-    + `<p class="vc-kicker" style="margin-top:5mm">${SHIPPING}</p>`
-    + `<div style="margin-top:auto;padding-top:7mm">${facts()}</div>`
-    + `<div style="margin-top:auto;padding-top:5mm">${call()}</div>`
-    + `<div style="margin-top:auto;padding-top:5mm">${contacts()}</div>`
-    + `<div style="margin-top:auto;padding-top:5mm">${legal()}</div>`
+    + `<p class="vc-kicker" style="margin-top:4mm">${SHIPPING}</p>`
+    + `<div style="margin-top:auto;padding-top:5mm">${facts()}</div>`
+    + `<div style="margin-top:auto;padding-top:4mm">${call()}</div>`
+    + `<div style="margin-top:auto;padding-top:4mm">${contacts()}</div>`
+    + `<div style="margin-top:auto;padding-top:4mm">${legal()}</div>`
     + `</div></div>`;
 }
 
