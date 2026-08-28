@@ -216,6 +216,102 @@ def heap(text, angle=45, layers=3, gap=0.05, mv=0.30, ms=0.55, aspect=None):
     }
 
 
+# ─── направление Б: силуэт слова как насыпь ───────────────────────────────
+#
+# Знака нет: форму держит сам силуэт. Высота букв разная, ТОЛЩИНА ШТРИХА
+# одна на всё слово. Достигается растяжением полосы: у каждой буквы ищется
+# самый высокий участок, где горизонтальное сечение не меняет числа
+# пересечений — там нет ни одной горизонтальной кромки, — и растягивается
+# только он. Перекладины и наплывы при этом не трогаются вовсе.
+
+
+def _crossings(cs, y):
+    n = 0
+    for c in cs:
+        for i in range(len(c)):
+            (xa, ya), (xb, yb) = c[i], c[(i + 1) % len(c)]
+            if (ya <= y < yb) or (yb <= y < ya):
+                n += 1
+    return n
+
+
+def _split_at(cs, ys):
+    """Вставить вершины на заданных высотах, чтобы излом лёг ровно на них."""
+    out = []
+    for c in cs:
+        res = []
+        for i in range(len(c)):
+            (xa, ya), (xb, yb) = c[i], c[(i + 1) % len(c)]
+            res.append((xa, ya))
+            for y in sorted(ys, reverse=yb < ya):
+                if (ya < y < yb) or (yb < y < ya):
+                    res.append((xa + (xb - xa) * (y - ya) / (yb - ya), y))
+        out.append(res)
+    return out
+
+
+def stretch(cs, dy):
+    """Поднять верх знака на dy, растянув только прямую полосу."""
+    if abs(dy) < 1e-6:
+        return cs
+    _, y0, _, y1 = bbox(cs)
+    rows = [y0 + i * STEP for i in range(1, int((y1 - y0) / STEP))]
+    counts = [_crossings(cs, y) for y in rows]
+    best = (0, 0, 0)
+    i = 0
+    while i < len(rows):
+        j = i
+        while j + 1 < len(rows) and counts[j + 1] == counts[i]:
+            j += 1
+        if rows[j] - rows[i] > best[0]:
+            best = (rows[j] - rows[i], rows[i], rows[j])
+        i = j + 1
+    _, ya, yb = best
+    if yb - ya < STEP:
+        ya, yb = y0, y1
+    cs = _split_at(cs, (ya, yb))
+    out = []
+    for c in cs:
+        out.append([(x, y + dy if y >= yb else
+                     (y + dy * (y - ya) / (yb - ya) if y > ya else y)) for x, y in c])
+    return out
+
+
+def ridge(text, rise=PHI, span=1.0, apex=0.5, widen=0.0):
+    """Слово, у которого верхняя кромка — пологий склон из прямых отрезков.
+
+    rise  — во сколько раз самая высокая буква выше самой низкой;
+    span  — какая доля ширины слова участвует в подъёме (1 — вся);
+    apex  — где вершина по ширине слова;
+    widen — насколько буквы шире на вершине (0 — ширина постоянная).
+
+    Набор пересчитывается ПОСЛЕ изменения высот: выросшая буква иначе видна
+    соседям, и просветы, выровненные до растяжения, разъезжаются.
+    """
+    gs, xs, _, _ = optical(text)
+    boxes = [bbox(g) for g in gs]
+    centers = [(b[0] + b[2]) / 2 + x for b, x in zip(boxes, xs)]
+    lo, hi = min(centers), max(centers)
+    ax = lo + (hi - lo) * apex
+    half = max(ax - lo, hi - ax) / max(span, 1e-6)
+    out, advs = [], []
+    for ch, g, b, c in zip(text, gs, boxes, centers):
+        t = max(0.0, 1 - abs(c - ax) / half)     # 0 у края склона, 1 на вершине
+        s2 = stretch(g, (b[3] - b[1]) * (rise - 1) * t)
+        if widen:
+            k = 1 + widen * t
+            x0 = bbox(s2)[0]
+            s2 = [[(x0 + (px - x0) * k, py) for px, py in c2] for c2 in s2]
+        out.append(s2)
+        adv = _hmtx[_cmap[ord(ch)]][0]
+        advs.append(adv + (bbox(s2)[2] - bbox(s2)[0]) - (b[2] - b[0]))
+    xs2, _, _ = place(out, advs)
+    flat = []
+    for g, x in zip(out, xs2):
+        flat += move(g, x)
+    return flat
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -226,6 +322,13 @@ HEAP = [
     ('a4', dict(angle=45, layers=4, gap=0.05, mv=0.30, ms=0.55)),
     ('a5', dict(angle=45, layers=3, gap=0.11, mv=0.30, ms=0.55)),
     ('a6', dict(angle=45, layers=3, gap=0.05, mv=0.18, ms=0.32)),
+]
+RIDGE = [
+    ('b1', dict(rise=PHI, span=1.0, apex=0.5, widen=0.0)),
+    ('b2', dict(rise=PHI, span=0.62, apex=0.5, widen=0.0)),
+    ('b3', dict(rise=PHI, span=1.0, apex=0.36, widen=0.0)),
+    ('b5', dict(rise=PHI, span=1.0, apex=0.5, widen=0.14)),
+    ('b6', dict(rise=1.35, span=1.0, apex=0.5, widen=0.0)),
 ]
 
 
@@ -260,6 +363,12 @@ def main():
             parts.append({'ref': f'w-{key}', 'role': 'bg',
                           'x': round(wb[0] - x0), 'y': round(y1 - wb[3])})
             art(f'{name}-{key}', h['box'], parts)
+
+    for name, kw in RIDGE:
+        for key, text in WORDS.items():
+            r = ridge(text, **kw)
+            b = bbox(r)
+            art(f'{name}-{key}', b, [{'d': _d(r, b[0], b[3]), 'role': 'ink'}])
 
     j = lambda o: json.dumps(o, ensure_ascii=False, separators=(',', ':'))
     with open(OUT, 'w', encoding='utf-8') as fh:
