@@ -1,7 +1,7 @@
 import { ART, type Art } from '../art';
 import { PATHS } from '../art';
 import { asset } from '@/lib/assets';
-import { CALL, CONTACTS, FACTS, LEGAL, LEGAL_NAME, OFFER, SHIPPING } from './data';
+import { CALL, CONTACTS, FACTS, LEGAL, LEGAL_NAME, OFFER, QR, SHIPPING } from './data';
 
 /**
  * ВИЗИТКА, ТРИ ВАРИАНТА. Формат A4 книжной, 210×297 мм.
@@ -55,6 +55,9 @@ export const CARD_CSS = `
 .vc-fact-l{margin-top:3mm;font-size:3.6mm;line-height:1.3;color:var(--ink-2);max-width:44mm}
 .vc-call{font-size:5.2mm;font-weight:700;line-height:1.25;letter-spacing:-.015em;
   max-width:150mm}
+.vc-contacts{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm}
+.vc-site{margin-top:1.8mm;font-size:4mm;color:var(--ink-2)}
+.vc-qr{width:26mm;height:26mm;flex:none;color:var(--ink)}
 .vc-phone{font-size:12mm;font-weight:900;letter-spacing:-.03em;line-height:1;
   color:var(--ink);text-decoration:none;display:block}
 .vc-addr{margin-top:2.5mm;font-size:3.8mm;line-height:1.4;max-width:95mm}
@@ -74,6 +77,19 @@ function facts() {
   return `<div class="vc-facts">` + FACTS.map((f) =>
     `<div><div class="vc-fact-v tnum">${f.value}<span class="vc-fact-u">${f.unit}</span></div>`
     + `<div class="vc-fact-l">${f.label}</div></div>`).join('') + `</div>`;
+}
+
+/** Контакты: телефон, адрес, адрес сайта и QR-код — последние два только
+ *  когда поле сайта заполнено. */
+function contacts() {
+  const site = CONTACTS.site
+    ? `<p class="vc-site">${CONTACTS.site.replace(/^https?:\/\//, '')}</p>` : '';
+  const qr = QR
+    ? `<svg class="vc-qr" viewBox="0 0 ${QR.size} ${QR.size}" aria-hidden="true">`
+      + `<path d="${QR.path}" fill="currentColor"/></svg>` : '';
+  return `<div class="vc-contacts">`
+    + `<div><a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
+    + `<p class="vc-addr">${CONTACTS.address}</p>${site}</div>${qr}</div>`;
 }
 
 function legal() {
@@ -98,10 +114,8 @@ function photoCard() {
     + `<div style="margin-top:auto;padding-top:10mm">${facts()}</div>`
     + `<p class="vc-call" style="margin-top:9mm">${CALL}</p>`
     + `<div class="vc-rule" style="margin:6mm 0 4.5mm"></div>`
-    + `<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8mm">`
-    + `<div><a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
-    + `<p class="vc-addr">${CONTACTS.address}</p></div>`
-    + `<p class="vc-kicker" style="text-align:right;max-width:50mm">${CONTACTS.hours}</p></div>`
+    + `<div>${contacts()}</div>`
+    + `<p class="vc-kicker" style="margin-top:4mm">${CONTACTS.hours}</p>`
     + `<div style="margin-top:4.5mm">${legal()}</div>`
     + `</div></div>`;
 }

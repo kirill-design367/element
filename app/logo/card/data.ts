@@ -8,6 +8,7 @@
  */
 
 import { COMPANY } from '@/lib/company';
+import { qrMatrix, qrPath } from '@/lib/qr';
 import { num, typo } from '@/lib/format';
 import { DEFERRAL_DAYS, MIN_ORDER_M3, PRICE_HOLD_DAYS } from '@/lib/pricing';
 import { TERMS } from '@/lib/workflow';
@@ -47,7 +48,19 @@ export const CONTACTS = {
   phoneHref: `tel:${COMPANY.phone}`,
   address: COMPANY.address,
   hours: COMPANY.hoursShipping,
+  /** Адрес сайта. Пусто — на визитке не рисуется ни строка, ни QR-код. */
+  site: COMPANY.site,
 };
+
+/**
+ * QR-код на сайт. Считается ПРИ СБОРКЕ: сайт статический, адрес известен
+ * заранее, и клиентского кода для этого не нужно вовсе — в бандл не уезжает
+ * ни байта. Пустой адрес даёт пустую матрицу, и код не рисуется.
+ */
+const QR_MATRIX = qrMatrix(COMPANY.site);
+export const QR = QR_MATRIX.length
+  ? { size: QR_MATRIX.length, path: qrPath(QR_MATRIX) }
+  : null;
 
 /**
  * Реквизиты. Почты здесь нет: поля email в lib/company.ts не существует —
