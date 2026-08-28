@@ -220,12 +220,11 @@ def word(text=WORD):
 
 
 def brace(bx, yb0, yb1, s, x_top, x_bot):
-    # Внутренние углы скобы пока прямые — они приходят следующим коммитом.
     return facet(
         [(bx, yb0), (x_bot, yb0), (x_bot, yb0 + s),
          (bx + s, yb0 + s), (bx + s, yb1 - s),
          (x_top, yb1 - s), (x_top, yb1), (bx, yb1)],
-        ['o', 'o', '', '', '', '', 'o', 'o'])
+        ['o', 'o', '', 'i', 'i', '', 'o', 'o'])
 
 
 def mark(text=WORD, cover_top=4, cover_bot=2, pad=8, gy=4, gx=5, frac=None):
