@@ -375,6 +375,49 @@ def d3(text, fit):
     return out + mark
 
 
+# ─── направление 4: скол как разрыв ───────────────────────────────────────
+
+# Просвет между строками, зазор от строк до знака и высота знака связаны:
+# знак заполняет разлом, но не касается ни верхней, ни нижней строки. Ровно
+# по просвету он уже стоял — и слипался с М нижней строки в одно пятно.
+SEAM = 0.60 * CAP
+CLEAR = 0.08 * CAP
+MARK4 = SEAM - 2 * CLEAR
+
+
+def d4(text, kind):
+    """Слово в две строки, знак на стыке."""
+    cut = 3                                   # ЭЛЕ | МЕНТ и Эле | мент
+    seam = 0.18 * CAP if kind == 'hvost' else SEAM
+    top, wtop = word(text[:cut], x0=0, y0=CAP + seam)
+    bot, wbot = word(text[cut:], x0=0, y0=0)
+    tb, bb = bbox(collect(top)), bbox(collect(bot))
+    if kind == 'left':
+        dx = tb[0] - bb[0]
+    elif kind == 'centr':
+        dx = (tb[0] + tb[2]) / 2 - (bb[0] + bb[2]) / 2
+    else:                                      # сдвиг строк по линии разлома
+        dx = tb[0] - bb[0] + 0.42 * CAP
+    for l in bot:
+        l['cs'] = [[(x + dx, y) for x, y in c] for c in l['cs']]
+    all_c = collect(top) + collect(bot)
+    ax0, _, ax1, _ = bbox(all_c)
+    if kind == 'hvost':
+        # Знак — хвост первой строки: та короче второй, и место справа от неё
+        # уже пустует. Он стоит на её базовой линии и упирается в разлом снизу.
+        mx = bbox(collect(top))[2] + 0.22 * CAP
+        return all_c + skol(CAP, x=mx, y=CAP + seam)
+    my = CAP + seam / 2 - MARK4 / 2           # знак по центру просвета
+    if kind == 'left':
+        mx = ax0
+    elif kind == 'centr':
+        mx = (ax0 + ax1) / 2 - MARK4 / 2
+    else:
+        # Знак стоит в точке сдвига: между левыми краями разъехавшихся строк.
+        mx = (bbox(collect(top))[0] + bbox(collect(bot))[0]) / 2 - MARK4 / 2
+    return all_c + skol(MARK4, x=mx, y=my)
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -388,6 +431,9 @@ BUILD = [
     ('mono-naskvoz',  lambda t: d2(t, 'naskvoz'),  lambda t: monogram('naskvoz')),
     ('bukva-vysota',  lambda t: d3(t, 'height'), None),
     ('bukva-shirina', lambda t: d3(t, 'width'),  None),
+    ('razryv-shov',   lambda t: d4(t, 'left'),   None),
+    ('razryv-hvost',  lambda t: d4(t, 'hvost'),  None),
+    ('razryv-sdvig',  lambda t: d4(t, 'sdvig'),  None),
 ]
 
 
