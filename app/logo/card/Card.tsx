@@ -78,10 +78,17 @@ export const CARD_CSS = `
    разной высоте от числа — три линейки на трёх уровнях. */
 .vc-card-l{margin-top:5mm;padding-top:4mm;border-top:.3mm solid var(--line);
   font-size:3.6mm;line-height:1.3;color:var(--ink-2)}
-/* СИНИЙ, ОБЪЕКТ ВТОРОЙ: грань у призыва. Линия, а не заливка: призыв стоит
-   абзацем, и плашка под ним спорила бы с плашкой контактов. */
-.vc-call{font-size:5.2mm;font-weight:700;line-height:1.25;letter-spacing:-.015em;
-  max-width:150mm;border-left:2.5mm solid var(--accent);padding-left:6mm}
+/* Призыв — ВЫНОСКА, отдельный объект: тот же белый лист со скруглением, что
+   у карточек показателей, и синяя грань слева. Грань — псевдоэлемент, а не
+   border: у border скругление коробки срезает ему концы, и вместо стойки
+   получается запятая. */
+.vc-call{display:flex;align-items:center;gap:6mm;background:var(--surface);
+  border:.3mm solid var(--line);border-radius:6mm;padding:5mm}
+/* СИНИЙ, ОБЪЕКТ ВТОРОЙ. Заливка призыва осталась белой: синей плашки на
+   листе ровно одна, и она у контактов. */
+.vc-call::before{content:'';align-self:stretch;width:2.5mm;border-radius:1.25mm;
+  background:var(--accent);flex:none}
+.vc-call p{font-size:5.4mm;font-weight:700;line-height:1.25;letter-spacing:-.015em}
 .vc-contacts{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm}
 .vc-site{margin-top:1.8mm;font-size:4mm;color:var(--ink-2)}
 .vc-qr{width:26mm;height:26mm;flex:none;color:var(--ink)}
@@ -117,6 +124,11 @@ function facts() {
     `<div class="vc-card"><div class="vc-card-v tnum">${f.value}`
     + `<span class="vc-card-u">${f.unit}</span></div>`
     + `<div class="vc-card-l">${f.label}</div></div>`).join('') + `</div>`;
+}
+
+/** Призыв — выноска: отдельный объект, а не абзац в потоке текста. */
+function call() {
+  return `<div class="vc-call"><p>${CALL}</p></div>`;
 }
 
 /** Контакты: телефон, адрес, адрес сайта и QR-код — последние два только
@@ -163,7 +175,7 @@ function photoCard() {
     + `<h2 class="vc-offer" style="font-size:11mm;max-width:170mm">${OFFER}</h2>`
     + `<p class="vc-kicker" style="margin-top:7mm">${SHIPPING}</p>`
     + `<div style="margin-top:auto;padding-top:10mm">${facts()}</div>`
-    + `<p class="vc-call" style="margin-top:9mm">${CALL}</p>`
+    + `<div style="margin-top:9mm">${call()}</div>`
     + `<div style="margin-top:auto;padding-top:10mm">${contacts()}</div>`
     + `<p class="vc-hours">${CONTACTS.hours}</p>`
     + `<div class="vc-rule" style="margin:5mm 0 4mm"></div>`
