@@ -104,7 +104,7 @@ function statesHtml(v: Variant, set: WordSet, p: Palette, short: boolean) {
     // прописных 14,28 px, соседи — настоящие пункты меню.
     + `<div class="min-w-0 rounded-card border border-line bg-surface-2 p-4 md:p-5">`
     + `<div class="min-w-0 overflow-x-auto" data-lenis-prevent>`
-    + `<div class="flex h-[60px] min-w-[540px] items-center gap-5 rounded-pill border border-line px-5" style="${light}">`
+    + `<div class="flex h-[60px] min-w-[520px] items-center gap-5 rounded-pill border border-line px-5" style="${light}">`
     + logo(id, { cap: HEADER_CAP }, 'shrink-0')
     + `<span class="text-t2" style="color:${p.ink}">Каталог&nbsp;&nbsp;&nbsp;Расчёт&nbsp;&nbsp;&nbsp;Условия</span>`
     + `<span class="ml-auto whitespace-nowrap text-t2 font-semibold" style="color:${p.ink}">+7&nbsp;(930)&nbsp;160-78-78</span>`
@@ -128,8 +128,18 @@ function statesHtml(v: Variant, set: WordSet, p: Palette, short: boolean) {
     + `<div class="grid min-w-0 content-start gap-4${short ? '' : ' sm:grid-cols-2'}">${rest}</div></div>`;
 }
 
+/** Три пары красок на опорном состоянии: сравнивать палитры удобнее на одном
+ *  и том же показе, а не на разных. */
+function palettesHtml(v: Variant) {
+  return `<div class="mt-6 grid gap-4 sm:grid-cols-3">` + PALETTES.map((p) =>
+    `<div class="min-w-0 rounded-card border border-line bg-surface-2 p-4">`
+    + `<div class="flex h-24 items-center justify-center rounded" style="${paint(p)};background:${p.bg}">`
+    + logo(`${v.id}-caps`, { cap: 44 }, 'h-auto max-w-full') + `</div>`
+    + `<p class="mt-3 text-[12px] leading-snug text-ink-2">${p.name}</p></div>`).join('') + `</div>`;
+}
+
 function cardBody(v: Variant) {
-  return SETS.map((s) =>
+  return palettesHtml(v) + SETS.map((s) =>
     `<div class="mt-6"><h4 class="text-[13px] font-semibold uppercase tracking-[.08em] text-ink-3">`
     + `${s.label}</h4>${statesHtml(v, s.key, PALETTES[0], s.key === 'mixed')}</div>`).join('');
 }
@@ -187,6 +197,31 @@ export default function LogoPage() {
           косая Л от этого подтягиваются к соседям, прямая Н отодвигается.
         </p>
 
+        <section className="mt-10 rounded-card border border-line bg-surface p-5 shadow-card md:p-8">
+          <h2 className="text-t3 font-black leading-none tracking-[-.02em]">Палитры</h2>
+          <div className="mt-5 grid gap-6 sm:grid-cols-3">
+            {PALETTES.map((p) => (
+              <div key={p.id}>
+                <div className="flex gap-2">
+                  {[p.bg, p.ink, p.accent].map((c) => (
+                    <span
+                      key={c}
+                      className="h-10 flex-1 rounded border border-line"
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
+                <h3 className="mt-3 text-[14px] font-semibold">{p.name}</h3>
+                <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{p.why}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-5 max-w-[70ch] text-[14px] leading-relaxed text-ink-2">
+            Синего среди них нет намеренно: он у половины отрасли и уже стоит на сайте акцентом
+            интерфейса. Красок в паре две; третья, акцентная, работает там, где направление её
+            просит, — верхним слоем насыпи. Заливки плоские, градиентов нет, белого фона нет.
+          </p>
+        </section>
 
         {DIRS.map((d) => (
           <section key={d.key} className="mt-12 md:mt-16">
