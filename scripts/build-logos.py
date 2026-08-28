@@ -174,6 +174,20 @@ def arc(cx, cy, r, a0, a1):
              cy + r * math.sin(a0 + (a1 - a0) * i / n)) for i in range(n + 1)]
 
 
+def pill(x0, y0, x1, y1):
+    """Пилюля: радиус равен половине высоты, скругления — настоящие дуги."""
+    r = (y1 - y0) / 2
+    cy = (y0 + y1) / 2
+    return [arc(x1 - r, cy, r, -math.pi / 2, math.pi / 2)
+            + arc(x0 + r, cy, r, math.pi / 2, 3 * math.pi / 2)]
+
+
+def slant(x0, y0, x1, y1):
+    """Параллелограмм с рёбрами под 45°: сдвиг верха равен высоте."""
+    d = y1 - y0
+    return [[(x0, y0), (x1, y0), (x1 + d, y1), (x0 + d, y1)]]
+
+
 # ─── вывод ────────────────────────────────────────────────────────────────
 
 def art(cs, rule='evenodd'):
@@ -203,6 +217,10 @@ def art(cs, rule='evenodd'):
 SLOT = 0.14 * CAP          # 4. толщина сквозной прорези
 SREZ = 0.42 * CAP          # 5. глубина среза блока по 45°
 BASE = 0.22 * CAP          # 6. толщина сплошного основания
+PAD_PILL = 0.80 * CAP      # 10. поле пилюли по горизонтали
+PAD_V = 0.34 * CAP         # 10. поле пилюли по вертикали
+PAD_SLANT = 0.26 * CAP     # 12. поле косой плашки по вертикали
+CLEAR_SLANT = 0.30 * CAP   # 12. просвет от буквы до косого ребра
 BADGE = 1.60 * CAP         # 7. диаметр круга монограммы
 BADGE_FILL = 0.55          # 7. доля буквы в круге
 TILE = 1.70 * CAP          # 9. сторона квадрата двухбуквенной монограммы
@@ -254,6 +272,43 @@ def tile():
     return rect(-h, -h, h, h) + letters
 
 
+def _plated(cs, shape):
+    """Слово вывороткой в плашке: одна заливка, буквы — дырки."""
+    return shape + cs
+
+
+def plate_pill(text):
+    """10. Слово вывороткой в скруглённой пилюле."""
+    cs = word(text)
+    x0, _, x1, _ = bbox(cs)
+    return _plated(cs, pill(x0 - PAD_PILL, -PAD_V, x1 + PAD_PILL, CAP + PAD_V))
+
+
+def plate_tag(text):
+    """11. Слово вывороткой в прямоугольнике. Поле равно ширине штриха."""
+    cs = word(text)
+    x0, _, x1, _ = bbox(cs)
+    return _plated(cs, rect(x0 - STEM, -STEM, x1 + STEM, CAP + STEM))
+
+
+def plate_slant(text):
+    """12. Слово вывороткой в параллелограмме с рёбрами под 45°.
+
+    Поле считается от косого ребра, а не от прямоугольной рамки: самая тесная
+    точка слева — верх слова, справа — его низ.
+    """
+    cs = word(text)
+    x0, _, x1, _ = bbox(cs)
+    y0, y1 = -PAD_SLANT, CAP + PAD_SLANT
+    # Просвет меряется на середине высоты слова: если мерить по самой тесной
+    # точке, косое ребро уводит противоположный угол на целую высоту прописных
+    # и плашка выходит с пустым треугольником в полслова.
+    mid = CAP / 2 - y0
+    bx0 = x0 - CLEAR_SLANT - mid
+    bx1 = x1 + CLEAR_SLANT - mid
+    return _plated(cs, slant(bx0, y0, bx1, y1))
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -263,13 +318,28 @@ BY_SET = {
     'prorez': (prorez, 'evenodd'),                 # группа: чистый вордмарк
     'srez': (srez, 'evenodd'),                     # группа: чистый вордмарк
     'osnovanie': (osnovanie, 'nonzero'),           # группа: чистый вордмарк
+    'plate-pill': (plate_pill, 'evenodd'),         # группа: слово в контейнере
+    'plate-tag': (plate_tag, 'evenodd'),           # группа: слово в контейнере
+    'plate-slant': (plate_slant, 'evenodd'),       # группа: слово в контейнере
 }
+
+
+def _e_in(shape):
+    """Компактная форма контейнера: та же плашка под одну букву."""
+    e = word('Э')
+    x0, _, x1, _ = bbox(e)
+    return _plated(e, shape(x0, x1))
 
 
 # Формы, от набора не зависящие: монограммы и компактные формы контейнеров.
 SOLO = {
     'badge-e': badge,                                                            # монограмма
     'tile-el': tile,                                                             # монограмма
+    # У компактной формы поле по горизонтали своё: с полем целого слова пилюля
+    # под одну букву выходит втрое шире нужного и перестаёт быть компактной.
+    'pill-e': lambda: _e_in(lambda a, b: pill(a - PAD_V, -PAD_V, b + PAD_V, CAP + PAD_V)),  # контейнер
+    'tag-e': lambda: _e_in(lambda a, b: rect(a - STEM, -STEM, b + STEM, CAP + STEM)),       # контейнер
+    'slant-e': lambda: plate_slant('Э'),                                         # контейнер
 }
 
 
