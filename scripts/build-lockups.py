@@ -341,6 +341,40 @@ def d2(text, kind):
     return collect(letters, [mono])
 
 
+# ─── направление 3: скол на месте буквы ───────────────────────────────────
+
+def d3(text, fit):
+    """Первая Е заменяется знаком. Масштаб равномерный: иначе уедет угол 45°.
+
+    Неравномерная подгонка «под ширину И высоту» отвергнута сразу: она
+    превращает 45° в произвольный угол, а угол на всём логотипе один.
+    """
+    i = next(i for i, ch in enumerate(text) if ch in 'Ее')
+    letters, _ = word(text, x0=0)
+    tgt = letters[i]
+    tx0, ty0, tx1, ty1 = tgt['box']
+    if fit == 'height':
+        # По высоте знака: он занимает весь блок буквы, от базовой до верха.
+        h, base = ty1 - ty0, ty0
+    else:
+        # По ширине знака: он уже и ниже, и садится на базовую линию, а не
+        # висит по центру — иначе читается точкой-разделителем, а не буквой.
+        h, base = tx1 - tx0, ty0
+    mark = skol(h, x=0, y=base)
+    mx0, my0, mx1, my1 = bbox(mark)
+    dx = (tx0 + tx1) / 2 - (mx0 + mx1) / 2
+    mark = [[(x + dx, y) for x, y in c] for c in mark]
+    # Соседи раздвигаются на разницу ширин, чтобы набор не слипся.
+    grow = (bbox(mark)[2] - bbox(mark)[0]) - (tx1 - tx0)
+    out = []
+    for j, l in enumerate(letters):
+        if j == i:
+            continue
+        d = grow / 2 * (-1 if j < i else 1)
+        out += [[(x + d, y) for x, y in c] for c in l['cs']]
+    return out + mark
+
+
 # ─── сборка ───────────────────────────────────────────────────────────────
 
 WORDS = {'caps': 'ЭЛЕМЕНТ', 'mixed': 'Элемент'}
@@ -352,6 +386,8 @@ BUILD = [
     ('mono-centr',    lambda t: d2(t, 'centr'),    lambda t: monogram('centr')),
     ('mono-gran',     lambda t: d2(t, 'gran'),     lambda t: monogram('gran')),
     ('mono-naskvoz',  lambda t: d2(t, 'naskvoz'),  lambda t: monogram('naskvoz')),
+    ('bukva-vysota',  lambda t: d3(t, 'height'), None),
+    ('bukva-shirina', lambda t: d3(t, 'width'),  None),
 ]
 
 
