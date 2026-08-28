@@ -1,5 +1,7 @@
 import { ART, type Art } from '../art';
 import { PATHS } from '../art';
+import { asset } from '@/lib/assets';
+import { CONTACTS, FACTS, LEGAL, LEGAL_NAME, OFFER, POSITIONS, ROWS, SHIPPING } from './data';
 
 /**
  * ВИЗИТКА, ТРИ ВАРИАНТА. Формат A4 книжной, 210×297 мм.
@@ -66,16 +68,6 @@ export const CARD_CSS = `
 .vc-photo{display:block;width:100%;height:100%;object-fit:cover}
 .vc-rule{height:.3mm;background:var(--line)}
 
-/* Тёмный вариант: те же токены, что у .inv на сайте. */
-.vc-dark{background:var(--ink);color:var(--surface)}
-.vc-dark .vc-lead,.vc-dark .vc-spec,.vc-dark .vc-fact-l{color:#b9bec6}
-.vc-dark .vc-kicker,.vc-dark .vc-count,.vc-dark .vc-legal{color:#8b929c}
-.vc-dark .vc-legal b{color:#b9bec6}
-.vc-dark .vc-row{border-top-color:rgba(255,255,255,.14)}
-.vc-dark .vc-rule{background:rgba(255,255,255,.14)}
-.vc-dark .vc-phone{color:#9db4f2}
-.vc-dark .vc-fact-v{color:#9db4f2}
-
 @media print{
   @page{size:210mm 297mm;margin:0}
   html,body{margin:0!important;padding:0!important;background:#fff!important}
@@ -83,7 +75,52 @@ export const CARD_CSS = `
 }
 `;
 
-/** Пока пустой лист формата A4: три варианта приходят следующими коммитами. */
+function rows(dark = false) {
+  return `<div class="vc-rows">` + ROWS.map((r) =>
+    `<div class="vc-row"><div class="vc-name">${r.name}</div>`
+    + `<div class="vc-count tnum">${r.count === null ? '' : r.count}</div>`
+    + `<div class="vc-spec">${r.spec}</div></div>`).join('') + `</div>`;
+}
+
+function facts() {
+  return `<div class="vc-facts">` + FACTS.map((f) =>
+    `<div><div class="vc-fact-v tnum">${f.value}<span class="vc-fact-u">${f.unit}</span></div>`
+    + `<div class="vc-fact-l">${f.label}</div></div>`).join('') + `</div>`;
+}
+
+function legal() {
+  /* tnum висит на самом числе, а не на строке: внутри .tnum обычных
+     пробелов быть не должно, иначе межсловный интервал уезжает втрое. */
+  return `<p class="vc-legal">${LEGAL_NAME} &nbsp; `
+    + LEGAL.map(([k, v]) => `<b>${k}</b>&nbsp;<span class="tnum">${v}</span>`)
+      .join(' &nbsp; ') + `</p>`;
+}
+
+/** 1. Фотографический: крупный кадр во всю ширину, типографика под ним. */
+function photoCard() {
+  const src = asset('/img/park-1920.webp');
+  return `<div class="vc">`
+    + `<div style="height:88mm;position:relative;background:var(--ink)">`
+    + `<img class="vc-photo" src="${src}" alt=""/>`
+    + `<div style="position:absolute;inset:auto 0 0 0;padding:0 14mm 7mm;`
+    + `--c-bg:${'#f4f4f1'};--c-ink:${'#17191c'}">${logoSvg('o1', 13)}</div></div>`
+    + `<div class="vc-pad" style="height:209mm;display:flex;flex-direction:column">`
+    + `<h2 class="vc-offer" style="font-size:10mm;max-width:165mm">${OFFER}</h2>`
+    + `<p class="vc-lead" style="margin-top:4mm;max-width:150mm">`
+    + `${POSITIONS.total} позиций в ${POSITIONS.categories} категориях, `
+    + `${POSITIONS.inStock} в наличии. ${SHIPPING}.</p>`
+    + `<div style="margin-top:6mm">${rows()}</div>`
+    + `<div style="margin-top:auto;padding-top:6mm">${facts()}</div>`
+    + `<div class="vc-rule" style="margin:6mm 0 4.5mm"></div>`
+    + `<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8mm">`
+    + `<div><a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
+    + `<p class="vc-addr">${CONTACTS.address}</p></div>`
+    + `<p class="vc-kicker" style="text-align:right;max-width:50mm">${CONTACTS.hours}</p></div>`
+    + `<div style="margin-top:4.5mm">${legal()}</div>`
+    + `</div></div>`;
+}
+
+/** Пока пустой лист: второй и третий варианты приходят следующими коммитами. */
 function blank(name: string) {
   return `<div class="vc vc-pad" style="display:flex;align-items:center;`
     + `justify-content:center;text-align:center">`
@@ -91,9 +128,9 @@ function blank(name: string) {
 }
 
 export const CARDS = [
-  { n: 1, name: 'Фотографический', html: () => blank('Фотографический'),
-    diff: '', weak: '' },
-  { n: 2, name: 'Типографический', html: () => blank('Типографический'),
-    diff: '', weak: '' },
+  { n: 1, name: 'Фотографический', html: photoCard,
+    diff: 'Крупный кадр площадки во всю ширину, логотип на нём, вся типографика под ним.',
+    weak: 'Кадр съедает треть высоты, и на строки характеристик остаётся меньше воздуха, чем в двух других.' },
+  { n: 2, name: 'Типографический', html: () => blank('Типографический'), diff: '', weak: '' },
   { n: 3, name: 'Тёмный', html: () => blank('Тёмный'), diff: '', weak: '' },
 ];
