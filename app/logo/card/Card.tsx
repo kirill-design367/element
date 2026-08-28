@@ -62,14 +62,22 @@ export const CARD_CSS = `
 .vc-count{font-size:3.1mm;color:var(--ink-3);text-align:right;
   font-variant-numeric:tabular-nums}
 .vc-spec{font-size:3.1mm;line-height:1.35;color:var(--ink-2)}
-.vc-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8mm}
-/* СИНИЙ, ОБЪЕКТ ПЕРВЫЙ: числа показателей. Подпись и единица остаются
-   тёмными — синим отмечена величина, а не блок целиком. */
-.vc-fact-v{font-size:22mm;font-weight:900;letter-spacing:-.045em;line-height:.86;
+/* Показатели — карточки, а не три колонки текста: белый лист поверх
+   цементного поля, крупное скругление, тонкая обводка. Тот же рецепт, что у
+   карточек на сайте, только радиус крупнее — на A4 6 мм читаются как 10 px
+   на экране. Высота выравнивается сеткой, отбивки равные. */
+.vc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm}
+.vc-card{display:flex;flex-direction:column;background:var(--surface);
+  border:.3mm solid var(--line);border-radius:6mm;padding:5mm}
+.vc-card-v{font-size:18mm;font-weight:900;letter-spacing:-.045em;line-height:.86;
   color:var(--accent);font-variant-numeric:tabular-nums}
-.vc-fact-u{font-size:5.5mm;font-weight:700;letter-spacing:0;
-  margin-left:2.2mm;display:inline-block}
-.vc-fact-l{margin-top:3mm;font-size:3.6mm;line-height:1.3;color:var(--ink-2);max-width:44mm}
+.vc-card-u{font-size:5mm;font-weight:700;letter-spacing:0;margin-left:2mm;
+  display:inline-block}
+/* Отбивка над линией ФИКСИРОВАННАЯ, а не margin-top:auto. С auto линия
+   вставала по низу самой высокой карточки, и у соседей она оказывалась на
+   разной высоте от числа — три линейки на трёх уровнях. */
+.vc-card-l{margin-top:5mm;padding-top:4mm;border-top:.3mm solid var(--line);
+  font-size:3.6mm;line-height:1.3;color:var(--ink-2)}
 /* СИНИЙ, ОБЪЕКТ ВТОРОЙ: грань у призыва. Линия, а не заливка: призыв стоит
    абзацем, и плашка под ним спорила бы с плашкой контактов. */
 .vc-call{font-size:5.2mm;font-weight:700;line-height:1.25;letter-spacing:-.015em;
@@ -105,9 +113,10 @@ export const CARD_CSS = `
 `;
 
 function facts() {
-  return `<div class="vc-facts">` + FACTS.map((f) =>
-    `<div><div class="vc-fact-v tnum">${f.value}<span class="vc-fact-u">${f.unit}</span></div>`
-    + `<div class="vc-fact-l">${f.label}</div></div>`).join('') + `</div>`;
+  return `<div class="vc-cards">` + FACTS.map((f) =>
+    `<div class="vc-card"><div class="vc-card-v tnum">${f.value}`
+    + `<span class="vc-card-u">${f.unit}</span></div>`
+    + `<div class="vc-card-l">${f.label}</div></div>`).join('') + `</div>`;
 }
 
 /** Контакты: телефон, адрес, адрес сайта и QR-код — последние два только
