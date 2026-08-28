@@ -92,6 +92,15 @@ export const CARD_CSS = `
 .vc-contacts{background:var(--accent);color:#fff;border-radius:6mm;padding:6mm}
 .vc-contacts-top{display:flex;align-items:flex-start;justify-content:space-between;
   gap:8mm}
+/* С QR-КОДОМ ПЛАШКА ПЕРЕСТРАИВАЕТСЯ В ДВЕ КОЛОНКИ, и это не украшение.
+   Втроём в одну строку телефон, адрес и код не помещаются: телефон при
+   12 мм занимает 111,5 мм из 170, код 24, отбивки 16 — адресу оставалось
+   24,9 мм, и он разваливался на пять строк. Теперь слева колонка «телефон,
+   адрес, сайт», справа код. */
+.vc-contacts--qr .vc-contacts-top{align-items:flex-start}
+.vc-contacts--qr .vc-contacts-main{flex:1;min-width:0}
+.vc-contacts--qr .vc-addr,.vc-contacts--qr .vc-site{text-align:left;margin-left:0}
+.vc-contacts--qr .vc-addr{margin-top:3mm;max-width:96mm}
 /* nowrap: номер с кодом города при 12 мм не влезал в свою колонку и рвался
    после «+7», а разорванный телефон читается двумя числами. */
 .vc-phone{font-size:12mm;font-weight:900;letter-spacing:-.03em;line-height:1;
@@ -139,10 +148,15 @@ function contacts() {
   const qr = QR
     ? `<div class="vc-qr-box"><svg class="vc-qr" viewBox="0 0 ${QR.size} ${QR.size}"`
       + ` aria-hidden="true"><path d="${QR.path}" fill="currentColor"/></svg></div>` : '';
-  return `<div class="vc-contacts">`
-    + `<div class="vc-contacts-top">`
-    + `<a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
-    + `<div><p class="vc-addr">${CONTACTS.address}</p>${site}</div>${qr}</div>`
+  const phone = `<a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`;
+  /* Без кода — телефон слева, адрес справа: строка одна. С кодом строка не
+     держит трёх колонок, и телефон с адресом уходят в общую левую. */
+  const main = QR
+    ? `<div class="vc-contacts-main">${phone}<p class="vc-addr">${CONTACTS.address}</p>`
+      + `${site}</div>`
+    : `${phone}<div><p class="vc-addr">${CONTACTS.address}</p>${site}</div>`;
+  return `<div class="vc-contacts${QR ? ' vc-contacts--qr' : ''}">`
+    + `<div class="vc-contacts-top">${main}${qr}</div>`
     + `<p class="vc-hours">${CONTACTS.hours}</p></div>`;
 }
 
@@ -171,7 +185,10 @@ function legal() {
  */
 function photoCard() {
   const src = asset('/img/park-1920.webp');
-  const PHOTO = 78;   // высота кадра, мм
+  /* Кадр отдаёт высоту QR-коду: с ним плашка контактов выше на 13 мм, а
+     свободного места на листе всего 7. Число одно и считается признаком, а
+     не правится руками, когда заполнят домен. */
+  const PHOTO = QR ? 66 : 78;   // высота кадра, мм
   const LOGO = 15;    // высота логотипа, мм — половина уходит на кадр
   return `<div class="vc">`
     + `<div style="height:${PHOTO}mm;background:var(--ink)">`
