@@ -84,9 +84,12 @@ jobs:
             'set ftp:ssl-force true' \
             'set ftp:ssl-protect-data true' \
             'set ssl:verify-certificate no' \
-            'set net:max-retries 3' \
-            'set net:timeout 20' \
-            'set mirror:parallel-transfer-count 4' > "$HOME/.lftprc"
+            'set net:max-retries 2' \
+            'set net:timeout 15' \
+            'set net:reconnect-interval-base 5' \
+            'set net:reconnect-interval-max 15' \
+            'set ftp:passive-mode true' \
+            'set mirror:parallel-transfer-count 2' > "$HOME/.lftprc"
           chmod 600 "$HOME/.lftprc"
 
       - name: Разведка — где корень сайта
@@ -133,6 +136,11 @@ jobs:
           lftp -c "open \"$FTP_HOST\"; cd \"$FOUND\"; cls -l" 2>&1 | sed 's/^/  /'
 
       - name: Выкладка
+        # ПОТОЛОК ПО ВРЕМЕНИ ОБЯЗАТЕЛЕН. Первая заливка прошла за минуту,
+        # вторая встала намертво на пятнадцать: хостинг ограничивает число
+        # одновременных FTP-сессий, и lftp ждал освободившийся слот молча.
+        # Лучше упасть за десять минут с внятной ошибкой, чем висеть.
+        timeout-minutes: 10
         # --delete вычищает то, чего в выдаче больше нет: иначе на сервере
         # копятся старые чанки _next и снятые страницы.
         # .well-known не трогаем ни при каких условиях — по нему Let's Encrypt
