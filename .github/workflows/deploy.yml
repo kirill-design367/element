@@ -111,38 +111,47 @@ jobs:
           # cmd:fail-exit no — неудачный cd не обрывает сессию, а печатает
           # ошибку; по строкам «КАНДИДАТ N» и следующему за ними pwd видно,
           # какой путь существует.
+          # ПЕРВЫМ ИДЁТ ТОТ, ЧТО ОКАЗАЛСЯ ВЕРНЫМ. Учётка FTP заперта в
+          # каталоге data аккаунта, поэтому серверный абсолютный путь
+          # /var/www/<пользователь>/data/www/<домен> по FTP недостижим — тот
+          # же каталог виден как /www/<домен>. Остальные кандидаты оставлены
+          # запасными: у другого хостинга дерево будет другим.
           SCRIPT="set cmd:fail-exit no; open \"$FTP_HOST\"; echo ТОЧКА-ВХОДА; pwd; cls -l;"
           N=0
           for DIR in \
-            "/var/www/$FTP_USER/data/www/$DOMAIN" \
             "/www/$DOMAIN" \
             "/data/www/$DOMAIN" \
+            "/var/www/$FTP_USER/data/www/$DOMAIN" \
             "www/$DOMAIN" \
             "$DOMAIN" \
             "/$DOMAIN"
           do
             N=$((N + 1))
-            SCRIPT="$SCRIPT cd /; echo КАНДИДАТ-$N; cd \"$DIR\"; pwd;"
+            SCRIPT="$SCRIPT cd /; echo КАНДИДАТ $N; cd \"$DIR\"; pwd;"
           done
           OUT=$(lftp -c "$SCRIPT" 2>&1)
           echo "$OUT" | sed 's/^/  /'
 
-          # Первый кандидат, после метки которого lftp напечатал путь, а не
-          # ошибку. Печатаем номер, а не сам путь: в пути стоит имя
-          # пользователя, и GitHub заменил бы его звёздочками.
-          MATCH=$(echo "$OUT" | awk '
-            /^КАНДИДАТ-/ { n = substr($0, 11); next }
-            n != "" && /^ftp:\/\// { print n; exit }
-            n != "" { n = "" }
+          # ПРОВАЛИВШИЙСЯ cd ТОЖЕ ПЕЧАТАЕТ строку ftp://, только с прежним
+          # каталогом — значит отличать успех от неудачи по наличию строки
+          # нельзя. Отличаем по тому, стоит ли в пути имя домена: хост и
+          # пользователь в логе замаскированы звёздочками, а путь виден.
+          MATCH=$(echo "$OUT" | awk -v dom="$DOMAIN" '
+            $1 == "КАНДИДАТ" { n = $2; bad = 0; next }
+            n != "" && /Access failed/ { bad = 1; next }
+            n != "" && /^ftp:\/\// {
+              if (!bad && index($0, dom)) { print n; exit }
+              n = ""
+            }
           ')
           if [ -z "$MATCH" ]; then
             echo "::error::Корень сайта не найден ни по одному из кандидатов. Смотрите дерево выше."
             exit 1
           fi
           case "$MATCH" in
-            1) DIR="/var/www/$FTP_USER/data/www/$DOMAIN"; SHOWN="/var/www/<пользователь>/data/www/$DOMAIN" ;;
-            2) DIR="/www/$DOMAIN"; SHOWN="$DIR" ;;
-            3) DIR="/data/www/$DOMAIN"; SHOWN="$DIR" ;;
+            1) DIR="/www/$DOMAIN"; SHOWN="$DIR" ;;
+            2) DIR="/data/www/$DOMAIN"; SHOWN="$DIR" ;;
+            3) DIR="/var/www/$FTP_USER/data/www/$DOMAIN"; SHOWN="/var/www/<пользователь>/data/www/$DOMAIN" ;;
             4) DIR="www/$DOMAIN"; SHOWN="$DIR" ;;
             5) DIR="$DOMAIN"; SHOWN="$DIR" ;;
             6) DIR="/$DOMAIN"; SHOWN="$DIR" ;;
