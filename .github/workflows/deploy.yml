@@ -94,22 +94,25 @@ jobs:
 
       - name: Разведка — где корень сайта
         # Путь не угадываем: ISPmanager кладёт домены по-разному, и промах с
-        # последующим --delete стоил бы чужих файлов. Кандидаты перебираются,
-        # берётся первый существующий, и он ОБЯЗАН содержать имя домена —
-        # так корень аккаунта под удаление не попадёт никогда.
+        # последующим --delete стоил бы чужих файлов.
+        #
+        # ВСЁ ДЕЛАЕТСЯ ОДНОЙ СЕССИЕЙ, и это не красота, а необходимость.
+        # Прежняя версия открывала отдельное соединение на каждого кандидата
+        # и на каждый листинг — десяток подключений подряд, — и хостинг начал
+        # их душить: шаг вставал намертво на пятнадцать минут. Теперь одно
+        # соединение, внутри него все cd и ls.
+        timeout-minutes: 5
         id: root
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
         run: |
-          set -euo pipefail
-          echo "Дерево от точки входа FTP:"
-          lftp -c "set cmd:fail-exit no; open \"$FTP_HOST\"; pwd; cls -l" 2>&1 | sed 's/^/  /' || true
-          for PROBE in www data data/www; do
-            echo "Каталог $PROBE, если он есть:"
-            lftp -c "set cmd:fail-exit no; open \"$FTP_HOST\"; cd \"$PROBE\"; cls -l" 2>&1 | sed 's/^/  /' || true
-          done
-          FOUND=""
+          set -uo pipefail
+          # cmd:fail-exit no — неудачный cd не обрывает сессию, а печатает
+          # ошибку; по строкам «КАНДИДАТ N» и следующему за ними pwd видно,
+          # какой путь существует.
+          SCRIPT="set cmd:fail-exit no; open \"$FTP_HOST\"; echo ТОЧКА-ВХОДА; pwd; cls -l;"
+          N=0
           for DIR in \
             "/var/www/$FTP_USER/data/www/$DOMAIN" \
             "/www/$DOMAIN" \
@@ -118,22 +121,40 @@ jobs:
             "$DOMAIN" \
             "/$DOMAIN"
           do
-            if lftp -c "set cmd:fail-exit yes; open \"$FTP_HOST\"; cd \"$DIR\"; pwd" >/dev/null 2>&1; then
-              FOUND="$DIR"; break
-            fi
+            N=$((N + 1))
+            SCRIPT="$SCRIPT cd /; echo КАНДИДАТ-$N; cd \"$DIR\"; pwd;"
           done
-          if [ -z "$FOUND" ]; then
+          OUT=$(lftp -c "$SCRIPT" 2>&1)
+          echo "$OUT" | sed 's/^/  /'
+
+          # Первый кандидат, после метки которого lftp напечатал путь, а не
+          # ошибку. Печатаем номер, а не сам путь: в пути стоит имя
+          # пользователя, и GitHub заменил бы его звёздочками.
+          MATCH=$(echo "$OUT" | awk '
+            /^КАНДИДАТ-/ { n = substr($0, 11); next }
+            n != "" && /^ftp:\/\// { print n; exit }
+            n != "" { n = "" }
+          ')
+          if [ -z "$MATCH" ]; then
             echo "::error::Корень сайта не найден ни по одному из кандидатов. Смотрите дерево выше."
             exit 1
           fi
-          case "$FOUND" in
-            *"$DOMAIN"*) : ;;
-            *) echo "::error::Найденный путь $FOUND не содержит имени домена — заливать в него нельзя."; exit 1 ;;
+          case "$MATCH" in
+            1) DIR="/var/www/$FTP_USER/data/www/$DOMAIN"; SHOWN="/var/www/<пользователь>/data/www/$DOMAIN" ;;
+            2) DIR="/www/$DOMAIN"; SHOWN="$DIR" ;;
+            3) DIR="/data/www/$DOMAIN"; SHOWN="$DIR" ;;
+            4) DIR="www/$DOMAIN"; SHOWN="$DIR" ;;
+            5) DIR="$DOMAIN"; SHOWN="$DIR" ;;
+            6) DIR="/$DOMAIN"; SHOWN="$DIR" ;;
           esac
-          echo "Корень сайта: $FOUND"
-          echo "dir=$FOUND" >> "$GITHUB_OUTPUT"
-          echo "Что там сейчас лежит:"
-          lftp -c "open \"$FTP_HOST\"; cd \"$FOUND\"; cls -l" 2>&1 | sed 's/^/  /'
+          # Страховка на случай, если список кандидатов однажды перепишут:
+          # заливать с --delete можно только туда, где стоит имя домена.
+          case "$DIR" in
+            *"$DOMAIN"*) : ;;
+            *) echo "::error::Путь кандидата $MATCH не содержит имени домена — заливать в него нельзя."; exit 1 ;;
+          esac
+          echo "Совпал кандидат $MATCH: $SHOWN"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
 
       - name: Выкладка
         # ПОТОЛОК ПО ВРЕМЕНИ ОБЯЗАТЕЛЕН. Первая заливка прошла за минуту,
