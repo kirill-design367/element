@@ -1,22 +1,35 @@
-name: Deploy to GitHub Pages
+name: Выкладка на elementst.ru
+
+# Сайт переехал с GitHub Pages на хостинг рег.ру. Публикация на Pages убрана
+# вместе с прежним содержимым этого файла: два адреса у одного сайта путают
+# и людей, и поиск.
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      lighthouse:
+        description: Прогнать Lighthouse по боевому адресу
+        type: boolean
+        default: false
 
+# Токен нужен только на чтение исходников: заливка идёт по FTP своими
+# секретами, ничего в репозиторий workflow не пишет.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Параллельные выкладки не нужны: в очереди держим последнюю.
+# Параллельные выкладки на один хостинг недопустимы: две встречные заливки с
+# удалением лишнего съедят друг друга. В очереди держим последнюю.
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: true
 
+env:
+  DOMAIN: elementst.ru
+
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,21 +51,160 @@ jobs:
       - name: Проверка, что в выдаче нет подпапки
         run: node scripts/no-basepath.mjs
 
-      # Pages включается один раз руками: Settings → Pages → Source:
-      # GitHub Actions. Штатный GITHUB_TOKEN создать сайт не может —
-      # «Resource not accessible by integration».
-      - uses: actions/configure-pages@v5
+      - name: Установка lftp
+        # lftp вместо готового экшена: mirror -R --delete делает ровно то, что
+        # нужно (залить выдачу и вычистить то, чего в ней больше нет), и не
+        # тащит в выкладку стороннего кода с доступом к секретам.
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: out
+      - name: Учётные данные FTP
+        # Пароль уходит в ~/.netrc, а не в командную строку: аргументы видны в
+        # списке процессов, а спецсимволы в пароле ломают разбор -u user,pass.
+        # Файл живёт только внутри задания и удаляется последним шагом.
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          umask 077
+          printf 'machine %s\nlogin %s\npassword %s\n' \
+            "$FTP_HOST" "$FTP_USER" "$FTP_PASSWORD" > "$HOME/.netrc"
+          chmod 600 "$HOME/.netrc"
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Разведка — где корень сайта
+        # Путь не угадываем: ISPmanager кладёт домены по-разному, и промах с
+        # последующим --delete стоил бы чужих файлов. Кандидаты перебираются,
+        # берётся первый существующий, и он ОБЯЗАН содержать имя домена —
+        # так корень аккаунта под удаление не попадёт никогда.
+        id: root
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+        run: |
+          set -euo pipefail
+          echo "Дерево от точки входа FTP:"
+          lftp -c "set cmd:fail-exit no; open \"$FTP_HOST\"; pwd; cls -l" 2>&1 | sed 's/^/  /' || true
+          echo "Каталог www, если он есть:"
+          lftp -c "set cmd:fail-exit no; open \"$FTP_HOST\"; cd www; cls -l" 2>&1 | sed 's/^/  /' || true
+          FOUND=""
+          for DIR in \
+            "/var/www/$FTP_USER/data/www/$DOMAIN" \
+            "/www/$DOMAIN" \
+            "/data/www/$DOMAIN" \
+            "www/$DOMAIN" \
+            "$DOMAIN" \
+            "/$DOMAIN"
+          do
+            if lftp -c "set cmd:fail-exit yes; open \"$FTP_HOST\"; cd \"$DIR\"; pwd" >/dev/null 2>&1; then
+              FOUND="$DIR"; break
+            fi
+          done
+          if [ -z "$FOUND" ]; then
+            echo "::error::Корень сайта не найден ни по одному из кандидатов. Смотрите дерево выше."
+            exit 1
+          fi
+          case "$FOUND" in
+            *"$DOMAIN"*) : ;;
+            *) echo "::error::Найденный путь $FOUND не содержит имени домена — заливать в него нельзя."; exit 1 ;;
+          esac
+          echo "Корень сайта: $FOUND"
+          echo "dir=$FOUND" >> "$GITHUB_OUTPUT"
+          echo "Что там сейчас лежит:"
+          lftp -c "open \"$FTP_HOST\"; cd \"$FOUND\"; cls -l" 2>&1 | sed 's/^/  /'
+
+      - name: Выкладка
+        # --delete вычищает то, чего в выдаче больше нет: иначе на сервере
+        # копятся старые чанки _next и снятые страницы.
+        # .well-known не трогаем ни при каких условиях — по нему Let's Encrypt
+        # подтверждает домен, и стереть его значит потерять сертификат.
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+        run: |
+          set -euo pipefail
+          lftp -c "
+            set cmd:fail-exit yes;
+            set net:max-retries 3;
+            set net:timeout 20;
+            set ftp:ssl-allow true;
+            set ftp:ssl-protect-data true;
+            set mirror:parallel-transfer-count 4;
+            open \"$FTP_HOST\";
+            mirror -R --delete --verbose=1 \
+              --exclude-glob .well-known* \
+              --exclude-glob cgi-bin* \
+              out/ \"${{ steps.root.outputs.dir }}\";
+          "
+
+      - name: Убрать учётные данные
+        if: always()
+        run: rm -f "$HOME/.netrc"
+
+      - name: Проверка боем
+        # Выкладка без проверки — это надежда, а не выкладка. Смотрим на живой
+        # адрес: отдаётся ли лендинг, каталог и своя страница 404, и есть ли
+        # сертификат. https требуем только если сертификат уже выпущен.
+        run: |
+          set -euo pipefail
+          FAIL=0
+          if curl -sS -m 20 -o /dev/null "https://$DOMAIN/"; then
+            SCHEME=https
+            echo "Сертификат есть: https отвечает."
+          else
+            SCHEME=http
+            echo "::warning::https не отвечает — сертификата, похоже, нет. Проверяем по http."
+          fi
+          for PATH_ in "/" "/catalog/" "/logo/card/1/"; do
+            CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$SCHEME://$DOMAIN$PATH_")
+            echo "$PATH_ → $CODE"
+            [ "$CODE" = 200 ] || FAIL=1
+          done
+          CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "$SCHEME://$DOMAIN/такой-страницы-нет/")
+          echo "несуществующий адрес → $CODE"
+          echo "--- заголовки главной:"
+          curl -sS -m 20 -D - -o /dev/null "$SCHEME://$DOMAIN/" | sed 's/^/  /'
+          echo "--- заголовки статики _next:"
+          ASSET=$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1 || true)
+          if [ -n "$ASSET" ]; then
+            curl -sS -m 20 -D - -o /dev/null "$SCHEME://$DOMAIN$ASSET" | sed 's/^/  /'
+          fi
+          echo "--- http без схемы (куда ведёт):"
+          curl -sS -m 20 -o /dev/null -w '  %{http_code} → %{redirect_url}\n' "http://$DOMAIN/"
+          exit $FAIL
+
+      - name: Lighthouse по боевому адресу
+        # Только по кнопке: пять прогонов на страницу занимают минуты, и на
+        # каждый пуш это лишнее. Берётся медиана — одиночный прогон на общем
+        # раннере ничего не значит.
+        if: inputs.lighthouse
+        run: |
+          npm i -g lighthouse@12
+          for PAGE in "" "catalog/"; do
+            TAG=$([ -z "$PAGE" ] && echo лендинг || echo каталог)
+            for I in 1 2 3 4 5; do
+              lighthouse "https://$DOMAIN/$PAGE" --form-factor=mobile --screenEmulation.mobile \
+                --only-categories=performance,accessibility,best-practices,seo \
+                --output=json --output-path="/tmp/$TAG-$I.json" \
+                --chrome-flags="--headless --no-sandbox" --quiet || true
+            done
+            TAG="$TAG" node -e '
+              const fs = require("fs"), tag = process.env.TAG;
+              const rows = [1, 2, 3, 4, 5].map((i) => {
+                try {
+                  const d = JSON.parse(fs.readFileSync(`/tmp/${tag}-${i}.json`));
+                  return [Math.round(d.categories.performance.score * 100),
+                    d.audits["largest-contentful-paint"].numericValue / 1000,
+                    d.audits["total-blocking-time"].numericValue,
+                    Math.round(d.categories.accessibility.score * 100),
+                    Math.round(d.categories["best-practices"].score * 100),
+                    Math.round(d.categories.seo.score * 100)];
+                } catch (e) { return null; }
+              }).filter(Boolean);
+              const med = (a) => a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)];
+              const col = (i) => rows.map((r) => r[i]);
+              console.log(tag, JSON.stringify(col(0)),
+                "медиана", med(col(0)),
+                "| LCP", med(col(1)).toFixed(2),
+                "| TBT", Math.round(med(col(2))),
+                "| дост", med(col(3)), "практ", med(col(4)), "SEO", med(col(5)));
+            '
+          done
