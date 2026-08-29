@@ -46,5 +46,47 @@ await p.goto(`${BASE}/catalog/?category=pesok&fraction=0-5`, { waitUntil: 'netwo
 await p.waitForTimeout(500);
 console.log('прямая ссылка с фильтром, позиций:', await p.locator('article:visible').count());
 
-console.log('сбои сети и JS:', failed.length ? failed.slice(0, 6) : 'нет');
+// Якоря меню: проверяются КЛИКОМ, а не подстановкой location.hash — это два
+// разных пути, и прокрутку ведёт Lenis, а не браузер.
+await p.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+await p.waitForTimeout(800);
+for (const anchor of ['#raschet', '#usloviya', '#process', '#kontakty']) {
+  const link = p.locator(`header a[href$="${anchor}"]`).first();
+  if (!(await link.count())) { console.log(`якорь ${anchor}: пункта меню нет`); continue; }
+  await link.click();
+  await p.waitForTimeout(1400);
+  const top = await p.evaluate((id) => {
+    const el = document.querySelector(id);
+    return el ? Math.round(el.getBoundingClientRect().top) : null;
+  }, anchor);
+  console.log(`якорь ${anchor}: цель на ${top} px от верха окна`);
+}
+
+// Калькулятор: меняем объём и смотрим, что итог пересчитался.
+await p.goto(`${BASE}/#raschet`, { waitUntil: 'networkidle' });
+await p.waitForTimeout(900);
+const total = () => p.locator('[data-total]').first().innerText();
+const before = await total();
+const volume = p.locator('input[inputmode="decimal"]').first();
+await volume.fill('40');
+await p.waitForTimeout(1200);
+const after = await total();
+console.log('итог расчёта:', JSON.stringify(before), '→', JSON.stringify(after),
+  before === after ? '— НЕ ПЕРЕСЧИТАЛСЯ' : '— пересчитался');
+
+// Горизонтальный вылет на трёх ширинах.
+for (const [w, h] of [[1920, 1080], [1512, 820], [390, 844]]) {
+  await p.setViewportSize({ width: w, height: h });
+  await p.waitForTimeout(500);
+  const moved = await p.evaluate(() => {
+    const was = window.scrollX;
+    window.scrollTo(9999, 0);
+    const moved = window.scrollX - was;
+    window.scrollTo(0, 0);
+    return moved;
+  });
+  console.log(`вылет вбок на ${w}×${h}: ${moved} px`);
+}
+
+console.log('сбои сети и JS:', failed.length ? failed.slice(0, 8) : 'нет');
 await b.close();
