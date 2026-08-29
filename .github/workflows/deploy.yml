@@ -213,13 +213,13 @@ jobs:
           # откроет, хотя браузер на десктопе достроит цепочку сам.
           echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts 2>/dev/null \
             | awk '/^ [0-9] s:/ || /^ *[0-9] s:/ {print "  " $0} /^ *[0-9] i:/ {print "  " $0}' \
-            | head -20
+            | head -20 || true
           DEPTH=$(echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts 2>/dev/null \
-            | grep -c 'BEGIN CERTIFICATE')
+            | grep -c 'BEGIN CERTIFICATE' || true)
           echo "  сертификатов в цепочке: $DEPTH"
           [ "$DEPTH" -ge 2 ] || { echo "::error::Промежуточного сертификата нет — цепочка неполная."; FAIL=1; }
           echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
-            | openssl x509 -noout -subject -issuer -dates 2>/dev/null | sed 's/^/  /'
+            | openssl x509 -noout -subject -issuer -dates 2>/dev/null | sed 's/^/  /' || true
 
           echo "--- редиректы (каждый шаг отдельно, чтобы поймать двойные)"
           # -w %{redirect_url} без -L: показывает ОДИН шаг. Двойной редирект
@@ -268,8 +268,13 @@ jobs:
           # Ни одной ссылки на http:// в собственных адресах страницы. Ищем в
           # том, что реально отдал сервер, а не в исходниках.
           for PAGE in "/" "/catalog/"; do
+            # ОБЯЗАТЕЛЬНОЕ || true. GitHub запускает шаг как bash -e, а grep,
+            # ничего не нашедший, возвращает единицу — то есть шаг падал ровно
+            # тогда, когда смешанного содержимого НЕТ. Отсутствие находки
+            # оформлялось как провал.
             MIXED=$(curl -sS -m 20 "$BASE$PAGE" \
-              | grep -o '\(src\|href\)="http://[^"]*"' | grep -v 'schema.org\|www.w3.org' | head -5)
+              | grep -o '\(src\|href\)="http://[^"]*"' \
+              | grep -v 'schema.org\|www.w3.org' | head -5 || true)
             if [ -n "$MIXED" ]; then
               echo "::error::На $PAGE есть ссылки по http:"; echo "$MIXED" | sed 's/^/    /'; FAIL=1
             else
@@ -278,7 +283,7 @@ jobs:
           done
 
           echo "--- сжатие"
-          ASSET=$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1)
+          ASSET=$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1 || true)
           for ADDR in "/" "$ASSET"; do
             ENC=$(curl -sS -m 20 -H 'Accept-Encoding: gzip, br' -o /dev/null -D - "$BASE$ADDR" \
                   | tr -d '\r' | awk 'tolower($1)=="content-encoding:"{print $2}')
@@ -294,7 +299,7 @@ jobs:
           done
 
           echo "--- сервер"
-          curl -sS -m 20 -o /dev/null -D - "$BASE/" | tr -d '\r' | grep -i '^server:' | sed 's/^/  /'
+          curl -sS -m 20 -o /dev/null -D - "$BASE/" | tr -d '\r' | grep -i '^server:' | sed 's/^/  /' || true
 
           exit $FAIL
 
