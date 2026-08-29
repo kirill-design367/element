@@ -32,16 +32,11 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Сборка статики
-        # basePath задаётся здесь: локально сайт живёт в корне, на Pages —
-        # в /element. Значение читают и next.config.mjs, и хелпер asset().
-        env:
-          NEXT_PUBLIC_BASE_PATH: /element
+        # Без NEXT_PUBLIC_BASE_PATH — сборка идёт под корень домена.
         run: npm run build
 
-      - name: Отключить обработку Jekyll
-        # Без этого Pages выкидывает всё, что начинается с подчёркивания,
-        # то есть весь каталог _next.
-        run: touch out/.nojekyll
+      - name: Проверка, что в выдаче нет подпапки
+        run: node scripts/no-basepath.mjs
 
       # Pages включается один раз руками: Settings → Pages → Source:
       # GitHub Actions. Штатный GITHUB_TOKEN создать сайт не может —
