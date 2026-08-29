@@ -205,7 +205,15 @@ export function categorySlot(id: string): string {
   return `category${id.charAt(0).toUpperCase()}${id.slice(1)}`;
 }
 
-/** Путь к статике с учётом basePath GitHub Pages. */
+/**
+ * Путь к статике с учётом basePath.
+ *
+ * На боевом домене база пустая — сайт живёт в корне elementst.ru. Хелпер
+ * остался, потому что осталась возможность собрать под подпапку
+ * (NEXT_PUBLIC_BASE_PATH), и путь к кадру или шрифту мимо базы — это битая
+ * ссылка, которую видно только в бою. Проверяется обходом выдачи:
+ * scripts/no-basepath.mjs.
+ */
 export function asset(path: string): string {
   const base = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
   return `${base}${path}`;
