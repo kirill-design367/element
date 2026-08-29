@@ -18,6 +18,10 @@ const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
 const p = await ctx.newPage();
 const failed = [];
+/* Смешанное содержимое ловится по фактическим запросам страницы, а не по
+   разметке: часть адресов подставляет скрипт уже в браузере. */
+const insecure = new Set();
+p.on('request', (r) => { if (r.url().startsWith('http://')) insecure.add(r.url()); });
 p.on('response', (r) => { if (r.status() >= 400) failed.push(r.status() + ' ' + r.url()); });
 p.on('pageerror', (e) => failed.push('JS: ' + e.message.slice(0, 120)));
 
@@ -89,4 +93,7 @@ for (const [w, h] of [[1920, 1080], [1512, 820], [390, 844]]) {
 }
 
 console.log('сбои сети и JS:', failed.length ? failed.slice(0, 8) : 'нет');
+console.log('запросов по http (смешанное содержимое):',
+  insecure.size ? [...insecure].slice(0, 8) : 'нет');
 await b.close();
+if (insecure.size) process.exitCode = 1;

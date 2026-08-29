@@ -194,65 +194,104 @@ jobs:
 
       - name: Проверка боем
         # Выкладка без проверки — это надежда, а не выкладка. Смотрим на живой
-        # адрес: отдаются ли страницы, работает ли своя 404, дошли ли до
-        # сервера правила .htaccess (сжатие и заголовки кеша) и есть ли
-        # настоящий сертификат.
+        # адрес: сертификат, редиректы, коды ответа, своя ли 404, дошли ли до
+        # сервера правила .htaccess (сжатие и заголовки кеша).
         run: |
           set -uo pipefail
           FAIL=0
-          # Сертификат проверяем отдельно от доступности: самоподписанная
-          # заглушка хостинга отвечает на 443, но браузеру не годится.
-          if curl -sS -m 20 -o /dev/null "https://$DOMAIN/" 2>/dev/null; then
-            SCHEME=https
-            echo "Сертификат настоящий: https отвечает без ругани."
-          else
-            SCHEME=http
-            echo "::warning::Сертификата нет — на 443 самоподписанная заглушка. Проверяем по http, принудительный https не включаем."
-          fi
-          BASE="$SCHEME://$DOMAIN"
 
+          echo "--- сертификат"
+          if curl -sS -m 20 -o /dev/null "https://$DOMAIN/" 2>/dev/null; then
+            echo "  сертификат валидный, https отвечает"
+          else
+            echo "::error::https не отвечает или сертификат не проходит проверку."
+            curl -sS -m 20 -o /dev/null "https://$DOMAIN/" 2>&1 | sed 's/^/  /' || true
+            FAIL=1
+          fi
+          # Полнота цепочки: сервер обязан отдавать промежуточный сертификат.
+          # Без него часть клиентов (старые Android, часть библиотек) сайт не
+          # откроет, хотя браузер на десктопе достроит цепочку сам.
+          echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts 2>/dev/null \
+            | awk '/^ [0-9] s:/ || /^ *[0-9] s:/ {print "  " $0} /^ *[0-9] i:/ {print "  " $0}' \
+            | head -20
+          DEPTH=$(echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts 2>/dev/null \
+            | grep -c 'BEGIN CERTIFICATE')
+          echo "  сертификатов в цепочке: $DEPTH"
+          [ "$DEPTH" -ge 2 ] || { echo "::error::Промежуточного сертификата нет — цепочка неполная."; FAIL=1; }
+          echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
+            | openssl x509 -noout -subject -issuer -dates 2>/dev/null | sed 's/^/  /'
+
+          echo "--- редиректы (каждый шаг отдельно, чтобы поймать двойные)"
+          # -w %{redirect_url} без -L: показывает ОДИН шаг. Двойной редирект
+          # виден по тому, что следующий адрес тоже отвечает 301.
+          for START in "http://$DOMAIN/" "http://www.$DOMAIN/" "https://www.$DOMAIN/"; do
+            ADDR="$START"; HOPS=0
+            while [ "$HOPS" -lt 5 ]; do
+              LINE=$(curl -sS -m 20 -o /dev/null -w '%{http_code} %{redirect_url}' "$ADDR")
+              CODE=${LINE%% *}; NEXT=${LINE#* }
+              echo "  $ADDR → $CODE ${NEXT:-—}"
+              case "$CODE" in 30*) ;; *) break ;; esac
+              HOPS=$((HOPS + 1)); ADDR="$NEXT"
+            done
+            echo "  итого шагов: $HOPS"
+            [ "$HOPS" -le 1 ] || { echo "::error::Цепочка из $HOPS редиректов от $START — должен быть один."; FAIL=1; }
+            case "$ADDR" in https://$DOMAIN*) ;; *) echo "::error::$START приводит на $ADDR, а не на https без www."; FAIL=1 ;; esac
+          done
+
+          BASE="https://$DOMAIN"
           echo "--- коды ответа"
-          for ADDR in "/" "/catalog/" "/catalog/?category=pesok" "/fonts/" "/logo/" "/logo/card/1/" "/robots.txt"; do
+          for ADDR in "/" "/catalog/" "/catalog/?category=pesok&fraction=0-5" "/#raschet" \
+                      "/fonts/" "/logo/" "/logo/card/1/" "/robots.txt"; do
             CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$BASE$ADDR")
-            printf '  %-28s %s\n' "$ADDR" "$CODE"
+            printf '  %-42s %s\n' "$ADDR" "$CODE"
             [ "$CODE" = 200 ] || FAIL=1
           done
+          # Прямая ссылка с фильтром должна отдаваться БЕЗ редиректа: иначе
+          # параметры или якорь могли бы потеряться по дороге.
+          for ADDR in "/catalog/?category=pesok&fraction=0-5" "/#raschet"; do
+            LINE=$(curl -sS -m 20 -o /dev/null -w '%{http_code} %{redirect_url}' "$BASE$ADDR")
+            echo "  без -L: $ADDR → $LINE"
+          done
           CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "$BASE/такой-страницы-нет/")
-          printf '  %-28s %s\n' "несуществующий адрес" "$CODE"
+          printf '  %-42s %s\n' "несуществующий адрес" "$CODE"
           [ "$CODE" = 404 ] || FAIL=1
 
           echo "--- своя ли страница 404"
-          # Метка next-error-h1 есть только у страницы, которую собрал Next.
-          # Апачевская «Not Found» её не содержит — по ней и отличаем.
           if curl -sS -m 20 "$BASE/такой-страницы-нет/" | grep -q "next-error-h1"; then
             echo "  да, своя — отдаётся 404.html из выдачи"
           else
-            echo "::warning::404 отдаётся серверная — ErrorDocument не сработал."
+            echo "::error::404 отдаётся серверная — ErrorDocument не сработал."
             FAIL=1
           fi
 
-          echo "--- адрес без завершающего слэша"
-          curl -sS -m 20 -o /dev/null -w '  /catalog → %{http_code} %{redirect_url}\n' "$BASE/catalog"
+          echo "--- смешанное содержимое в разметке"
+          # Ни одной ссылки на http:// в собственных адресах страницы. Ищем в
+          # том, что реально отдал сервер, а не в исходниках.
+          for PAGE in "/" "/catalog/"; do
+            MIXED=$(curl -sS -m 20 "$BASE$PAGE" \
+              | grep -o '\(src\|href\)="http://[^"]*"' | grep -v 'schema.org\|www.w3.org' | head -5)
+            if [ -n "$MIXED" ]; then
+              echo "::error::На $PAGE есть ссылки по http:"; echo "$MIXED" | sed 's/^/    /'; FAIL=1
+            else
+              echo "  $PAGE — ссылок по http нет"
+            fi
+          done
 
           echo "--- сжатие"
-          for ADDR in "/" "$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1)"; do
+          ASSET=$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1)
+          for ADDR in "/" "$ASSET"; do
             ENC=$(curl -sS -m 20 -H 'Accept-Encoding: gzip, br' -o /dev/null -D - "$BASE$ADDR" \
                   | tr -d '\r' | awk 'tolower($1)=="content-encoding:"{print $2}')
             printf '  %-42s %s\n' "$ADDR" "${ENC:-нет}"
           done
 
           echo "--- заголовки кеша"
-          ASSET=$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1)
           IMG=$(ls out/img | head -1)
           for ADDR in "/" "$ASSET" "/img/$IMG" "/robots.txt"; do
             CC=$(curl -sS -m 20 -o /dev/null -D - "$BASE$ADDR" \
                  | tr -d '\r' | awk 'tolower($1)=="cache-control:"{$1="";print substr($0,2)}')
             printf '  %-42s %s\n' "$ADDR" "${CC:-нет}"
           done
-
-          echo "--- www и схема"
-          curl -sS -m 20 -o /dev/null -w '  www → %{http_code} %{redirect_url}\n' "$SCHEME://www.$DOMAIN/"
-          curl -sS -m 20 -o /dev/null -w '  http → %{http_code} %{redirect_url}\n' "http://$DOMAIN/"
 
           echo "--- сервер"
           curl -sS -m 20 -o /dev/null -D - "$BASE/" | tr -d '\r' | grep -i '^server:' | sed 's/^/  /'
@@ -268,7 +307,7 @@ jobs:
         if: inputs.lighthouse
         run: |
           npx --yes playwright@1 install --with-deps chromium
-          BASE="http://$DOMAIN" node scripts/root-check.mjs
+          BASE="https://$DOMAIN" node scripts/root-check.mjs
 
       - name: Lighthouse по боевому адресу
         # Только по кнопке: пять прогонов на страницу занимают минуты, и на
