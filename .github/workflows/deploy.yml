@@ -70,6 +70,24 @@ jobs:
           printf 'machine %s\nlogin %s\npassword %s\n' \
             "$FTP_HOST" "$FTP_USER" "$FTP_PASSWORD" > "$HOME/.netrc"
           chmod 600 "$HOME/.netrc"
+          # Настройки соединения — один раз на все вызовы lftp, а не копией в
+          # каждом: разойдутся, и один из вызовов пойдёт открытым текстом.
+          #
+          # ssl-force ДА, verify-certificate НЕТ — и это осознанный размен, а
+          # не небрежность. Сертификат FTPS на этом хостинге самоподписанный
+          # («The certificate issuer is unknown»), проверить цепочку не по
+          # чему. Отключать шифрование ради этого нельзя: пароль ушёл бы по
+          # сети открытым текстом. ssl-force запрещает молчаливый откат в
+          # открытый FTP, protect-data шифрует и канал данных. Остаётся, что
+          # соединение зашифровано, но подлинность сервера не подтверждена.
+          printf '%s\n' \
+            'set ftp:ssl-force true' \
+            'set ftp:ssl-protect-data true' \
+            'set ssl:verify-certificate no' \
+            'set net:max-retries 3' \
+            'set net:timeout 20' \
+            'set mirror:parallel-transfer-count 4' > "$HOME/.lftprc"
+          chmod 600 "$HOME/.lftprc"
 
       - name: Разведка — где корень сайта
         # Путь не угадываем: ISPmanager кладёт домены по-разному, и промах с
@@ -84,8 +102,10 @@ jobs:
           set -euo pipefail
           echo "Дерево от точки входа FTP:"
           lftp -c "set cmd:fail-exit no; open \"$FTP_HOST\"; pwd; cls -l" 2>&1 | sed 's/^/  /' || true
-          echo "Каталог www, если он есть:"
-          lftp -c "set cmd:fail-exit no; open \"$FTP_HOST\"; cd www; cls -l" 2>&1 | sed 's/^/  /' || true
+          for PROBE in www data data/www; do
+            echo "Каталог $PROBE, если он есть:"
+            lftp -c "set cmd:fail-exit no; open \"$FTP_HOST\"; cd \"$PROBE\"; cls -l" 2>&1 | sed 's/^/  /' || true
+          done
           FOUND=""
           for DIR in \
             "/var/www/$FTP_USER/data/www/$DOMAIN" \
@@ -123,11 +143,6 @@ jobs:
           set -euo pipefail
           lftp -c "
             set cmd:fail-exit yes;
-            set net:max-retries 3;
-            set net:timeout 20;
-            set ftp:ssl-allow true;
-            set ftp:ssl-protect-data true;
-            set mirror:parallel-transfer-count 4;
             open \"$FTP_HOST\";
             mirror -R --delete --verbose=1 \
               --exclude-glob .well-known* \
@@ -137,7 +152,7 @@ jobs:
 
       - name: Убрать учётные данные
         if: always()
-        run: rm -f "$HOME/.netrc"
+        run: rm -f "$HOME/.netrc" "$HOME/.lftprc"
 
       - name: Проверка боем
         # Выкладка без проверки — это надежда, а не выкладка. Смотрим на живой
