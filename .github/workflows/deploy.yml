@@ -156,34 +156,69 @@ jobs:
 
       - name: Проверка боем
         # Выкладка без проверки — это надежда, а не выкладка. Смотрим на живой
-        # адрес: отдаётся ли лендинг, каталог и своя страница 404, и есть ли
-        # сертификат. https требуем только если сертификат уже выпущен.
+        # адрес: отдаются ли страницы, работает ли своя 404, дошли ли до
+        # сервера правила .htaccess (сжатие и заголовки кеша) и есть ли
+        # настоящий сертификат.
         run: |
-          set -euo pipefail
+          set -uo pipefail
           FAIL=0
-          if curl -sS -m 20 -o /dev/null "https://$DOMAIN/"; then
+          # Сертификат проверяем отдельно от доступности: самоподписанная
+          # заглушка хостинга отвечает на 443, но браузеру не годится.
+          if curl -sS -m 20 -o /dev/null "https://$DOMAIN/" 2>/dev/null; then
             SCHEME=https
-            echo "Сертификат есть: https отвечает."
+            echo "Сертификат настоящий: https отвечает без ругани."
           else
             SCHEME=http
-            echo "::warning::https не отвечает — сертификата, похоже, нет. Проверяем по http."
+            echo "::warning::Сертификата нет — на 443 самоподписанная заглушка. Проверяем по http, принудительный https не включаем."
           fi
-          for PATH_ in "/" "/catalog/" "/logo/card/1/"; do
-            CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$SCHEME://$DOMAIN$PATH_")
-            echo "$PATH_ → $CODE"
+          BASE="$SCHEME://$DOMAIN"
+
+          echo "--- коды ответа"
+          for ADDR in "/" "/catalog/" "/catalog/?category=pesok" "/fonts/" "/logo/" "/logo/card/1/" "/robots.txt"; do
+            CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$BASE$ADDR")
+            printf '  %-28s %s\n' "$ADDR" "$CODE"
             [ "$CODE" = 200 ] || FAIL=1
           done
-          CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "$SCHEME://$DOMAIN/такой-страницы-нет/")
-          echo "несуществующий адрес → $CODE"
-          echo "--- заголовки главной:"
-          curl -sS -m 20 -D - -o /dev/null "$SCHEME://$DOMAIN/" | sed 's/^/  /'
-          echo "--- заголовки статики _next:"
-          ASSET=$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1 || true)
-          if [ -n "$ASSET" ]; then
-            curl -sS -m 20 -D - -o /dev/null "$SCHEME://$DOMAIN$ASSET" | sed 's/^/  /'
+          CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "$BASE/такой-страницы-нет/")
+          printf '  %-28s %s\n' "несуществующий адрес" "$CODE"
+          [ "$CODE" = 404 ] || FAIL=1
+
+          echo "--- своя ли страница 404"
+          # Метка next-error-h1 есть только у страницы, которую собрал Next.
+          # Апачевская «Not Found» её не содержит — по ней и отличаем.
+          if curl -sS -m 20 "$BASE/такой-страницы-нет/" | grep -q "next-error-h1"; then
+            echo "  да, своя — отдаётся 404.html из выдачи"
+          else
+            echo "::warning::404 отдаётся серверная — ErrorDocument не сработал."
+            FAIL=1
           fi
-          echo "--- http без схемы (куда ведёт):"
-          curl -sS -m 20 -o /dev/null -w '  %{http_code} → %{redirect_url}\n' "http://$DOMAIN/"
+
+          echo "--- адрес без завершающего слэша"
+          curl -sS -m 20 -o /dev/null -w '  /catalog → %{http_code} %{redirect_url}\n' "$BASE/catalog"
+
+          echo "--- сжатие"
+          for ADDR in "/" "$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1)"; do
+            ENC=$(curl -sS -m 20 -H 'Accept-Encoding: gzip, br' -o /dev/null -D - "$BASE$ADDR" \
+                  | tr -d '\r' | awk 'tolower($1)=="content-encoding:"{print $2}')
+            printf '  %-42s %s\n' "$ADDR" "${ENC:-нет}"
+          done
+
+          echo "--- заголовки кеша"
+          ASSET=$(grep -o '/_next/static/css/[A-Za-z0-9]*\.css' out/index.html | head -1)
+          IMG=$(ls out/img | head -1)
+          for ADDR in "/" "$ASSET" "/img/$IMG" "/robots.txt"; do
+            CC=$(curl -sS -m 20 -o /dev/null -D - "$BASE$ADDR" \
+                 | tr -d '\r' | awk 'tolower($1)=="cache-control:"{$1="";print substr($0,2)}')
+            printf '  %-42s %s\n' "$ADDR" "${CC:-нет}"
+          done
+
+          echo "--- www и схема"
+          curl -sS -m 20 -o /dev/null -w '  www → %{http_code} %{redirect_url}\n' "$SCHEME://www.$DOMAIN/"
+          curl -sS -m 20 -o /dev/null -w '  http → %{http_code} %{redirect_url}\n' "http://$DOMAIN/"
+
+          echo "--- сервер"
+          curl -sS -m 20 -o /dev/null -D - "$BASE/" | tr -d '\r' | grep -i '^server:' | sed 's/^/  /'
+
           exit $FAIL
 
       - name: Lighthouse по боевому адресу

@@ -1,0 +1,104 @@
+# НАСТРОЙКИ APACHE ДЛЯ elementst.ru
+#
+# Файл лежит в public/ и уезжает в корень сайта вместе с выдачей: Next
+# копирует содержимое public/ в out/ целиком, включая точечные файлы.
+# Держать его на сервере руками нельзя — выкладка с --delete его сотрёт.
+#
+# Всё, что здесь есть, GitHub Pages делал сам: сжатие, заголовки кеша, свою
+# страницу 404 и переход на https. На обычном хостинге это надо объявить.
+
+AddDefaultCharset UTF-8
+
+# Каталог отдаётся своим index.html. В конфиге сайта стоит trailingSlash:
+# адреса заканчиваются слэшем, и /catalog/ должен разрешаться в
+# /catalog/index.html. Листинга каталогов быть не должно ни при каких
+# условиях: в выдаче лежат чанки сборки, показывать их незачем.
+DirectoryIndex index.html
+Options -Indexes
+
+# Своя страница 404 вместо апачевской «Not Found».
+ErrorDocument 404 /404.html
+
+# ────────────────────────────────────────────────────────────────────────
+# Сжатие
+#
+# Картинки и шрифты не перечислены намеренно: WebP, JPEG и woff2 уже сжаты,
+# и второй проход только греет процессор.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/manifest+json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ────────────────────────────────────────────────────────────────────────
+# Кеш
+#
+# Порядок правил ЗНАЧИМ: последнее совпавшее Header set перекрывает
+# предыдущее. Поэтому годовой кеш /_next/static идёт последним — иначе
+# правило для шрифтов забрало бы у него месяц.
+<IfModule mod_headers.c>
+  # HTML не кешируется: имя файла у страницы постоянное, а содержимое
+  # меняется с каждой выкладкой. Закешированный html показал бы старые цены.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+
+  # Изображения и шрифты — месяц. Имена у них без хеша, поэтому вечно
+  # кешировать нельзя: замена кадра не дошла бы до тех, кто уже заходил.
+  <FilesMatch "\.(webp|jpe?g|png|gif|svg|ico|woff2?|ttf|otf)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+
+  # robots.txt — сутки: он меняется редко, но обновление не должно ждать.
+  <FilesMatch "^robots\.txt$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+
+  # /_next/static — год и immutable. Имя каждого файла содержит хеш
+  # содержимого, поэтому изменённый файл приходит под другим именем, а этот
+  # не изменится уже никогда. LocationMatch в .htaccess запрещён, поэтому
+  # путь помечается переменной окружения.
+  <IfModule mod_setenvif.c>
+    SetEnvIf Request_URI "^/_next/static/" NEXT_STATIC
+  </IfModule>
+  Header set Cache-Control "public, max-age=31536000, immutable" env=NEXT_STATIC
+</IfModule>
+
+# ────────────────────────────────────────────────────────────────────────
+# Единственный адрес сайта
+#
+# Канонический вариант — БЕЗ www. Он короче, и все внутренние ссылки на
+# сайте относительные, так что выбор ни на что, кроме адресной строки, не
+# влияет. Важно, что вариант один: два адреса у одного сайта делят между
+# собой поисковый вес и путают статистику.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # www.elementst.ru → elementst.ru. СХЕМА СОХРАНЯЕТСЯ, а не подменяется на
+  # https: пока сертификата нет, переезд на https показал бы предупреждение
+  # браузера вместо сайта.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ %{REQUEST_SCHEME}://%1%{REQUEST_URI} [R=301,L]
+
+  # ⚠️ ПРИНУДИТЕЛЬНЫЙ HTTPS ВЫКЛЮЧЕН НАМЕРЕННО И ЖДЁТ СЕРТИФИКАТА.
+  #
+  # Замер 29.08 с раннера: https на домене отвечает, но сертификат
+  # самоподписанный — заглушка хостинга («SSL certificate problem:
+  # self-signed certificate»). Включить переход сейчас значит показывать
+  # каждому посетителю страницу-предупреждение вместо сайта.
+  #
+  # ЧТО СДЕЛАТЬ: включить бесплатный Let's Encrypt в панели рег.ру для
+  # elementst.ru, дождаться выпуска и снять решётки с четырёх строк ниже.
+  # Проверить до снятия: curl -sSI https://elementst.ru/ должен ответить
+  # 200 без ругани на сертификат.
+  #
+  # Две проверки, а не одна: за обратным прокси (а здесь спереди стоит
+  # nginx) Apache видит соединение как незашифрованное, и о настоящей схеме
+  # говорит только заголовок X-Forwarded-Proto. Без второй проверки
+  # получилась бы петля редиректов.
+  #
+  # RewriteCond %{HTTPS} !=on
+  # RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
