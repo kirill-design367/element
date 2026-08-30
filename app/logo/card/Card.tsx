@@ -141,6 +141,9 @@ export const CARD_CSS = `
 .vc-phone{font-size:12mm;font-weight:900;letter-spacing:-.03em;line-height:1;
   color:#fff;text-decoration:none;display:block;white-space:nowrap}
 .vc-addr{font-size:3.8mm;line-height:1.4;max-width:64mm;color:#dde3f8;text-align:right}
+/* Почта — вторая строка контактов, под телефоном и мельче его: звонят
+   чаще, чем пишут, и порядок на листе это повторяет. */
+.vc-email{margin-top:2mm;font-size:4mm;color:#dde3f8}
 .vc-site{margin-top:2mm;font-size:4mm;color:#dde3f8;text-align:right}
 /* Часы отгрузки — своей строкой под линией: это не адрес и не телефон, а
    условие работы площадки. */
@@ -183,7 +186,8 @@ function contacts() {
   const qr = QR
     ? `<div class="vc-qr-box"><svg class="vc-qr" viewBox="0 0 ${QR.size} ${QR.size}"`
       + ` aria-hidden="true"><path d="${QR.path}" fill="currentColor"/></svg></div>` : '';
-  const phone = `<a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`;
+  const phone = `<a class="vc-phone" href="${CONTACTS.phoneHref}">${CONTACTS.phone}</a>`
+    + `<p class="vc-email">${CONTACTS.email}</p>`;
   /* Без кода — телефон слева, адрес справа: строка одна. С кодом строка не
      держит трёх колонок, и телефон с адресом уходят в общую левую. */
   const main = QR
