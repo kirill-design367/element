@@ -272,6 +272,30 @@ writeFileSync('lib/data/company.data.ts', companyTs);
 writeFileSync('lib/data/objects.data.ts', objectsTs);
 writeFileSync('lib/data/fleet.data.ts', fleetTs);
 
+/* МЕТКА ВЕРСИИ ДАННЫХ В ВЫДАЧЕ.
+ *
+ * Файл уезжает на сервер вместе со статикой, и шаг «Проверка боем» после
+ * выкладки сверяет то, что лежит НА БОЕВОМ АДРЕСЕ, с отпечатком снимка,
+ * который взяла эта сборка. Совпало — данные доехали. Не совпало — выкладка
+ * падает и говорит об этом.
+ *
+ * Без такой метки «правка не доехала» замечает только заказчик и только
+ * случайно: все шаги при этом зелёные, потому что каждый по отдельности
+ * отработал успешно. Именно так и вышло 30.08.
+ */
+let digest = '';
+try {
+  digest = readFileSync(file + '.digest', 'utf8').trim();
+} catch {
+  /* Отпечатка нет — значит данные пришли не из cms-fetch (например, из
+     локального файла при проверке). Метку всё равно пишем, но пустую: врать
+     про версию хуже, чем не знать её. */
+}
+writeFileSync(
+  'public/cms-version.txt',
+  `${digest}\n${new Date().toISOString()}\nпозиций: ${materials.length}\n`,
+);
+
 const priced = materials.filter((m) => m.pricePerTon !== null).length;
 console.log(
   `CMS: подставлено — категорий ${categories.length}, видов ${groups.length}, `

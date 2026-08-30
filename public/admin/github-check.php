@@ -192,6 +192,31 @@ page_head('Связь с GitHub');
         <td><code><?= h($settings['ref']) ?></code><?= dump_value($settings['ref']) ?></td>
       </tr>
       <tr>
+        <td><strong>Ключ выгрузки</strong><div class="hint">export_key</div></td>
+        <td>
+          <?php $ek = trim((string) (cms_config()['export_key'] ?? '')); ?>
+          <?php if ($ek === ''): ?>
+            <span class="pill no">не заполнен</span>
+            <p class="err-text">Без него сборка не сможет забрать данные и остановится.</p>
+          <?php else: ?>
+            <code><?= h(mb_substr($ek, 0, 4, 'UTF-8')) ?>…</code>
+            <div class="muted" style="font-size:13px;margin-top:4px">
+              байт: <strong><?= strlen($ek) ?></strong> ·
+              знаков: <strong><?= mb_strlen($ek, 'UTF-8') ?></strong>
+            </div>
+            <?php /* ЭТО ТОТ САМЫЙ КЛЮЧ, ИЗ-ЗА КОТОРОГО 30.08 ПРАВКА НЕ ДОЕХАЛА.
+                     Он должен совпадать с секретом CMS_EXPORT_KEY в репозитории
+                     знак в знак. Сам ключ не показывается: сверять надо длину и
+                     первые четыре знака — этого достаточно, чтобы поймать и
+                     лишний пробел, и обрезанную при вставке строку. */ ?>
+            <p class="hint">Ровно это же значение должно лежать в секрете
+              <code>CMS_EXPORT_KEY</code> в настройках репозитория на GitHub.
+              Сверьте длину и первые четыре знака: не сойдутся — сборка не заберёт
+              данные и остановится с ошибкой. Сам ключ не показывается.</p>
+          <?php endif; ?>
+        </td>
+      </tr>
+      <tr>
         <td><strong>Токен</strong><div class="hint">github_token</div></td>
         <td>
           <?php if ($settings['token'] === ''): ?>
