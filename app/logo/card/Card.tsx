@@ -124,7 +124,10 @@ export const CARD_CSS = `
 /* СИНИЙ, ОБЪЕКТ ТРЕТИЙ: контакты — единственная сплошная синяя плашка на
    листе. Телефон, адрес и часы отгрузки лежали тремя отдельными кусками
    текста внизу; теперь это один объект во всю ширину полосы набора. */
-.vc-contacts{background:var(--vc-sin);color:#fff;border-radius:6mm;padding:6mm}
+/* Поля 5 мм, а не 6: строка почты добавила плашке 7,6 мм высоты, и низ
+   реквизитов уехал с 283 на 285,1 — поле листа сжалось с 14 мм до 11,9.
+   Два миллиметра возвращены полями плашки, а не кеглем. */
+.vc-contacts{background:var(--vc-sin);color:#fff;border-radius:6mm;padding:5mm}
 .vc-contacts-top{display:flex;align-items:flex-start;justify-content:space-between;
   gap:8mm}
 /* С QR-КОДОМ ПЛАШКА ПЕРЕСТРАИВАЕТСЯ В ДВЕ КОЛОНКИ, и это не украшение.
