@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Три слоя основания: щебень, песок, грунт. Читается и в 16 пикселей. -->
-  <rect width="32" height="32" rx="6" fill="#173fa6"/>
-  <rect x="7" y="8" width="18" height="4" rx="1" fill="#ffffff"/>
-  <rect x="7" y="14.5" width="18" height="4" rx="1" fill="#ffffff" opacity=".72"/>
-  <rect x="7" y="21" width="18" height="4" rx="1" fill="#ffffff" opacity=".44"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1496 1496">
+  <!-- Собран scripts/build-icon.mjs из app/logo/art.ts, композиция «small».
+       Руками не править: правка потеряется при пересборке знака. -->
+  <path d="M0 1304L192 1496L1304 1496L1496 1304L1496 192L1304 0L192 0L0 192Z" fill="#17191c"/>
+  <path d="M148 1234L340 1426L742 1426L777 1392L777 1230L742 1196L436 1196L378 1139L378 357L436 300L1003 300L1038 266L1038 104L1003 70L340 70L148 262Z" fill="#f4f4f1"/>
+  <path d="M0 700L0 515L519 515L585 461L585 432L155 432L155 267L585 267L585 239L519 185L15 185L15 0L623 0L815 158L815 542L623 700Z" transform="translate(532 398)" fill="#f4f4f1"/>
 </svg>
