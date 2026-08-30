@@ -9,3 +9,8 @@ next-env.d.ts
 lighthouse/
 screenshots/
 __pycache__/
+
+# Настройки приёмника заявки: собираются при сборке из lib/company.ts
+# скриптом scripts/build-mail-config.mjs. В историю не идут — адрес
+# получателя меняется в одном месте, в lib/company.ts.
+public/api/config.php
