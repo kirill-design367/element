@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useState, type FormEvent } from 'react';
+import { useId, useMemo, useRef, useState, type FormEvent } from 'react';
 import { CATEGORIES, fractionLabel, materialById, materialsOf, sellUnit, unitLabel } from '@/lib/catalog';
 import { calculate } from '@/lib/pricing';
 import { nbsp, ON_REQUEST, phoneDigits, phoneMask, rub, tons, volume } from '@/lib/format';
@@ -12,14 +12,24 @@ import { CheckIcon, CloseIcon } from '@/components/site/Icons';
 type Status = 'idle' | 'sending' | 'done';
 type Errors = Partial<Record<'name' | 'phone' | 'amount', string>>;
 
+/** Адрес приёмника. Файл лежит в public/api и уезжает вместе с выдачей. */
+const ENDPOINT = '/api/lead.php';
 
 /**
  * Форма заявки.
  *
- * Сервера нет — сайт выгружается статикой. Поэтому форма не делает вид, что
- * что-то отправила: она собирает заявку, показывает её текст и даёт рабочий
- * канал — звонок по готовому тексту, который можно скопировать одной
- * кнопкой. Обещаний, которых сайт не выполняет, в интерфейсе нет.
+ * ЗАЯВКА УХОДИТ ПИСЬМОМ НА САМОМ ДЕЛЕ. Раньше уйти ей было некуда: сайт
+ * статический, и форма честно говорила, что приёма нет, — собирала текст и
+ * предлагала позвонить. Теперь на хостинге есть PHP, и заявка отправляется
+ * на адрес заказчика из lib/company.ts.
+ *
+ * Страница при этом не перезагружается: обычная отправка формы увела бы
+ * человека на белый экран ответа скрипта, а список позиций заявки живёт
+ * только в памяти страницы и не пережил бы перехода.
+ *
+ * ЧТО ОСТАЛОСЬ ОТ ПРЕЖНЕГО. Кнопка «Скопировать» — текст заявки по-прежнему
+ * можно продиктовать по телефону, и это до сих пор самый быстрый путь.
+ * Телефон рядом с ошибкой — тоже: если письмо не ушло, звонок остаётся.
  */
 /**
  * @param hideItems — панель каталога уже показывает позиции со своими полями
@@ -32,6 +42,18 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
   const [status, setStatus] = useState<Status>('idle');
   const [errors, setErrors] = useState<Errors>({});
   const [copied, setCopied] = useState(false);
+  /** Текст отказа сервера или сети. Пустая строка — отказа не было. */
+  const [failure, setFailure] = useState('');
+  /* ЛОВУШКА ЧАСОВ. Время появления формы на странице: сервер не принимает
+     заявку, отправленную быстрее двух секунд после загрузки, — человек
+     столько не набирает даже с автозаполнением. Отсчёт ведётся от монтажа,
+     а не от первого нажатия: форма стоит ниже сгиба, и к ней ещё надо
+     доскроллить. useRef, а не useState: перерисовка от этого не нужна. */
+  const mountedAt = useRef(Date.now());
+  /* Ловушка-приманка. Поле с этим именем в форме есть, человеку не видно, и
+     у настоящей заявки поля почты нет вовсе — заполнить его может только
+     тот, кто заполняет всё подряд. */
+  const [trap, setTrap] = useState('');
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -127,8 +149,13 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     return e;
   };
 
-  const onSubmit = (ev: FormEvent) => {
+  const onSubmit = async (ev: FormEvent) => {
     ev.preventDefault();
+    /* Повторное нажатие не проходит: кнопка на время отправки выключена, но
+       Enter в поле обходит её вовсе, и без этой строки два одинаковых письма
+       уходили бы одним движением. */
+    if (status === 'sending') return;
+    setFailure('');
     const found = validate();
     if (Object.keys(found).length > 0) {
       /* Фокус — в первое поле с ошибкой, а не всегда в «Имя». Иначе курсор
@@ -138,9 +165,73 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
       document.getElementById(`${uid}-${first}`)?.focus();
       return;
     }
+
+    /* Поля идут отдельными значениями, а не готовым текстом заявки: письмо
+       собирает сервер из проверенных полей, а `summary` остаётся тем, чем и
+       был, — текстом под кнопку «Скопировать», чтобы продиктовать по
+       телефону. Это два разных документа для двух разных случаев. */
+    const chosen = materialById(materialId);
+    const body = new URLSearchParams();
+    body.set('name', name.trim());
+    body.set('phone', phone.trim());
+    if (company.trim()) body.set('company', company.trim());
+    if (!listMode) {
+      body.set(
+        'material',
+        chosen ? `${chosen.name}, ${fractionLabel(chosen.fraction)}` : 'подберём вместе',
+      );
+      if (amount.trim()) {
+        body.set('amount', `${amount.trim()} ${unitLabel(leadUnit)}`);
+      }
+    }
+    if (req.brief.address.trim()) body.set('address', req.brief.address.trim());
+    if (deadline.trim()) body.set('deadline', deadline.trim());
+    if (comment.trim()) body.set('comment', comment.trim());
+    body.set('source', hideItems ? 'панель заявки в каталоге' : 'форма на странице');
+    body.set('elapsed', String(Date.now() - mountedAt.current));
+    body.set('email', trap);
+
     setStatus('sending');
-    // Заминка нужна не для вида: за неё успевает отрисоваться подтверждение.
-    window.setTimeout(() => setStatus('done'), 850);
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body,
+      });
+      /* Ответ разбирается ОСТОРОЖНО. Если PHP на сервере не включён, сюда
+         придёт не JSON, а исходник скрипта с кодом 200 — и наивный
+         res.ok показал бы подтверждение по заявке, которая никуда не ушла. */
+      const data = (await res.json().catch(() => null)) as
+        | { ok?: boolean; error?: string; errors?: Errors }
+        | null;
+
+      if (res.ok && data?.ok === true) {
+        setStatus('done');
+        return;
+      }
+
+      /* Сервер проверяет те же поля, что и форма. Разойтись они не должны,
+         но если сервер всё же нашёл своё — показываем это у полей, а не
+         общей строкой: человеку надо знать, что именно поправить. */
+      if (res.status === 422 && data?.errors) {
+        setErrors(data.errors);
+        setStatus('idle');
+        const first = (['name', 'phone', 'amount'] as const).find((k) => data.errors?.[k]);
+        if (first) document.getElementById(`${uid}-${first}`)?.focus();
+        return;
+      }
+
+      setStatus('idle');
+      setFailure(
+        data?.error
+          ?? 'Не получилось отправить заявку — сервер ответил ошибкой.',
+      );
+    } catch {
+      /* Сеть отвалилась или скрипта нет вовсе. Данные в полях остаются на
+         месте: человек, набравший заявку, не должен набирать её заново. */
+      setStatus('idle');
+      setFailure('Не получилось отправить заявку — похоже, пропала связь.');
+    }
   };
 
   const copy = async () => {
@@ -176,11 +267,13 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           </span>
           <div>
             <h3 className="text-t3 font-bold tracking-[-.015em]">
-              Заявка собрана
+              Заявка отправлена
             </h3>
+            {/* Срок ответа здесь не назван и назван не будет: письмо дошло до
+                почты, а когда его прочтут — не нам обещать. Правило 5. */}
             <p className="mt-1.5 max-w-[52ch] text-t2 leading-relaxed text-ink-2">
-              Приём заявок на сервере ещё не подключён — сайт выложен статикой. Чтобы заявка
-              дошла сегодня, позвоните: текст ниже готов, его можно скопировать и продиктовать.
+              Письмо ушло менеджеру. Если дело срочное, звоните: текст заявки ниже, его
+              можно скопировать и продиктовать.
             </p>
           </div>
         </div>
@@ -189,9 +282,8 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
           {summary}
         </pre>
 
-        {/* Кнопки письма здесь больше нет: почта с сайта убрана целиком, и
-            каналов осталось два — звонок и сама заявка. Звонок стал главным
-            действием и занял место письма. */}
+        {/* Звонок остаётся главным действием и на этом экране: письмо ушло,
+            но прочтут его не мгновенно, а по телефону отвечают сразу. */}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <a
             href={`tel:${COMPANY.phone}`}
@@ -225,6 +317,43 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
       noValidate
       className="rounded-panel bg-surface-2 p-4 md:p-4"
     >
+      {/* ЛОВУШКА ДЛЯ БОТА. Поле называется «email» неспроста: у настоящей
+          заявки поля почты НЕТ вовсе, и заполнить это может только тот, кто
+          заполняет всё подряд. Заполнено — сервер отвечает успехом и не шлёт
+          ничего.
+
+          Прячется вырезкой, а не display: none и не сдвигом за экран.
+          display: none часть ботов пропускает как «выключенное поле», а
+          left: -9999px у absolute-элемента раздвигает страницу влево — и
+          горизонтальный вылет ловится потом обходом, но чинится долго.
+          Здесь коробка 1×1 остаётся на своём месте в потоке, вне потока и
+          без смещений.
+
+          aria-hidden и tabIndex={-1}: до поля не дойти ни табом, ни
+          скринридером — для человека его нет. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          clipPath: 'inset(50%)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <label htmlFor={`${uid}-email`}>Не заполняйте это поле</label>
+        <input
+          id={`${uid}-email`}
+          name="email"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={trap}
+          onChange={(e) => setTrap(e.target.value)}
+        />
+      </div>
+
       {/* Три колонки, но колонка формы расширена с 7 до 8 из 12 — поле стало
           шире, около 257 px против прежних 200.
 
@@ -448,10 +577,27 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
       </div>
 
       <div className="mt-4 flex flex-col gap-2.5">
+        {/* ОТКАЗ ОТПРАВКИ. Стоит над кнопкой, а не под ней: человек смотрит
+            туда, где только что нажал. role="alert" — экран не меняется, и
+            без объявления со скринридером отказа было бы не узнать вовсе.
+
+            Набранное при этом никуда не девается: состояние полей не
+            сбрасывается ни в одной ветке отправки. */}
+        {failure && (
+          <div role="alert" className="rounded-card border border-warn/40 bg-warn-soft p-3">
+            <p className="text-t2 leading-snug text-ink">{failure}</p>
+            <p className="mt-1 text-t2 leading-snug text-ink-2">
+              Заявка не потеряна — поля заполнены. Попробуйте ещё раз или позвоните:{' '}
+              <a href={`tel:${COMPANY.phone}`} className="link-underline font-medium text-accent">
+                {nbsp(COMPANY.phoneLabel)}
+              </a>
+            </p>
+          </div>
+        )}
         {/* Кнопка во всю ширину колонки: это последнее действие на
             странице, сужать его незачем. */}
         <Button type="submit" size="lg" disabled={status === 'sending'} className="w-full">
-          {status === 'sending' ? 'Собираем заявку…' : 'Отправить заявку'}
+          {status === 'sending' ? 'Отправляем…' : 'Отправить заявку'}
         </Button>
         <p className="text-t1 leading-snug text-ink-2">
           Обязательны только имя и телефон. Остальное уточним при звонке.
