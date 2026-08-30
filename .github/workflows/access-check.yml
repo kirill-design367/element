@@ -263,6 +263,46 @@ jobs:
           look "Content-Encoding"
           look "Server"
 
+      - name: 7. Поведение при заголовках прокси и VPN
+        run: |
+          set +e -u
+          echo "--- ПОДСТАВЛЕННЫЙ X-Forwarded-Proto"
+          # Переход на https в .htaccess смотрит на заголовок X-Forwarded-Proto,
+          # потому что за nginx Apache видит соединение незашифрованным. Вопрос:
+          # чей заголовок побеждает, если СВОЙ пришлёт клиент. VPN, корпоративные
+          # прокси и часть антивирусов с разбором трафика подставляют X-Forwarded-*
+          # сами. Если клиентский заголовок доходит до Apache — запрос по https
+          # получит 301 на https, то есть бесконечную петлю, и у такого человека
+          # сайт не откроется вовсе, а у всех остальных откроется.
+          for V in http https HTTP ""; do
+            OUT=$(curl -sS -m 20 -o /dev/null -w '%{http_code} %{redirect_url}' \
+                  -H "X-Forwarded-Proto: $V" "https://$DOMAIN/")
+            printf '  X-Forwarded-Proto: %-6s → %s\n' "${V:-пусто}" "$OUT"
+          done
+          echo ""
+          echo "--- ДРУГИЕ ЗАГОЛОВКИ, КОТОРЫЕ СТАВЯТ ПРОКСИ"
+          for H in "X-Forwarded-For: 203.0.113.7" "Via: 1.1 proxy" "X-Forwarded-Host: elementst.ru" "Forwarded: proto=http"; do
+            OUT=$(curl -sS -m 20 -o /dev/null -w '%{http_code} %{redirect_url}' -H "$H" "https://$DOMAIN/")
+            printf '  %-34s → %s\n' "$H" "$OUT"
+          done
+
+          echo ""
+          echo "--- ПЕТЛЯ РЕДИРЕКТОВ: ИДЁМ ПО ЦЕПОЧКЕ ДО УПОРА"
+          # Если петля есть, curl упрётся в предел и скажет об этом.
+          OUT=$(curl -sS -m 30 -o /dev/null -L --max-redirs 10 \
+                -H "X-Forwarded-Proto: http" -w '%{http_code} после %{num_redirects} редиректов' \
+                "https://$DOMAIN/" 2>&1)
+          echo "  с подставленным X-Forwarded-Proto: http → $OUT"
+
+          echo ""
+          echo "--- СТАРЫЕ ВЕРСИИ ПРОТОКОЛА"
+          for P in --http1.0 --http1.1 --http2; do
+            OUT=$(curl -sS $P -m 20 -o /dev/null -w '%{http_code}, HTTP/%{http_version}, %{size_download}б' "https://$DOMAIN/" 2>&1 | tail -1)
+            printf '  %-10s → %s\n' "$P" "$OUT"
+          done
+          OUT=$(curl -sS -I -m 20 -o /dev/null -w '%{http_code}' "https://$DOMAIN/" 2>&1 | tail -1)
+          echo "  HEAD-запрос → $OUT"
+
       - name: Приговор
         # Диагностические шаги нарочно не падают — они собирают факты. Прогон
         # красный ровно тогда, когда сайт снаружи не открывается.
