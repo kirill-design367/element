@@ -166,6 +166,47 @@ $deadline = field('deadline', 80);
 $comment  = field('comment', 2000);
 $source   = field('source', 60);
 
+/**
+ * ПОЗИЦИИ ЗАЯВКИ ИЗ ПАНЕЛИ КАТАЛОГА.
+ *
+ * Приходят одним полем JSON: название, количество и цена — уже готовыми к
+ * чтению строками, собранными на витрине теми же хелперами, что и карточки.
+ * Считать их заново на сервере нечем и незачем: прайс лежит в TypeScript, а
+ * менеджер всё равно сверяет цену по своему.
+ *
+ * Разбор недоверчивый: чужой не по формату вход, слишком длинный список и
+ * слишком длинные строки просто отбрасываются. В письмо уходит текст, и
+ * навредить он не может, но раздуть его на мегабайт — вполне.
+ */
+$items = [];
+$rawItems = $_POST['items'] ?? '';
+if (is_string($rawItems) && $rawItems !== '') {
+    $parsed = json_decode($rawItems, true);
+    if (is_array($parsed)) {
+        foreach (array_slice($parsed, 0, 60) as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $clean = static function ($value, int $limit): string {
+                if (!is_string($value)) {
+                    return '';
+                }
+                $text = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $value) ?? '';
+                return mb_substr(trim($text), 0, $limit, 'UTF-8');
+            };
+            $title = $clean($row['name'] ?? '', 120);
+            if ($title === '') {
+                continue;
+            }
+            $items[] = [
+                'name' => $title,
+                'qty'  => $clean($row['qty'] ?? '', 40),
+                'sum'  => $clean($row['sum'] ?? '', 40),
+            ];
+        }
+    }
+}
+
 /* ─── ПРОВЕРКА ПОЛЕЙ НА СЕРВЕРЕ ──────────────────────────────────────────
  *
  * Браузерная проверка — удобство, а не защита: до скрипта можно достучаться
@@ -268,8 +309,22 @@ if ($company !== '') {
     $lines[] = 'Компания:         ' . $company;
 }
 $lines[] = '';
-$lines[] = 'Материал:         ' . ($material !== '' ? $material : '—');
-$lines[] = 'Количество:       ' . ($amount !== '' ? $amount : '—');
+if ($items !== []) {
+    /* Заявка из панели каталога — это список, и строка «Материал» тут была бы
+       прочерком на месте главного. Нумерация своя: по ней менеджер и человек
+       на телефоне называют одну и ту же позицию. */
+    $lines[] = 'Позиции (' . count($items) . '):';
+    foreach ($items as $i => $row) {
+        $lines[] = sprintf('  %d. %s', $i + 1, $row['name']);
+        $tail = trim($row['qty'] . ($row['sum'] !== '' ? '   ' . $row['sum'] : ''));
+        if ($tail !== '') {
+            $lines[] = '     ' . $tail;
+        }
+    }
+} else {
+    $lines[] = 'Материал:         ' . ($material !== '' ? $material : '—');
+    $lines[] = 'Количество:       ' . ($amount !== '' ? $amount : '—');
+}
 $lines[] = '';
 $lines[] = 'Адрес объекта:    ' . ($address !== '' ? $address : '—');
 $lines[] = 'Срок поставки:    ' . ($deadline !== '' ? $deadline : '—');

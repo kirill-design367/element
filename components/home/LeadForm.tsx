@@ -175,7 +175,37 @@ export function LeadForm({ hideItems = false }: { hideItems?: boolean } = {}) {
     body.set('name', name.trim());
     body.set('phone', phone.trim());
     if (company.trim()) body.set('company', company.trim());
-    if (!listMode) {
+    if (listMode) {
+      /* ПОЗИЦИИ ЗАЯВКИ УХОДЯТ СПИСКОМ, а не одной строкой «материал». Панель
+         каталога — это та же форма, и заявка из неё обычно на несколько
+         позиций: менеджеру нужны и количество по каждой, и цена, по которой
+         человек считал.
+
+         Каждое поле — уже готовая к чтению строка, собранная теми же
+         хелперами, что и витрина: разойтись цене в письме и цене на экране
+         не с чего. Позиция без цены уходит честно, той же формулировкой, что
+         на сайте, а не нулём — ноль читался бы «бесплатно». */
+      body.set(
+        'items',
+        JSON.stringify(
+          req.detailed.map(({ item, material }) => {
+            const calc = calculate({
+              materialId: item.materialId,
+              amount: item.amount,
+              unit: item.unit,
+            });
+            return {
+              name: `${material.name}, ${fractionLabel(material.fraction)}`,
+              qty: item.unit === 'm3' ? volume(item.amount) : tons(item.amount),
+              sum:
+                calc === null || calc.materialCost === null
+                  ? ON_REQUEST
+                  : `≈ ${rub(calc.materialCost)}`,
+            };
+          }),
+        ),
+      );
+    } else {
       body.set(
         'material',
         chosen ? `${chosen.name}, ${fractionLabel(chosen.fraction)}` : 'подберём вместе',
