@@ -43,5 +43,8 @@ function publish_bar(): void
 
     echo '<form method="post" action="publish.php" style="margin:0">' . csrf_field()
         . '<button class="btn" type="submit">Опубликовать</button></form>';
+    /* Ссылка стоит рядом с кнопкой, а не спрятана в меню: она нужна ровно в
+       тот момент, когда публикация не сработала, — то есть здесь. */
+    echo '<a class="btn ghost" href="github-check.php">Проверить связь с GitHub</a>';
     echo '</div>';
 }

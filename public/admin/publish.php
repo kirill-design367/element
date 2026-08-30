@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/ui.php';
 require_once __DIR__ . '/lib/snapshot.php';
+require_once __DIR__ . '/lib/github.php';
 
 require_login();
 
@@ -53,10 +54,11 @@ $digest = snapshot_digest($data);
 ex('INSERT INTO snapshots (payload, digest, created_at) VALUES (?, ?, NOW())', [$json, $digest]);
 $snapshotId = (int) db()->lastInsertId();
 
-$repo = (string) ($config['github_repo'] ?? '');
-$workflow = (string) ($config['github_workflow'] ?? 'deploy.yml');
-$ref = (string) ($config['github_ref'] ?? 'main');
-$token = (string) ($config['github_token'] ?? '');
+/* Значения приводятся к нужному виду ДО запроса: адрес репозитория целиком,
+   путь вместо имени файла, лишний пробел на конце строки — каждый из этих
+   случаев давал бы 404, неотличимый от «нет прав у токена». Разбор — в
+   lib/github.php. */
+['repo' => $repo, 'workflow' => $workflow, 'ref' => $ref, 'token' => $token] = gh_settings();
 
 if ($token === '' || $repo === '') {
     flash('publish', 'Данные сохранены снимком, но запустить сборку не удалось: '
@@ -67,45 +69,17 @@ if ($token === '' || $repo === '') {
     exit;
 }
 
-$url = "https://api.github.com/repos/{$repo}/actions/workflows/{$workflow}/dispatches";
-$ch = curl_init($url);
-curl_setopt_array($ch, [
-    CURLOPT_POST => true,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 20,
-    CURLOPT_HTTPHEADER => [
-        'Accept: application/vnd.github+json',
-        'Authorization: Bearer ' . $token,
-        'X-GitHub-Api-Version: 2022-11-28',
-        /* GitHub отвергает запросы без User-Agent — это не рекомендация, а
-           требование их API. */
-        'User-Agent: elementst-cms',
-        'Content-Type: application/json',
-    ],
-    CURLOPT_POSTFIELDS => json_encode(['ref' => $ref], JSON_UNESCAPED_SLASHES),
-]);
-$body = curl_exec($ch);
-$code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-$curlError = curl_error($ch);
-curl_close($ch);
+$res = gh_request(
+    'POST',
+    '/repos/' . $repo . '/actions/workflows/' . rawurlencode($workflow) . '/dispatches',
+    $token,
+    ['ref' => $ref],
+);
 
-/**
- * ОТВЕТ ПЕРЕСКАЗЫВАЕТСЯ ЧЕЛОВЕЧЕСКИМИ СЛОВАМИ, А НЕ КОДОМ.
- *
- * «404» человеку не говорит ничего, а вот «GitHub не нашёл сборку — проверьте
- * имя файла в настройках» говорит, куда идти. Коды здесь те, которые GitHub
- * действительно отдаёт на этот запрос.
- */
-$message = match (true) {
-    $body === false => 'Не получилось достучаться до GitHub: ' . ($curlError !== '' ? $curlError : 'нет ответа')
-        . '. Данные сохранены — попробуйте опубликовать ещё раз через минуту.',
-    $code === 204 => '',
-    $code === 401 => 'GitHub не принял токен. Скорее всего он истёк или отозван — нужен новый в настройках на хостинге.',
-    $code === 403 => 'GitHub отказал: у токена нет права запускать сборку. Нужно разрешение Actions: чтение и запись.',
-    $code === 404 => 'GitHub не нашёл сборку. Проверьте в настройках имя репозитория и файла сборки.',
-    $code === 422 => 'GitHub принял запрос, но не смог запустить: обычно это значит, что ветка указана неверно.',
-    default => "GitHub ответил кодом {$code}. Данные сохранены, сборку можно запустить вручную на GitHub.",
-};
+/* Пересказ ответа словами живёт в lib/github.php: тот же разбор нужен и
+   странице проверки связи, и держать два списка кодов нельзя — разойдутся. */
+$message = gh_explain($res['code'], $res['error']);
+$code = $res['code'];
 
 if ($message === '') {
     ex('UPDATE snapshots SET dispatch = ? WHERE id = ?', ['сборка запущена', $snapshotId]);
