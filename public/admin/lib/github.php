@@ -20,7 +20,7 @@ if (
     exit;
 }
 
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/config-load.php';
 
 /**
  * ОБРАЩЕНИЕ К GITHUB: РАЗБОР НАСТРОЕК И ЗАПРОСЫ.

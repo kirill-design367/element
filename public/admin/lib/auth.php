@@ -20,7 +20,7 @@ if (
     exit;
 }
 
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/config-load.php';
 require_once __DIR__ . '/db.php';
 
 /** Сколько сидеть без действий, прежде чем сессия истечёт. */

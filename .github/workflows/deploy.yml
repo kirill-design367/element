@@ -470,7 +470,7 @@ jobs:
           # в теле или отработавший установщик. Всё прочее печатается в журнал
           # и не роняет выкладку.
           for SECRET in "/cms-config.php" "/admin/cms-config.php" "/admin/cms-config.sample.php" \
-                        "/admin/sql/schema.php" "/admin/sql/seed.php" "/admin/lib/config.php" \
+                        "/admin/sql/schema.php" "/admin/sql/seed.php" "/admin/lib/config-load.php" \
                         "/admin/install.php"; do
             probe "$SECRET"
             SIZE=$(wc -c < /tmp/probe.body | tr -d ' ')
