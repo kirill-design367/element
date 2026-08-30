@@ -33,10 +33,10 @@ $fail = null;
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     csrf_check();
     try {
-        $schema = file_get_contents(__DIR__ . '/sql/schema.sql');
-        if ($schema === false) {
-            throw new RuntimeException('не читается sql/schema.sql');
-        }
+        /* SQL приходит из PHP-файла: см. комментарий в самом файле — с
+           расширением .sql он был бы доступен по прямому адресу мимо
+           Apache, потому что статику отдаёт nginx по расширению. */
+        $schema = require __DIR__ . '/sql/schema.php';
         run_sql($schema);
         $log[] = 'Таблицы созданы (или уже были).';
 
@@ -44,10 +44,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         if ($count > 0) {
             $log[] = "В каталоге уже {$count} позиций — наполнение пропущено, ваши правки не тронуты.";
         } else {
-            $seed = file_get_contents(__DIR__ . '/sql/seed.sql');
-            if ($seed === false) {
-                throw new RuntimeException('не читается sql/seed.sql');
-            }
+            $seed = require __DIR__ . '/sql/seed.php';
             run_sql($seed);
             $log[] = 'Каталог заполнен: '
                 . (int) (q1('SELECT COUNT(*) AS n FROM materials')['n'] ?? 0) . ' позиций, '

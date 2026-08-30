@@ -41,7 +41,33 @@ jobs:
 
       - run: npm ci
 
+      - name: Данные из админки
+        # ЭТОТ ШАГ ТЕРПИТ ВСЁ. Нет сети, лежит хостинг, не было ни одной
+        # публикации, не подошёл ключ — сборка идёт на данных из
+        # репозитория, и сайт выходит прежним, а не пустым. Падать надо не
+        # когда данных нет, а когда они пришли битыми: это следующий шаг.
+        env:
+          CMS_EXPORT_URL: https://elementst.ru/api/cms-export.php
+          CMS_EXPORT_KEY: ${{ secrets.CMS_EXPORT_KEY }}
+        run: node scripts/cms-fetch.mjs cms-data.json
+
+      - name: Проверка и подстановка данных
+        # А ЭТОТ ШАГ ПАДАЕТ, И В ЭТОМ ЕГО СМЫСЛ. Данные пришли — значит они
+        # обязаны сойтись с типами. Не сошлись: сборка останавливается, на
+        # сайте остаётся прежняя версия. Каталог с пустыми ценами или без
+        # половины позиций хуже, чем вчерашний.
+        run: |
+          if [ -f cms-data.json ]; then
+            node scripts/cms-apply.mjs cms-data.json
+          else
+            echo "CMS: снимка нет — данные берутся из репозитория."
+            echo "CMS: это штатный путь, а не сбой: сайт соберётся на последней"
+            echo "CMS: опубликованной версии, которая лежит в lib/data/."
+          fi
+
       - name: Проверка типов
+        # Стоит ПОСЛЕ подстановки: проверять надо те данные, с которыми
+        # пойдёт сборка, а не те, что лежали в репозитории.
         run: npx tsc --noEmit
 
       - name: Сборка статики
@@ -289,6 +315,48 @@ jobs:
           EMPTY=$(curl -sS -m 20 -o /tmp/lead-empty.txt -w '%{http_code}' -X POST "$BASE/api/lead.php")
           echo "  POST без полей → $EMPTY $(head -c 120 /tmp/lead-empty.txt)"
           [ "$EMPTY" = 422 ] || { echo "::error::Пустая заявка принята сервером ($EMPTY)."; FAIL=1; }
+
+          echo "--- админка и данные CMS"
+          # Админка открывается, но в поиск не отдаётся.
+          ADM=$(curl -sS -m 20 -o /tmp/adm.txt -D /tmp/adm.h -w '%{http_code}' "$BASE/admin/login.php")
+          echo "  GET /admin/login.php → $ADM"
+          [ "$ADM" = 200 ] || { echo "::error::Админка не отвечает ($ADM)."; FAIL=1; }
+          if grep -q '<?php' /tmp/adm.txt; then
+            echo "::error::PHP не исполняется — сервер отдал исходник админки."; FAIL=1
+          fi
+          if tr -d '\r' < /tmp/adm.h | grep -qi '^x-robots-tag:.*noindex'; then
+            echo "  заголовок noindex на месте"
+          else
+            echo "::error::Админка отдаётся без X-Robots-Tag: noindex."; FAIL=1
+          fi
+          # В robots.txt админки быть НЕ должно: файл открыт всем, и строка
+          # Disallow опубликовала бы ровно тот адрес, который прячется.
+          if curl -sS -m 20 "$BASE/robots.txt" | grep -qi 'admin'; then
+            echo "::error::В robots.txt упомянута админка — это публикует её адрес."; FAIL=1
+          else
+            echo "  в robots.txt админки нет — так и надо"
+          fi
+
+          # ДОСТУПЫ НЕ ОТДАЮТСЯ ПО ПРЯМОМУ АДРЕСУ. Файл настроек лежит вне
+          # корня сайта; образец и SQL закрыты .htaccess. Проверяется фактом,
+          # а не предположением.
+          for SECRET in "/cms-config.php" "/admin/cms-config.php" "/admin/cms-config.sample.php" \
+                        "/admin/sql/schema.php" "/admin/sql/seed.php" "/admin/lib/config.php"; do
+            CODE=$(curl -sS -m 20 -o /tmp/secret.txt -w '%{http_code}' "$BASE$SECRET")
+            printf '  %-34s %s\n' "$SECRET" "$CODE"
+            case "$CODE" in
+              403|404) ;;
+              *) echo "::error::$SECRET отдаётся кодом $CODE — доступы могут утечь."; FAIL=1 ;;
+            esac
+            if grep -qi 'github_token\|db_pass\|password_hash' /tmp/secret.txt 2>/dev/null; then
+              echo "::error::В ответе на $SECRET видны доступы."; FAIL=1
+            fi
+          done
+
+          # Выгрузка данных закрыта ключом.
+          EXP=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "$BASE/api/cms-export.php")
+          echo "  GET /api/cms-export.php без ключа → $EXP"
+          [ "$EXP" = 403 ] || { echo "::error::Выгрузка данных отвечает $EXP без ключа — должна 403."; FAIL=1; }
 
           echo "--- смешанное содержимое в разметке"
           # Ни одной ссылки на http:// в собственных адресах страницы. Ищем в

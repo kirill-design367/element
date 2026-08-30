@@ -21,7 +21,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const OUT = 'public/admin/sql/seed.sql';
+const OUT = 'public/admin/sql/seed.php';
 
 const dir = mkdtempSync(join(tmpdir(), 'element-seed-'));
 try {
@@ -60,6 +60,11 @@ try {
   const n = (v) => (v === null || v === undefined ? 'NULL' : String(v));
 
   const lines = [];
+  /* Обёртка PHP: с расширением .sql файл был бы доступен по прямому адресу
+     мимо Apache — статику на хостинге отдаёт nginx по расширению. */
+  lines.push('<?php');
+  lines.push('/* Файл собран scripts/build-cms-seed.mjs — руками не править. */');
+  lines.push("return <<<'SQL'");
   lines.push('-- ПЕРВОНАЧАЛЬНОЕ НАПОЛНЕНИЕ. Собран scripts/build-cms-seed.mjs');
   lines.push('-- из lib/data/*.data.ts — руками не править, правка потеряется.');
   lines.push('--');
@@ -132,6 +137,7 @@ try {
     );
   });
 
+  lines.push('SQL;');
   writeFileSync(OUT, lines.join('\n') + '\n');
   console.log(
     `${OUT}: категорий ${CATEGORIES.length}, групп ${GROUPS.length}, позиций ${MATERIALS.length}, `

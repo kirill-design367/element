@@ -14,3 +14,6 @@ __pycache__/
 # скриптом scripts/build-mail-config.mjs. В историю не идут — адрес
 # получателя меняется в одном месте, в lib/company.ts.
 public/api/config.php
+
+# Снимок данных из админки: скачивается при сборке, в историю не идёт.
+cms-data.json

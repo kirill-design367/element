@@ -1,3 +1,6 @@
+<?php
+/* Файл собран scripts/build-cms-seed.mjs — руками не править. */
+return <<<'SQL'
 -- ПЕРВОНАЧАЛЬНОЕ НАПОЛНЕНИЕ. Собран scripts/build-cms-seed.mjs
 -- из lib/data/*.data.ts — руками не править, правка потеряется.
 --
@@ -177,3 +180,4 @@ INSERT INTO fleet_numbers (value, unit, label, note, is_lead, computed, sort) VA
 INSERT INTO fleet_numbers (value, unit, label, note, is_lead, computed, sort) VALUES (1800, 'м³', 'в сутки', 'пиковая отгрузка с трёх площадок', 1, '', 1);
 INSERT INTO fleet_numbers (value, unit, label, note, is_lead, computed, sort) VALUES (46, '', 'позиций в каталоге', '{категорий} групп: инертные и металлопрокат', 0, 'positions', 2);
 INSERT INTO fleet_numbers (value, unit, label, note, is_lead, computed, sort) VALUES (11, '', 'лет на рынке', 'с {год} года, более {объектов} объектов', 0, 'years', 3);
+SQL;

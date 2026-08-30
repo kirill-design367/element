@@ -1,17 +1,13 @@
 /**
- * НОМЕНКЛАТУРА, ЦЕНЫ И КАТЕГОРИИ — ЗАПИСИ, КОТОРЫЕ ПРАВИТ ЗАКАЗЧИК.
+ * НОМЕНКЛАТУРА, ЦЕНЫ И КАТЕГОРИИ.
  *
- * ⚙️ ЭТОТ ФАЙЛ ПЕРЕСОБИРАЕТСЯ ИЗ CMS перед сборкой сайта — скриптом
- * `scripts/cms-apply.mjs`. Правка руками не запрещена, но она проживёт до
- * первой публикации из админки: следующая сборка перепишет файл целиком.
+ * ⚙️ ФАЙЛ СОБРАН scripts/cms-apply.mjs ИЗ ДАННЫХ АДМИНКИ. Правка руками
+ * проживёт до первой публикации из админки: следующая сборка перепишет его
+ * целиком.
  *
- * ОН ЖЕ — ЗАПАСНОЙ ВАРИАНТ. Если хостинг с базой недоступен, сборка идёт
- * ровно на этих записях, и сайт выходит прежним, а не пустым. Поэтому файл
- * лежит в репозитории и коммитится: это последняя рабочая версия каталога.
- *
- * Цены хранятся ЗА ТОННУ, с НДС, на условиях самовывоза с площадки: так их
- * даёт заказчик. Показывает и считает сайт кубами — пересчёт через насыпную
- * плотность позиции, функция pricePerM3() в lib/catalog.ts.
+ * ОН ЖЕ ЗАПАСНОЙ ВАРИАНТ: если хостинг с базой недоступен, сборка идёт на
+ * том, что здесь лежит, и сайт выходит прежним, а не пустым. Поэтому файл
+ * коммитится — это последняя опубликованная версия данных.
  */
 
 import type { Category, Group, Material } from './types';
@@ -27,51 +23,36 @@ export const CATEGORIES: Category[] = [
   {
     id: 'shcheben',
     name: 'Щебень',
-    summary:
-      /* Марки и фракции отсюда убраны: они выводятся из позиций хелпером
-         categorySpec(). Написанные здесь руками, они разошлись с каталогом —
-         стояло «от М300 до М1400» при фактических М400…М1200. */
-      'Подбираем под нагрузку на основание: марку берём по проекту.',
+    summary: 'Подбираем под нагрузку на основание: марку берём по проекту.',
     unit: 'm3',
   },
   {
     id: 'pesok',
     name: 'Песок',
-    summary:
-      /* Модуль крупности отсюда убран по той же причине: стояло «0,8–2,5»
-         при фактических от 1,8–2,2 до 2,2–2,8. Теперь его считает
-         categorySpec() из позиций. */
-      'Карьерный на подсыпку и обратную засыпку, мытый — под кладочный и бетонный раствор.',
+    summary: 'Карьерный на подсыпку и обратную засыпку, мытый — под кладочный и бетонный раствор.',
     unit: 'm3',
   },
   {
     id: 'pgs',
     name: 'ПГС',
-    summary:
-      'Песчано-гравийная смесь: природная для отсыпки и планировки, обогащённая — с нормированным содержанием гравия под бетон.',
+    summary: 'Песчано-гравийная смесь: природная для отсыпки и планировки, обогащённая — с нормированным содержанием гравия под бетон.',
     unit: 'm3',
   },
   {
     id: 'otsev',
     name: 'Отсев',
-    summary:
-      'Побочный продукт дробления. Дешевле песка на отсыпке, плотно трамбуется — берут под тротуарную плитку и дорожки.',
+    summary: 'Побочный продукт дробления. Дешевле песка на отсыпке, плотно трамбуется — берут под тротуарную плитку и дорожки.',
     unit: 'm3',
   },
   {
     id: 'grunt',
     name: 'Грунт и чернозём',
-    summary:
-      'Плодородные грунты под озеленение и планировочный грунт под вертикальную планировку. Отбираем по агрохимическому анализу.',
+    summary: 'Плодородные грунты под озеленение и планировочный грунт под вертикальную планировку. Отбираем по агрохимическому анализу.',
     unit: 'm3',
   },
   {
     id: 'metall',
     name: 'Металлопрокат',
-    /* Ни марок стали, ни ГОСТов, ни сроков: в присланном прайсе их нет, а
-       выдумывать характеристики товара на сайте поставщика нельзя.
-       Виды проката не перечисляются: их и так выводит categorySpec() из
-       позиций, и в плашке категории строка шла дважды подряд. */
     summary: 'Цены за тонну. Марку стали, наличие и срок называем по заявке.',
     unit: 't',
     groupLabel: 'Вид проката',
@@ -79,7 +60,6 @@ export const CATEGORIES: Category[] = [
 ];
 
 export const MATERIALS: Material[] = [
-  // ── Щебень ────────────────────────────────────────────────────────────────
   {
     id: 'granit-5-20',
     categoryId: 'shcheben',
@@ -197,13 +177,6 @@ export const MATERIALS: Material[] = [
     uses: ['основание дороги', 'отсыпка', 'дренажный слой'],
   },
   {
-    /* Строка есть в присланном прайсе, цены против неё нет, а в каталоге не
-       было и позиции. Заведена. Плотность взята у соседней фракции того же
-       материала — у гравийного 20-40: между соседними фракциями одного
-       материала она отличается на сотые, и без неё не считается ни куб, ни
-       загрузка машины. ГОСТ, марка и морозостойкость оставлены пустыми, как
-       у металла: в прайсе их нет, а выдумывать характеристики товара
-       нельзя. Наличие по той же причине — «уточняем». */
     id: 'graviy-40-70',
     categoryId: 'shcheben',
     name: 'Щебень гравийный',
@@ -229,8 +202,6 @@ export const MATERIALS: Material[] = [
     uses: ['временные дороги', 'засыпка ям', 'подъездные пути'],
     note: 'Дроблёный бетонный бой. Самый дешёвый вариант под технологический проезд.',
   },
-
-  // ── Песок ─────────────────────────────────────────────────────────────────
   {
     id: 'pesok-kar',
     categoryId: 'pesok',
@@ -249,7 +220,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pesok',
     name: 'Песок карьерный сеяный',
     kind: 'сеяный',
-    fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
+    fraction: { kind: 'mkr', from: 2, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
     pricePerTon: null,
@@ -261,7 +232,7 @@ export const MATERIALS: Material[] = [
     categoryId: 'pesok',
     name: 'Песок мытый',
     kind: 'мытый',
-    fraction: { kind: 'mkr', from: 2.0, to: 2.5 },
+    fraction: { kind: 'mkr', from: 2, to: 2.5 },
     gost: 'ГОСТ 8736-2014',
     density: 1.5,
     pricePerTon: null,
@@ -281,8 +252,6 @@ export const MATERIALS: Material[] = [
     availability: 'on-order',
     uses: ['бетон высоких марок', 'дренаж', 'пескоструй'],
   },
-
-  // ── ПГС ───────────────────────────────────────────────────────────────────
   {
     id: 'pgs-prir',
     categoryId: 'pgs',
@@ -320,8 +289,6 @@ export const MATERIALS: Material[] = [
     availability: 'on-order',
     uses: ['несущее основание', 'бетон', 'дорожная одежда'],
   },
-
-  // ── Отсев ─────────────────────────────────────────────────────────────────
   {
     id: 'otsev-granit',
     categoryId: 'otsev',
@@ -361,8 +328,6 @@ export const MATERIALS: Material[] = [
     availability: 'on-order',
     uses: ['подсыпка', 'дренаж', 'отсыпка площадок'],
   },
-
-  // ── Грунт и чернозём ──────────────────────────────────────────────────────
   {
     id: 'chernozem',
     categoryId: 'grunt',
@@ -425,17 +390,13 @@ export const MATERIALS: Material[] = [
     uses: ['вертикальная планировка', 'засыпка котлована'],
     note: 'Отгружаем с площадок в момент выемки — наличие уточняйте.',
   },
-
-  // ── Металлопрокат ─────────────────────────────────────────────────────────
-  // Цены из прайса заказчика, за тонну. Марок стали, ГОСТов, сроков и
-  // минимальной партии в прайсе нет — и здесь их нет тоже.
   {
     id: 'arm-10',
     categoryId: 'metall',
-    group: 'armatura',
     name: 'Арматура рифлёная',
+    group: 'armatura',
     kind: 'арматура',
-    fraction: { kind: 'none', label: '⌀\u00A010\u00A0мм' },
+    fraction: { kind: 'none', label: '⌀ 10 мм' },
     pricePerTon: 78000,
     availability: 'unknown',
     uses: ['армирование бетона', 'фундамент', 'монолит'],
@@ -443,10 +404,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'arm-12',
     categoryId: 'metall',
-    group: 'armatura',
     name: 'Арматура рифлёная',
+    group: 'armatura',
     kind: 'арматура',
-    fraction: { kind: 'none', label: '⌀\u00A012\u00A0мм' },
+    fraction: { kind: 'none', label: '⌀ 12 мм' },
     pricePerTon: 75000,
     availability: 'unknown',
     uses: ['армирование бетона', 'фундамент', 'монолит'],
@@ -454,10 +415,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'arm-14',
     categoryId: 'metall',
-    group: 'armatura',
     name: 'Арматура рифлёная',
+    group: 'armatura',
     kind: 'арматура',
-    fraction: { kind: 'none', label: '⌀\u00A014\u00A0мм' },
+    fraction: { kind: 'none', label: '⌀ 14 мм' },
     pricePerTon: 74500,
     availability: 'unknown',
     uses: ['армирование бетона', 'фундамент', 'монолит'],
@@ -465,10 +426,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'arm-16',
     categoryId: 'metall',
-    group: 'armatura',
     name: 'Арматура рифлёная',
+    group: 'armatura',
     kind: 'арматура',
-    fraction: { kind: 'none', label: '⌀\u00A016\u00A0мм' },
+    fraction: { kind: 'none', label: '⌀ 16 мм' },
     pricePerTon: 74500,
     availability: 'unknown',
     uses: ['армирование бетона', 'фундамент', 'монолит'],
@@ -476,10 +437,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'ugol-40x40-4',
     categoryId: 'metall',
-    group: 'ugolok',
     name: 'Уголок',
+    group: 'ugolok',
     kind: 'уголок',
-    fraction: { kind: 'none', label: '40×40×4\u00A0мм' },
+    fraction: { kind: 'none', label: '40×40×4 мм' },
     pricePerTon: 101000,
     availability: 'unknown',
     uses: ['металлоконструкции', 'обвязка'],
@@ -487,10 +448,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'ugol-50x50-5',
     categoryId: 'metall',
-    group: 'ugolok',
     name: 'Уголок',
+    group: 'ugolok',
     kind: 'уголок',
-    fraction: { kind: 'none', label: '50×50×5\u00A0мм' },
+    fraction: { kind: 'none', label: '50×50×5 мм' },
     pricePerTon: 85000,
     availability: 'unknown',
     uses: ['металлоконструкции', 'обвязка'],
@@ -498,10 +459,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'ugol-63x63-6',
     categoryId: 'metall',
-    group: 'ugolok',
     name: 'Уголок',
+    group: 'ugolok',
     kind: 'уголок',
-    fraction: { kind: 'none', label: '63×63×6\u00A0мм' },
+    fraction: { kind: 'none', label: '63×63×6 мм' },
     pricePerTon: 81000,
     availability: 'unknown',
     uses: ['металлоконструкции', 'обвязка'],
@@ -509,10 +470,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'ugol-75x75-6',
     categoryId: 'metall',
-    group: 'ugolok',
     name: 'Уголок',
+    group: 'ugolok',
     kind: 'уголок',
-    fraction: { kind: 'none', label: '75×75×6\u00A0мм' },
+    fraction: { kind: 'none', label: '75×75×6 мм' },
     pricePerTon: 92000,
     availability: 'unknown',
     uses: ['металлоконструкции', 'обвязка'],
@@ -520,10 +481,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'shveller-10',
     categoryId: 'metall',
-    group: 'shveller',
     name: 'Швеллер',
+    group: 'shveller',
     kind: 'швеллер',
-    fraction: { kind: 'none', label: '№\u00A010' },
+    fraction: { kind: 'none', label: '№ 10' },
     pricePerTon: 102000,
     availability: 'unknown',
     uses: ['перемычки', 'балки', 'рамы'],
@@ -531,10 +492,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'shveller-12',
     categoryId: 'metall',
-    group: 'shveller',
     name: 'Швеллер',
+    group: 'shveller',
     kind: 'швеллер',
-    fraction: { kind: 'none', label: '№\u00A012' },
+    fraction: { kind: 'none', label: '№ 12' },
     pricePerTon: 106000,
     availability: 'unknown',
     uses: ['перемычки', 'балки', 'рамы'],
@@ -542,10 +503,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'shveller-14',
     categoryId: 'metall',
-    group: 'shveller',
     name: 'Швеллер',
+    group: 'shveller',
     kind: 'швеллер',
-    fraction: { kind: 'none', label: '№\u00A014' },
+    fraction: { kind: 'none', label: '№ 14' },
     pricePerTon: 107000,
     availability: 'unknown',
     uses: ['перемычки', 'балки', 'рамы'],
@@ -553,10 +514,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'shveller-16',
     categoryId: 'metall',
-    group: 'shveller',
     name: 'Швеллер',
+    group: 'shveller',
     kind: 'швеллер',
-    fraction: { kind: 'none', label: '№\u00A016' },
+    fraction: { kind: 'none', label: '№ 16' },
     pricePerTon: 105000,
     availability: 'unknown',
     uses: ['перемычки', 'балки', 'рамы'],
@@ -564,10 +525,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-40x20-2',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '40×20×2\u00A0мм' },
+    fraction: { kind: 'none', label: '40×20×2 мм' },
     pricePerTon: 70000,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -575,10 +536,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-40x25-2',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '40×25×2\u00A0мм' },
+    fraction: { kind: 'none', label: '40×25×2 мм' },
     pricePerTon: 63000,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -586,10 +547,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-40x40-2',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '40×40×2\u00A0мм' },
+    fraction: { kind: 'none', label: '40×40×2 мм' },
     pricePerTon: 62500,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -597,10 +558,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-50x50-2',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '50×50×2\u00A0мм' },
+    fraction: { kind: 'none', label: '50×50×2 мм' },
     pricePerTon: 75000,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -608,10 +569,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-60x40-2',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '60×40×2\u00A0мм' },
+    fraction: { kind: 'none', label: '60×40×2 мм' },
     pricePerTon: 69000,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -619,10 +580,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-60x60-2',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '60×60×2\u00A0мм' },
+    fraction: { kind: 'none', label: '60×60×2 мм' },
     pricePerTon: 62500,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -630,10 +591,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-80x40-3',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '80×40×3\u00A0мм' },
+    fraction: { kind: 'none', label: '80×40×3 мм' },
     pricePerTon: 60000,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -641,10 +602,10 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-80x80-3',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '80×80×3\u00A0мм' },
+    fraction: { kind: 'none', label: '80×80×3 мм' },
     pricePerTon: 59500,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
@@ -652,13 +613,12 @@ export const MATERIALS: Material[] = [
   {
     id: 'truba-100x100-3',
     categoryId: 'metall',
-    group: 'truba',
     name: 'Труба профильная',
+    group: 'truba',
     kind: 'труба профильная',
-    fraction: { kind: 'none', label: '100×100×3\u00A0мм' },
+    fraction: { kind: 'none', label: '100×100×3 мм' },
     pricePerTon: 59500,
     availability: 'unknown',
     uses: ['каркасы', 'навесы', 'ограждения'],
   },
 ];
-
