@@ -16,7 +16,9 @@ import { join, extname } from 'node:path';
 const OUT = 'out';
 /* Двоичное не читаем: базового пути там быть не может, а гигабайты картинок
    обходить незачем. */
-const BINARY = new Set(['.webp', '.jpg', '.jpeg', '.png', '.woff2', '.woff', '.ico', '.pdf']);
+const BINARY = new Set([
+  '.webp', '.jpg', '.jpeg', '.png', '.woff2', '.woff', '.ico', '.pdf', '.zip',
+]);
 const NEEDLE = '/element';
 
 function walk(dir) {
