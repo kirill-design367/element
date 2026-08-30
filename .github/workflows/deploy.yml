@@ -382,20 +382,50 @@ jobs:
             echo "  в robots.txt админки нет — так и надо"
           fi
 
-          # ДОСТУПЫ НЕ ОТДАЮТСЯ ПО ПРЯМОМУ АДРЕСУ. Файл настроек лежит вне
-          # корня сайта; образец и SQL закрыты .htaccess. Проверяется фактом,
-          # а не предположением.
+          # СЛУЖЕБНЫЕ ФАЙЛЫ: ВАЖЕН НЕ КОД ОТВЕТА, А ЧТО В ТЕЛЕ.
+          #
+          # Раньше здесь бедой считался код 200 — и это неверный критерий.
+          # PHP-файл, который ничего не печатает, тоже отдаёт 200 и при этом
+          # не раскрывает ничего: /admin/lib/config.php отдавал 200 и ноль
+          # байт, а проверка называла это утечкой доступов. Ложная тревога
+          # шесть прогонов подряд приучает не читать вывод.
+          #
+          # Беда — это когда в теле видны признаки настроек или когда
+          # установочный скрипт реально отработал. Пустое тело при 200 —
+          # не ошибка, это нормальная работа PHP.
           for SECRET in "/cms-config.php" "/admin/cms-config.php" "/admin/cms-config.sample.php" \
-                        "/admin/sql/schema.php" "/admin/sql/seed.php" "/admin/lib/config.php"; do
+                        "/admin/sql/schema.php" "/admin/sql/seed.php" "/admin/lib/config.php" \
+                        "/admin/install.php"; do
             CODE=$(curl -sS -m 20 -o /tmp/secret.txt -w '%{http_code}' "$BASE$SECRET")
-            printf '  %-34s %s\n' "$SECRET" "$CODE"
-            case "$CODE" in
-              403|404) ;;
-              *) echo "::error::$SECRET отдаётся кодом $CODE — доступы могут утечь."; FAIL=1 ;;
-            esac
-            if grep -qi 'github_token\|db_pass\|password_hash' /tmp/secret.txt 2>/dev/null; then
-              echo "::error::В ответе на $SECRET видны доступы."; FAIL=1
+            SIZE=$(wc -c < /tmp/secret.txt | tr -d ' ')
+            printf '  %-34s код %-4s тело %s байт\n' "$SECRET" "$CODE" "$SIZE"
+
+            # 1. Признаки настроек в теле: либо PHP не исполнился и отдан
+            #    исходник, либо файл сам их напечатал. И то и другое — утечка.
+            LEAK=$(grep -aoiE 'github_token|db_pass|db_user|password_hash|export_key|mysqli|PDO\(|define\(|DB_[A-Z]+|\$2y\$' \
+                   /tmp/secret.txt 2>/dev/null | sort -u | head -5 || true)
+            if [ -n "$LEAK" ]; then
+              echo "::error::$SECRET раскрывает настройки:"; echo "$LEAK" | sed 's/^/      /'; FAIL=1
             fi
+
+            # 2. Отработавший установщик. Он печатает свою страницу — по ней
+            #    и опознаём. Пустой ответ установщика безобиден, работающий —
+            #    это чужая рука на каталоге заказчика.
+            if grep -aqi 'Установка админки\|Создать таблицы\|Таблицы созданы\|Каталог заполнен' \
+               /tmp/secret.txt 2>/dev/null; then
+              echo "::error::$SECRET — установочный скрипт ОТРАБОТАЛ и отдал страницу."; FAIL=1
+            fi
+
+            # 3. Файлов установщика на сервере быть не должно вовсе: они
+            #    убраны из выкладки, и mirror --delete стирает их с сервера.
+            case "$SECRET" in
+              */install.php|*/sql/*|*cms-config.sample*)
+                if [ "$SIZE" -gt 0 ] || [ "$CODE" = 200 ]; then
+                  echo "::error::$SECRET ещё лежит на сервере — должен быть удалён выкладкой."
+                  FAIL=1
+                fi
+                ;;
+            esac
           done
 
           # Выгрузка данных закрыта ключом.
