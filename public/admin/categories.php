@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/ui.php';
+require_once __DIR__ . '/lib/publishbar.php';
 require_once __DIR__ . '/lib/validate.php';
 
 require_login();
@@ -54,6 +55,7 @@ $list = q('SELECT c.*, (SELECT COUNT(*) FROM materials m WHERE m.category_id = c
            FROM categories c ORDER BY c.sort, c.id');
 
 page_head('Категории');
+publish_bar();
 show_flash('cat');
 ?>
 <h1>Категории</h1>

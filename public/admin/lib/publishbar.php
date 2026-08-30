@@ -1,0 +1,47 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/snapshot.php';
+require_once __DIR__ . '/ui.php';
+
+/**
+ * ПОЛОСА ПУБЛИКАЦИИ.
+ *
+ * Стоит наверху КАЖДОЙ страницы админки и видна всегда. Причина простая:
+ * правка в базе на сайт не попадает сама — сайт статический, его надо
+ * пересобрать. Человек, который этого не знает, поправит цену, увидит
+ * «сохранено» и уйдёт довольным, а на сайте останется старая. Поэтому
+ * рядом с кнопкой всегда написано, когда публиковали в последний раз и есть
+ * ли непубликованные правки.
+ *
+ * ОТКУДА БЕРЁТСЯ «ЕСТЬ НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ». Не из флага и не из
+ * отметки времени: сравниваются отпечатки. Отпечаток текущих данных против
+ * отпечатка последнего опубликованного снимка. Флаг разошёлся бы с
+ * действительностью при первой же правке в обход админки.
+ */
+function publish_bar(): void
+{
+    $last = snapshot_last();
+    $now = snapshot_digest(snapshot_build());
+    $dirty = $last === null || (string) $last['digest'] !== $now;
+
+    echo '<div class="pubbar">';
+    echo '<span class="state">';
+    if ($last === null) {
+        echo 'Ещё ни разу не публиковали — на сайте данные из репозитория.';
+    } else {
+        $when = date('d.m.Y в H:i', (int) strtotime((string) $last['created_at']));
+        echo 'Последняя публикация: ' . h($when) . '.';
+        if ((string) $last['dispatch'] !== '') {
+            echo ' <span class="muted">' . h((string) $last['dispatch']) . '</span>';
+        }
+    }
+    echo $dirty
+        ? ' <strong style="color:var(--warn)">Есть неопубликованные правки.</strong>'
+        : ' <span style="color:var(--ok)">Сайт совпадает с базой.</span>';
+    echo '</span>';
+
+    echo '<form method="post" action="publish.php" style="margin:0">' . csrf_field()
+        . '<button class="btn" type="submit">Опубликовать</button></form>';
+    echo '</div>';
+}

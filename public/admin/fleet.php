@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/ui.php';
+require_once __DIR__ . '/lib/publishbar.php';
 require_once __DIR__ . '/lib/validate.php';
 
 require_login();
@@ -110,6 +111,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 $list = q('SELECT * FROM fleet_numbers ORDER BY sort, id');
 
 page_head('Парк');
+publish_bar();
 show_flash('fl');
 ?>
 <h1>Цифры блока «Парк и объёмы»</h1>

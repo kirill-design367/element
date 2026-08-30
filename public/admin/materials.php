@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/ui.php';
+require_once __DIR__ . '/lib/publishbar.php';
 require_once __DIR__ . '/lib/validate.php';
 
 require_login();
@@ -129,6 +130,7 @@ const AVAIL = [
 ];
 
 page_head('Каталог');
+publish_bar();
 show_flash('mat');
 ?>
 <h1>Каталог — <?= count($list) ?> <?= plural_ru(count($list), 'позиция', 'позиции', 'позиций') ?></h1>

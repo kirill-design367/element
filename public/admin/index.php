@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/ui.php';
+require_once __DIR__ . '/lib/publishbar.php';
 require_once __DIR__ . '/lib/snapshot.php';
 
 require_login();
@@ -18,6 +19,7 @@ $counts = [
 ];
 
 page_head('Публикация');
+publish_bar();
 show_flash('publish');
 ?>
 <h1>Данные сайта</h1>

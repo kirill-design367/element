@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/ui.php';
+require_once __DIR__ . '/lib/publishbar.php';
 require_once __DIR__ . '/lib/validate.php';
 
 require_login();
@@ -82,6 +83,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 $list = q('SELECT * FROM objects ORDER BY sort, id');
 
 page_head('Объекты');
+publish_bar();
 show_flash('ob');
 ?>
 <h1>Объекты</h1>
