@@ -22,22 +22,28 @@
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
-const SRC = 'lib/company.ts';
+/* ПОЧТА ПОЛУЧАТЕЛЯ ЛЕЖИТ В ДАННЫХ, А НЕ В КОДЕ. Заказчик правит её в
+   админке, и файл данных пересобирается из базы перед сборкой — поэтому
+   адрес берётся оттуда, а не из lib/company.ts. Порядок шагов сборки это
+   учитывает: сперва подстановка данных CMS, потом настройки почты. */
+const DATA = 'lib/data/company.data.ts';
+/* Адрес сайта в админку не отдан: это настройка, а не реквизит. */
+const CODE = 'lib/company.ts';
 const OUT = 'public/api/config.php';
 /** Ящик, от чьего имени уходит письмо. Заводится в панели хостинга. */
 const SENDER = 'no-reply';
 
-const src = readFileSync(SRC, 'utf8');
-const field = (name) => {
+const field = (file, name) => {
+  const src = readFileSync(file, 'utf8');
   const m = src.match(new RegExp(`\\b${name}:\\s*'([^']+)'`));
-  if (!m) throw new Error(`в ${SRC} не найдено поле ${name}`);
+  if (!m) throw new Error(`в ${file} не найдено поле ${name}`);
   return m[1];
 };
 
-const to = field('email');
+const to = field(DATA, 'email');
 /* Домен берётся из адреса сайта, а не пишется отдельной строкой: две записи
    одного факта разошлись бы при переезде. */
-const domain = new URL(field('site')).hostname.replace(/^www\./, '');
+const domain = new URL(field(CODE, 'site')).hostname.replace(/^www\./, '');
 const from = `${SENDER}@${domain}`;
 
 mkdirSync('public/api', { recursive: true });
