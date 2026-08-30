@@ -469,8 +469,27 @@ jobs:
           # Осталось одно правило, зато честное: беда — это признаки настроек
           # в теле или отработавший установщик. Всё прочее печатается в журнал
           # и не роняет выкладку.
-          for SECRET in "/cms-config.php" "/admin/cms-config.php" "/admin/cms-config.sample.php" \
-                        "/admin/sql/schema.php" "/admin/sql/seed.php" "/admin/lib/config-load.php" \
+          # СПИСОК ОПИСЫВАЕТ РЕАЛЬНОСТЬ, ИНАЧЕ ЕГО НАЧНУТ ЧИТАТЬ КАК ОПИСЬ.
+          # Здесь стоял /admin/cms-config.php — файла с таким именем в проекте
+          # не было НИ В ОДНОМ коммите, проверено по истории. Пустой адрес в
+          # списке проверки живёт долго и однажды отправляет человека искать
+          # то, чего нет. Убран.
+          #
+          # Остальные семь стоят по трём разным причинам, и все три настоящие:
+          #
+          #   лежит на сервере, должен быть закрыт
+          #     /admin/lib/config-load.php — загрузчик настроек
+          #     /admin/lib/db.php          — подключение к базе
+          #   убран из выкладки, должен там и остаться
+          #     /admin/install.php, /admin/sql/schema.php, /admin/sql/seed.php,
+          #     /admin/cms-config.sample.php  — все четыре уехали в db/
+          #   не должен появиться никогда
+          #     /cms-config.php — настоящие доступы лежат ВНЕ корня сайта, и
+          #     это ровно тот адрес, по которому они окажутся, если однажды
+          #     положить файл не туда
+          for SECRET in "/cms-config.php" "/admin/cms-config.sample.php" \
+                        "/admin/sql/schema.php" "/admin/sql/seed.php" \
+                        "/admin/lib/config-load.php" "/admin/lib/db.php" \
                         "/admin/install.php"; do
             probe "$SECRET"
             SIZE=$(wc -c < /tmp/probe.body | tr -d ' ')
