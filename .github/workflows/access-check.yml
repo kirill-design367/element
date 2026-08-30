@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Откуда смотрим
         run: |
-          set -uo pipefail
+          set +e -u
           echo "--- ВЫХОДНОЙ УЗЕЛ РАННЕРА"
           curl -sS -m 20 https://ipinfo.io/json 2>/dev/null \
             | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"  адрес {d.get('ip')}, {d.get('city')}, {d.get('country')}, {d.get('org')}\")" \
@@ -37,7 +37,7 @@ jobs:
 
       - name: 1. Доступность снаружи
         run: |
-          set -uo pipefail
+          set +e -u
           F1='  код %{http_code}  HTTP/%{http_version}  вес %{size_download}б  адрес %{remote_ip}\n'
           F2='  DNS %{time_namelookup}s  TCP %{time_connect}s  TLS %{time_appconnect}s  первый байт %{time_starttransfer}s  всего %{time_total}s\n'
 
@@ -65,14 +65,26 @@ jobs:
           echo "--- IPv4 И IPv6 ПО ОТДЕЛЬНОСТИ"
           # Классическая причина «у одного не открывается»: домен отдаёт AAAA,
           # а по IPv6 сервер не отвечает. Упрётся тот, у кого IPv6 включён.
+          #
+          # ЧИТАТЬ ЭТОТ ЗАМЕР НАДО ОСТОРОЖНО: у раннера GitHub своего IPv6
+          # обычно нет вовсе, и тогда отказ говорит о раннере, а не о сайте.
+          # Поэтому сначала проверяем сам раннер на постороннем адресе.
+          curl -6 -sS -m 10 -o /dev/null https://ipv6.google.com/ 2>/dev/null
+          if [ $? -eq 0 ]; then RUNNER6="есть"; else RUNNER6="НЕТ"; fi
+          echo "  IPv6 у самого раннера: $RUNNER6"
           for FAM in -4 -6; do
-            C=$(curl -sS $FAM -m 15 -o /dev/null -w "%{http_code} адрес %{remote_ip}" "https://$DOMAIN/" 2>&1 | tail -1)
-            printf '  %-4s %s\n' "$FAM" "$C"
+            OUT=$(curl -sS $FAM -m 15 -o /dev/null -w "код %{http_code}, адрес %{remote_ip}" "https://$DOMAIN/" 2>&1)
+            RC=$?
+            if [ $RC -eq 0 ]; then
+              printf '  %-4s %s\n' "$FAM" "$OUT"
+            else
+              printf '  %-4s не соединилось (curl %s): %s\n' "$FAM" "$RC" "$(echo "$OUT" | tail -1)"
+            fi
           done
 
       - name: 2. Защита рег.ру на публичной части
         run: |
-          set -uo pipefail
+          set +e -u
           echo "--- ЕСТЬ ЛИ ЗАГЛУШКА АНТИБОТА НА ПУБЛИЧНОЙ ЧАСТИ"
           # На /admin/ она есть: meta Refresh на тот же адрес с ?attempt=1.
           # Здесь проверяем, не стоит ли то же самое на витрине — и с разными
@@ -112,7 +124,7 @@ jobs:
 
       - name: 3. Домен и DNS
         run: |
-          set -uo pipefail
+          set +e -u
           sudo apt-get install -y -qq dnsutils >/dev/null 2>&1 || true
           echo "--- A И AAAA"
           for H in "$DOMAIN" "www.$DOMAIN"; do
@@ -154,7 +166,7 @@ jobs:
 
       - name: 4. Сертификат и TLS
         run: |
-          set -uo pipefail
+          set +e -u
           echo "--- ЦЕПОЧКА: СКОЛЬКО СЕРТИФИКАТОВ И В КАКОМ ПОРЯДКЕ"
           echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts 2>/dev/null \
             | grep -E '^ *[0-9]+ [si]:' | sed 's/^/  /'
@@ -199,7 +211,7 @@ jobs:
 
       - name: 5. Что видит первый заход
         run: |
-          set -uo pipefail
+          set +e -u
           echo "--- ВЕС И ВРЕМЯ ГЛАВНОЙ"
           curl -sS -m 30 --compressed -o /tmp/gz.html -w '  со сжатием:  %{size_download}б, первый байт %{time_starttransfer}s, всего %{time_total}s\n' "https://$DOMAIN/"
           curl -sS -m 30 -H 'Accept-Encoding: identity' -o /tmp/raw.html -w '  без сжатия:  %{size_download}б\n' "https://$DOMAIN/"
@@ -231,7 +243,7 @@ jobs:
 
       - name: 6. Заголовки
         run: |
-          set -uo pipefail
+          set +e -u
           echo "--- ВСЕ ЗАГОЛОВКИ ОТВЕТА ГЛАВНОЙ"
           curl -sS -m 30 -o /dev/null -D - "https://$DOMAIN/" | tr -d '\r' | sed 's/^/  /'
           echo ""
@@ -250,3 +262,17 @@ jobs:
           look "Permissions-Policy"
           look "Content-Encoding"
           look "Server"
+
+      - name: Приговор
+        # Диагностические шаги нарочно не падают — они собирают факты. Прогон
+        # красный ровно тогда, когда сайт снаружи не открывается.
+        run: |
+          set -u
+          CODE=$(curl -sS -m 30 -o /tmp/final.html -w '%{http_code}' "https://$DOMAIN/" || echo 000)
+          SIZE=$(wc -c < /tmp/final.html)
+          echo "  главная: код $CODE, тело ${SIZE}б"
+          if [ "$CODE" != "200" ] || [ "$SIZE" -lt 5000 ]; then
+            echo "::error::Сайт снаружи не открывается: код $CODE, тело ${SIZE}б."
+            exit 1
+          fi
+          echo "  сайт открывается снаружи"
