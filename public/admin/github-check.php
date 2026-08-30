@@ -24,6 +24,53 @@ require_login();
  * Ничего не меняет и сборку не запускает: только читает.
  */
 
+/**
+ * ЗНАЧЕНИЕ ПОБАЙТНО.
+ *
+ * ЗАЧЕМ. Строка настроек может выглядеть правильной и не быть ею: `trim()` в
+ * PHP снимает только обычные пробелы, перевод строки и табуляцию, а
+ * неразрывный пробел, знак нулевой ширины и BOM остаются — и в редакторе
+ * панели хостинга они не видны вовсе. Кириллические двойники латинских букв
+ * («е» вместо «e») не видны даже при внимательном чтении.
+ *
+ * Поэтому здесь печатается не строка, а её длина и коды знаков. Всё, что за
+ * пределами обычной латиницы, помечено — смотреть надо туда.
+ */
+function dump_value(string $v): string
+{
+    if ($v === '') {
+        return '<span class="pill no">пусто</span>';
+    }
+    $out = '<div class="muted" style="font-size:13px;margin-top:4px">'
+        . 'байт: <strong>' . strlen($v) . '</strong> · знаков: <strong>'
+        . mb_strlen($v, 'UTF-8') . '</strong></div>'
+        . '<div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;'
+        . 'line-height:1.9;margin-top:4px;word-break:break-all">';
+    foreach (preg_split('//u', $v, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $ch) {
+        $cp = mb_ord($ch, 'UTF-8');
+        /* Обычная латиница, цифры, дефис, точка, слэш и подчёркивание — то,
+           из чего состоит правильное значение. Всё остальное подозрительно. */
+        $plain = $cp !== false && $cp < 128 && preg_match('~[A-Za-z0-9\-./_]~', $ch) === 1;
+        $label = $cp === false ? '??' : sprintf('U+%04X', $cp);
+        $shown = ($cp !== false && $cp > 32 && $cp !== 127) ? htmlspecialchars($ch, ENT_QUOTES) : '·';
+        $out .= $plain
+            ? '<span style="display:inline-block;padding:1px 4px;margin:1px;background:#f0f0ee;'
+                . 'border-radius:3px">' . $shown . '</span>'
+            : '<span style="display:inline-block;padding:1px 4px;margin:1px;background:#fbeceb;'
+                . 'color:#b3261e;border-radius:3px" title="' . $label . '">' . $shown . ' '
+                . $label . '</span>';
+    }
+    return $out . '</div>';
+}
+
+/** Ключи, которые код действительно читает. Всё прочее в файле — мимо. */
+const KNOWN_KEYS = [
+    'db_host', 'db_name', 'db_user', 'db_pass',
+    'login', 'password_hash',
+    'github_token', 'github_repo', 'github_ref', 'github_workflow',
+    'export_key',
+];
+
 $settings = gh_settings();
 $steps = [];
 
@@ -48,6 +95,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                     : 'GitHub ответил кодом ' . $r['code'] . ' ' . $r['error'])),
         /* Для fine-grained токена без права на профиль 403 — не приговор. */
         $r['code'] === 403,
+        $r,
     ];
 
     /* Шаг 2. Токен ВИДИТ этот репозиторий? Здесь отсеивается и опечатка в
@@ -70,6 +118,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                     . 'Именно этот шаг чаще всего и падает.'
                 : 'GitHub ответил кодом ' . $r['code']),
         false,
+        $r,
     ];
 
     /* Шаг 3. Файл сборки на месте и с нужным именем? */
@@ -88,6 +137,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                         . 'Репозиторий при этом виден, значит дело в одном из этих двух.'
                     : 'GitHub ответил кодом ' . $r['code']),
             false,
+            $r,
         ];
     }
 
@@ -104,6 +154,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                         . 'настройках стоит старое имя (master вместо main).'
                     : 'нет, такой ветки в репозитории не нашлось (код ' . $r['code'] . ')'),
             false,
+            $r,
         ];
     }
 }
@@ -115,20 +166,94 @@ page_head('Связь с GitHub');
   Ничего не меняет и сборку не запускает — только смотрит.</p>
 
 <div class="card">
-  <h2 style="font-size:16px;margin:0 0 10px">Что стоит в настройках на хостинге</h2>
+  <h2 style="font-size:16px;margin:0 0 10px">Что уходит в запрос</h2>
+  <p class="hint" style="margin-top:0">Значения показаны в том виде, в каком они уходят в
+    запрос, — после того как сняты лишние пробелы, адрес целиком, «.git» и путь к файлу.
+    Под каждым — длина и коды знаков: строка может выглядеть правильной и не быть ею.
+    <strong>Красным помечено всё, что не обычная латиница, цифра или дефис.</strong></p>
   <table>
     <tbody>
-      <tr><td>Репозиторий</td><td><code><?= h($settings['repo']) ?></code></td></tr>
-      <tr><td>Файл сборки</td><td><code><?= h($settings['workflow']) ?></code></td></tr>
-      <tr><td>Ветка</td><td><code><?= h($settings['ref']) ?></code></td></tr>
-      <tr><td>Токен</td><td><?= $settings['token'] === ''
-        ? '<span class="pill no">не заполнен</span>'
-        : '<span class="pill on">заполнен, ' . (int) mb_strlen($settings['token']) . ' знаков</span>' ?></td></tr>
+      <tr>
+        <td style="width:11rem"><strong>Репозиторий</strong><div class="hint">github_repo</div></td>
+        <td><code><?= h($settings['repo']) ?></code><?= dump_value($settings['repo']) ?>
+          <?php if ($settings['repo'] !== '' && !str_contains($settings['repo'], '/')): ?>
+            <p class="err-text">Здесь должно быть <strong>владелец/репозиторий</strong> вместе,
+              через косую черту, — например <code>kirill-design367/element</code>. Отдельного
+              поля для владельца нет: код читает только <code>github_repo</code>.</p>
+          <?php endif; ?>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Файл сборки</strong><div class="hint">github_workflow</div></td>
+        <td><code><?= h($settings['workflow']) ?></code><?= dump_value($settings['workflow']) ?></td>
+      </tr>
+      <tr>
+        <td><strong>Ветка</strong><div class="hint">github_ref</div></td>
+        <td><code><?= h($settings['ref']) ?></code><?= dump_value($settings['ref']) ?></td>
+      </tr>
+      <tr>
+        <td><strong>Токен</strong><div class="hint">github_token</div></td>
+        <td>
+          <?php if ($settings['token'] === ''): ?>
+            <span class="pill no">не заполнен</span>
+          <?php else: ?>
+            <code><?= h(mb_substr($settings['token'], 0, 4, 'UTF-8')) ?>…</code>
+            <div class="muted" style="font-size:13px;margin-top:4px">
+              байт: <strong><?= strlen($settings['token']) ?></strong> ·
+              знаков: <strong><?= mb_strlen($settings['token'], 'UTF-8') ?></strong>
+            </div>
+            <p class="hint">Первые четыре знака говорят вид токена:
+              <code>ghp_</code> — классический, <code>gith</code> — тонко настроенный
+              (<code>github_pat_</code>). Сам токен не показывается.</p>
+          <?php endif; ?>
+        </td>
+      </tr>
     </tbody>
   </table>
-  <p class="hint">Значения показаны в том виде, в каком уходят в запрос: лишние пробелы,
-    адрес целиком вместо «владелец/репозиторий» и путь вместо имени файла приводятся
-    к нужному виду автоматически. Сам токен не показывается — только его длина.</p>
+
+  <h3 style="font-size:15px;margin:18px 0 8px">Полные адреса запросов</h3>
+  <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+              line-height:1.8;word-break:break-all">
+    <?php
+    $paths = [
+        'шаг 1' => '/user',
+        'шаг 2' => '/repos/' . $settings['repo'],
+        'шаг 3' => '/repos/' . $settings['repo'] . '/actions/workflows/' . rawurlencode($settings['workflow']),
+        'шаг 4' => '/repos/' . $settings['repo'] . '/branches/' . rawurlencode($settings['ref']),
+        'публикация' => '/repos/' . $settings['repo'] . '/actions/workflows/'
+            . rawurlencode($settings['workflow']) . '/dispatches',
+    ];
+    foreach ($paths as $name => $path) {
+        echo '<div><span class="muted">' . h($name) . ':</span> https://api.github.com'
+            . h($path) . '</div>';
+    }
+    ?>
+  </div>
+  <p class="hint">Заголовки у всех запросов одни и те же:
+    <code>Accept: application/vnd.github+json</code>,
+    <code>Authorization: Bearer &lt;токен&gt;</code>,
+    <code>X-GitHub-Api-Version: 2022-11-28</code>,
+    <code>User-Agent: elementst-cms</code>. Тонко настроенные и классические токены
+    посылаются одинаково — отдельной схемы для них не существует.</p>
+
+  <?php
+  /* НЕЗНАКОМЫЕ КЛЮЧИ. Ключ, которого код не читает, — это молчаливая
+     поломка: значение вписано, выглядит осмысленно и не делает ничего.
+     Печатаются только ИМЕНА, без значений: рядом лежат пароль от базы и
+     токен. */
+  $extra = array_values(array_diff(array_keys(cms_config()), KNOWN_KEYS));
+  ?>
+  <?php if ($extra !== []): ?>
+    <div class="msg err" style="margin-top:16px">
+      <strong>В настройках есть ключи, которых код не читает:</strong>
+      <?= h(implode(', ', $extra)) ?>.<br>
+      Значение в таком ключе никуда не идёт. Если владелец репозитория вписан отдельно —
+      он не используется: <code>github_repo</code> должен содержать
+      <strong>владелец/репозиторий</strong> целиком.
+    </div>
+  <?php else: ?>
+    <p class="hint" style="margin-top:14px">Лишних ключей в настройках нет — код читает все.</p>
+  <?php endif; ?>
 </div>
 
 <form method="post" class="card">
@@ -140,17 +265,31 @@ page_head('Связь с GitHub');
   <div class="card">
     <table>
       <tbody>
-      <?php foreach ($steps as [$name, $ok, $note, $warn]): ?>
+      <?php foreach ($steps as [$name, $ok, $note, $warn, $raw]): ?>
         <tr>
           <td style="width:2rem"><?= $ok ? '✅' : ($warn ? '⚠️' : '❌') ?></td>
-          <td><strong><?= h($name) ?></strong><div class="muted" style="font-size:14px"><?= h($note) ?></div></td>
+          <td>
+            <strong><?= h($name) ?></strong>
+            <div class="muted" style="font-size:14px"><?= h($note) ?></div>
+            <?php /* Код и тело ответа целиком: пересказ уже дважды увёл не туда,
+                     поэтому здесь стоит то, что GitHub ответил на самом деле. */ ?>
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+                        margin-top:6px;color:#5a5f66;word-break:break-all">
+              код: <?= (int) $raw['code'] ?><?php if ($raw['error'] !== ''): ?>
+                · связь: <?= h($raw['error']) ?><?php endif; ?>
+              <?php if ($raw['body'] !== ''): ?>
+                <br>тело: <?= h(mb_substr($raw['body'], 0, 300, 'UTF-8')) ?><?php
+                  if (mb_strlen($raw['body'], 'UTF-8') > 300) echo '…'; ?>
+              <?php endif; ?>
+            </div>
+          </td>
         </tr>
       <?php endforeach; ?>
       </tbody>
     </table>
     <?php
     $firstBad = null;
-    foreach ($steps as [$name, $ok, , $warn]) {
+    foreach ($steps as [$name, $ok, , $warn, ]) {
         if (!$ok && !$warn) { $firstBad = $name; break; }
     }
     ?>
