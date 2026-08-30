@@ -286,6 +286,44 @@ jobs:
           done
 
           BASE="https://$DOMAIN"
+
+          # ЗАЩИТНАЯ ЗАГЛУШКА ХОСТИНГА: РЕДИРЕКТ НА ТОТ ЖЕ АДРЕС С ?attempt=1.
+          #
+          # Reg.ru прикрывает /admin/ своим антиботом. На первый запрос без
+          # печенья сервер отдаёт 200 и страничку в полторы сотни байт:
+          #   <meta http-equiv="Refresh" content="0; URL=…?attempt=1">
+          # Это НЕ наш файл. И это НЕ признак того, что файл на сервере есть:
+          # такая же заглушка приходит на адреса, которых на сервере нет вовсе.
+          #
+          # Браузер её проходит: берёт печенье и повторяет запрос. Проверка
+          # обязана делать то же самое, иначе она смотрит не на наш сайт, а на
+          # антибота — и судит о разметке, которой не видела. Ровно так она
+          # шесть прогонов подряд «не находила» мета-тег noindex на странице,
+          # где он стоит.
+          #
+          # Ответ кладётся в /tmp/probe.body, заголовки в /tmp/probe.head,
+          # код в CODE. STUB=1 — заглушку пройти не удалось.
+          is_stub() {
+            grep -aqi 'http-equiv="refresh"' "$1" && grep -aq 'attempt=' "$1"
+          }
+          # Страница панели хостинга. Приходит вместо тела на часть отказов и
+          # весит под мегабайт; разбирать в ней нечего — она тоже не наша.
+          is_panel() {
+            grep -aq 'data-panel-url\|hosting\.reg\.ru/manager' "$1"
+          }
+          probe() {
+            local url="$BASE$1" sep='?'
+            case "$1" in *\?*) sep='&';; esac
+            STUB=0
+            CODE=$(curl -sS -m 20 -c /tmp/jar -b /tmp/jar \
+                   -o /tmp/probe.body -D /tmp/probe.head -w '%{http_code}' "$url")
+            if is_stub /tmp/probe.body; then
+              CODE=$(curl -sS -m 20 -c /tmp/jar -b /tmp/jar \
+                     -o /tmp/probe.body -D /tmp/probe.head -w '%{http_code}' "$url${sep}attempt=1")
+              is_stub /tmp/probe.body && STUB=1 || true
+            fi
+          }
+
           echo "--- коды ответа"
           # Служебных страниц /fonts/ и /logo/ в списке больше нет: удалены
           # 30.08 вместе с маршрутами. Зато появился приёмник заявки — он не
@@ -363,10 +401,10 @@ jobs:
 
           echo "--- админка и данные CMS"
           # Админка открывается, но в поиск не отдаётся.
-          ADM=$(curl -sS -m 20 -o /tmp/adm.txt -D /tmp/adm.h -w '%{http_code}' "$BASE/admin/login.php")
-          echo "  GET /admin/login.php → $ADM"
-          [ "$ADM" = 200 ] || { echo "::error::Админка не отвечает ($ADM)."; FAIL=1; }
-          if grep -q '<?php' /tmp/adm.txt; then
+          probe "/admin/login.php"
+          echo "  GET /admin/login.php → $CODE"
+          [ "$CODE" = 200 ] || { echo "::error::Админка не отвечает ($CODE)."; FAIL=1; }
+          if grep -aq '<?php' /tmp/probe.body; then
             echo "::error::PHP не исполняется — сервер отдал исходник админки."; FAIL=1
           fi
           # NOINDEX ЗДЕСЬ ДЕРЖИТ МЕТА-ТЕГ, А НЕ ЗАГОЛОВОК, И ЭТО НЕ НЕБРЕЖНОСТЬ.
@@ -375,9 +413,15 @@ jobs:
           # Проверено обоими способами. Мета-тег в <head> робот читает всегда,
           # поэтому он и есть рабочий механизм; заголовок засчитываем, если
           # однажды дойдёт, но требовать его нельзя.
-          if tr -d '\r' < /tmp/adm.h | grep -qi '^x-robots-tag:.*noindex'; then
+          if [ "$STUB" = 1 ]; then
+            # Не «нет noindex», а «не смогли посмотреть». Разница существенная:
+            # первое — ложь, за которой перестают читать вывод. Выкладку это не
+            # роняет: антибот стоит на стороне хостинга, из кода его не снять.
+            echo "::warning::Страницу входа закрывает антибот хостинга — разметку проверить не удалось."
+            echo "  (робот проходит заглушку так же, как браузер, и видит уже нашу страницу)"
+          elif tr -d '\r' < /tmp/probe.head | grep -qi '^x-robots-tag:.*noindex'; then
             echo "  noindex: заголовок X-Robots-Tag на месте"
-          elif grep -aqi '<meta[^>]*name=.robots.[^>]*noindex' /tmp/adm.txt; then
+          elif grep -aqi '<meta[^>]*name="robots"[^>]*noindex' /tmp/probe.body; then
             echo "  noindex: мета-тег в разметке на месте (заголовок режет nginx)"
           else
             echo "::error::Админка отдаётся без noindex — ни заголовком, ни мета-тегом."
