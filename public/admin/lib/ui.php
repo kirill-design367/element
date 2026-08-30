@@ -145,3 +145,49 @@ function show_flash(string $key): void
         echo '<div class="msg ' . h($f['kind']) . '">' . h($f['text']) . '</div>';
     }
 }
+
+/** Русское склонение после числа: 1 позиция, 2 позиции, 5 позиций. */
+function plural_ru(int $n, string $one, string $few, string $many): string
+{
+    $mod100 = $n % 100;
+    if ($mod100 >= 11 && $mod100 <= 14) {
+        return $many;
+    }
+    return match ($n % 10) {
+        1 => $one,
+        2, 3, 4 => $few,
+        default => $many,
+    };
+}
+
+/**
+ * Обозначение партии одной строкой — то же, что видно в карточке на сайте.
+ *
+ * Собирается ИЗ ЧИСЕЛ, а не берётся отдельным полем: подпись и границы
+ * подбора должны быть одним и тем же фактом. Исключение — вид «none», там
+ * подпись это не размер зерна, а обозначение («⌀ 10 мм», «просеянный»).
+ */
+function fraction_text(array $m): string
+{
+    $from = $m['fraction_from'];
+    $to = $m['fraction_to'];
+    return match ((string) $m['fraction_kind']) {
+        'mm' => num_ru($from) . '–' . num_ru($to) . ' мм',
+        'mkr' => 'Мкр ' . num_ru($from, 1) . '–' . num_ru($to, 1),
+        'gravel' => 'гравий ' . num_ru($m['fraction_percent']) . ' %',
+        default => (string) ($m['fraction_label'] ?? ''),
+    };
+}
+
+/** Число по-русски: запятая вместо точки, без хвостовых нулей. */
+function num_ru(mixed $v, int $decimals = 0): string
+{
+    if ($v === null || $v === '') {
+        return '';
+    }
+    $f = (float) $v;
+    $s = $decimals > 0 || fmod($f, 1.0) !== 0.0
+        ? rtrim(rtrim(number_format($f, max($decimals, 2), ',', ' '), '0'), ',')
+        : number_format($f, 0, ',', ' ');
+    return $s;
+}
