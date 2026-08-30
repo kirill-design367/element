@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1496 1496">
-  <!-- Собран scripts/build-icon.mjs из app/logo/art.ts, композиция «small».
+  <!-- Собран scripts/build-icon.mjs из lib/logo-art.ts, композиция «small».
        Руками не править: правка потеряется при пересборке знака. -->
   <path d="M0 1304L192 1496L1304 1496L1496 1304L1496 192L1304 0L192 0L0 192Z" fill="#17191c"/>
   <path d="M148 1234L340 1426L742 1426L777 1392L777 1230L742 1196L436 1196L378 1139L378 357L436 300L1003 300L1038 266L1038 104L1003 70L340 70L148 262Z" fill="#f4f4f1"/>

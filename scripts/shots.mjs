@@ -64,12 +64,6 @@ for (const [name, vp] of Object.entries(VIEWPORTS)) {
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT}/${name}-catalog-bar.png` });
 
-  // Шрифты
-  await page.goto(`${BASE}/fonts/`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(600);
-  await page.screenshot({ path: `${OUT}/${name}-fonts-top.png` });
-  await page.screenshot({ path: `${OUT}/${name}-fonts-full.png`, fullPage: true });
-
   await ctx.close();
   console.log(`${name} готово`);
 }

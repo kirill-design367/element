@@ -240,8 +240,11 @@ jobs:
 
           BASE="https://$DOMAIN"
           echo "--- коды ответа"
+          # Служебных страниц /fonts/ и /logo/ в списке больше нет: удалены
+          # 30.08 вместе с маршрутами. Зато появился приёмник заявки — он не
+          # страница, а PHP-скрипт, и проверяется отдельно ниже.
           for ADDR in "/" "/catalog/" "/catalog/?category=pesok&fraction=0-5" "/#raschet" \
-                      "/fonts/" "/logo/" "/logo/card/1/" "/robots.txt"; do
+                      "/robots.txt"; do
             CODE=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' -L "$BASE$ADDR")
             printf '  %-42s %s\n' "$ADDR" "$CODE"
             [ "$CODE" = 200 ] || FAIL=1

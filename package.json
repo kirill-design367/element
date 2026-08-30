@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "fonts:verify": "node scripts/verify-fonts.mjs"
+    "fonts:verify": "python3 scripts/verify-fonts.py"
   },
   "dependencies": {
     "gsap": "^3.15.0",

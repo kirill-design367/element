@@ -1,4 +1,4 @@
-import { ART, PATHS, type Art } from '@/app/logo/art';
+import { ART, PATHS, type Art } from '@/lib/logo-art';
 
 /**
  * ЗНАК В РАЗМЕТКЕ САЙТА.

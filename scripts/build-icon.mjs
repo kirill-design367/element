@@ -2,7 +2,7 @@
  * ФАВИКОН ИЗ ТОГО ЖЕ ЗНАКА.
  *
  * Иконка вкладки не рисуется руками и не копируется контурами: она
- * собирается из `app/logo/art.ts` — того же файла, из которого знак берут
+ * собирается из `lib/logo-art.ts` — того же файла, из которого знак берут
  * шапка и визитка. Скопированный контур однажды разойдётся с оригиналом, и
  * никто этого не заметит: фавикон смотрят раз в жизни.
  *
@@ -18,7 +18,7 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const SRC = 'app/logo/art.ts';
+const SRC = 'lib/logo-art.ts';
 const OUT = 'app/icon.svg';
 /** Композиция под 16 px. */
 const ID = 'small';
@@ -54,7 +54,7 @@ const parts = art.parts.map((p) => {
 writeFileSync(
   OUT,
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${art.w} ${art.h}">\n`
-    + `  <!-- Собран scripts/build-icon.mjs из app/logo/art.ts, композиция «${ID}».\n`
+    + `  <!-- Собран scripts/build-icon.mjs из lib/logo-art.ts, композиция «${ID}».\n`
     + `       Руками не править: правка потеряется при пересборке знака. -->\n`
     + parts.join('\n')
     + '\n</svg>\n',

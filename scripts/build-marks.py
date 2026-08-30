@@ -24,7 +24,7 @@ from fontTools.ttLib import TTFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONT = os.path.join(ROOT, 'assets/fonts/TT Octosquares Trial Expanded Black.ttf')
-OUT = os.path.join(ROOT, 'app/logo/art.ts')
+OUT = os.path.join(ROOT, 'lib/logo-art.ts')
 
 _f = TTFont(FONT)
 _cmap = _f.getBestCmap()

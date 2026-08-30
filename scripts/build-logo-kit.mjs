@@ -1,7 +1,7 @@
 /**
  * КОМПЛЕКТ ЛОГОТИПА ДЛЯ ПЕРЕДАЧИ ЗАКАЗЧИКУ.
  *
- * Всё собирается из `app/logo/art.ts` — того же файла, откуда знак берут
+ * Всё собирается из `lib/logo-art.ts` — того же файла, откуда знак берут
  * шапка сайта, визитка и фавикон. Контуры не копируются руками ни разу:
  * скопированный однажды разойдётся с оригиналом, и заметить это будет
  * некому.
@@ -34,7 +34,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { chromium } from 'playwright';
 
-const SRC = 'app/logo/art.ts';
+const SRC = 'lib/logo-art.ts';
 const OUT = 'public/brand/element-logo.zip';
 const TMP = '.logo-kit';
 
@@ -81,7 +81,7 @@ function svg(id, colors) {
   const box = colors.ink && colors.bg ? `0 0 ${art.w} ${art.h}` : bounds(art, colors);
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box}">\n`
     + `  <!-- Логотип «Элемент». Собран scripts/build-logo-kit.mjs\n`
-    + `       из app/logo/art.ts, композиция «${id}». Руками не править. -->\n`
+    + `       из lib/logo-art.ts, композиция «${id}». Руками не править. -->\n`
     + parts.join('\n') + '\n</svg>\n';
 }
 
