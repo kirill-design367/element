@@ -1,0 +1,252 @@
+name: Проверка доступности
+
+# ЗАЧЕМ ЭТО ОТДЕЛЬНО ОТ ВЫКЛАДКИ.
+#
+# «Проверка боем» в deploy.yml отвечает на вопрос «доехала ли выкладка».
+# Здесь другой вопрос: ОТКРЫВАЕТСЯ ЛИ САЙТ У ЧЕЛОВЕКА, который к нам не
+# имеет отношения, — с другого материка, с VPN, со старого ноутбука, из
+# браузера без JavaScript. Такие поломки не связаны с содержимым выкладки
+# и ловятся другими приборами: DNS, TLS, заголовками и временем ответа.
+#
+# Раннер GitHub стоит за рубежом, и это здесь не помеха, а прибор: если он
+# видит сайт — блокировки по географии на стороне сервера нет.
+#
+# Запускается руками (Actions → Проверка доступности → Run workflow) и сама
+# при правке этого файла. К выкладке не привязана: сайт она не трогает,
+# только читает.
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/access-check.yml']
+
+env:
+  DOMAIN: elementst.ru
+
+jobs:
+  access:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Откуда смотрим
+        run: |
+          set -uo pipefail
+          echo "--- ВЫХОДНОЙ УЗЕЛ РАННЕРА"
+          curl -sS -m 20 https://ipinfo.io/json 2>/dev/null \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"  адрес {d.get('ip')}, {d.get('city')}, {d.get('country')}, {d.get('org')}\")" \
+            || echo "  не удалось определить"
+
+      - name: 1. Доступность снаружи
+        run: |
+          set -uo pipefail
+          F1='  код %{http_code}  HTTP/%{http_version}  вес %{size_download}б  адрес %{remote_ip}\n'
+          F2='  DNS %{time_namelookup}s  TCP %{time_connect}s  TLS %{time_appconnect}s  первый байт %{time_starttransfer}s  всего %{time_total}s\n'
+
+          echo "--- ГЛАВНАЯ, ТРИ ЗАХОДА ПОДРЯД (первый — холодный)"
+          for i in 1 2 3; do
+            echo "  заход $i:"
+            curl -sS -m 30 -o /tmp/main.html -D /tmp/main.head -w "$F1$F2" "https://$DOMAIN/" || echo "  ОШИБКА СОЕДИНЕНИЯ"
+          done
+
+          echo ""
+          echo "--- ЧТО В ТЕЛЕ"
+          echo "  байт всего: $(wc -c < /tmp/main.html)"
+          printf '  первые 120 знаков: '
+          head -c 120 /tmp/main.html | tr -d '\r\n'
+          echo ""
+
+          echo ""
+          echo "--- ДРУГИЕ АДРЕСА"
+          for A in "/" "/catalog/" "/robots.txt" "/sitemap.xml" "/404-которого-нет/"; do
+            C=$(curl -sS -m 30 -o /dev/null -w '%{http_code} за %{time_total}s' "https://$DOMAIN$A" || echo "ОШИБКА")
+            printf '  %-22s %s\n' "$A" "$C"
+          done
+
+          echo ""
+          echo "--- IPv4 И IPv6 ПО ОТДЕЛЬНОСТИ"
+          # Классическая причина «у одного не открывается»: домен отдаёт AAAA,
+          # а по IPv6 сервер не отвечает. Упрётся тот, у кого IPv6 включён.
+          for FAM in -4 -6; do
+            C=$(curl -sS $FAM -m 15 -o /dev/null -w "%{http_code} адрес %{remote_ip}" "https://$DOMAIN/" 2>&1 | tail -1)
+            printf '  %-4s %s\n' "$FAM" "$C"
+          done
+
+      - name: 2. Защита рег.ру на публичной части
+        run: |
+          set -uo pipefail
+          echo "--- ЕСТЬ ЛИ ЗАГЛУШКА АНТИБОТА НА ПУБЛИЧНОЙ ЧАСТИ"
+          # На /admin/ она есть: meta Refresh на тот же адрес с ?attempt=1.
+          # Здесь проверяем, не стоит ли то же самое на витрине — и с разными
+          # браузерами, потому что антиботы обычно смотрят на User-Agent.
+          check() {
+            local name="$1"; shift
+            curl -sS -m 25 -o /tmp/ua.html -w '' "$@" "https://$DOMAIN/" || true
+            local size; size=$(wc -c < /tmp/ua.html)
+            local verdict="страница сайта"
+            if grep -aqi 'http-equiv="refresh"' /tmp/ua.html && grep -aq 'attempt=' /tmp/ua.html; then
+              verdict="⚠ ЗАГЛУШКА АНТИБОТА"
+            elif [ "$size" -lt 5000 ]; then
+              verdict="⚠ подозрительно короткий ответ"
+            elif ! grep -aq 'Щебень' /tmp/ua.html; then
+              verdict="⚠ тело есть, но содержимого сайта в нём нет"
+            fi
+            printf '  %-38s %8sб  %s\n' "$name" "$size" "$verdict"
+          }
+          check "обычный curl"
+          check "без User-Agent"                 -H 'User-Agent;'
+          check "Chrome 131 (свежий)"            -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+          check "Chrome 109 на Windows 7"        -A 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+          check "Internet Explorer 11"           -A 'Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko'
+          check "Android 5 (старый)"             -A 'Mozilla/5.0 (Linux; Android 5.1.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.116 Mobile Safari/537.36'
+          check "Safari на iPhone"               -A 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+          check "Яндекс.Браузер"                 -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 YaBrowser/24.4.0.0 Safari/537.36'
+          check "Googlebot"                      -A 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+
+          echo ""
+          echo "--- ДЛЯ СРАВНЕНИЯ: /admin/, где заглушка ТОЧНО есть"
+          curl -sS -m 25 -o /tmp/adm.html "https://$DOMAIN/admin/login.php" || true
+          if grep -aqi 'http-equiv="refresh"' /tmp/adm.html && grep -aq 'attempt=' /tmp/adm.html; then
+            echo "  /admin/login.php → заглушка антибота ($(wc -c < /tmp/adm.html)б) — прибор исправен"
+          else
+            echo "  /admin/login.php → заглушки нет ($(wc -c < /tmp/adm.html)б)"
+          fi
+
+      - name: 3. Домен и DNS
+        run: |
+          set -uo pipefail
+          sudo apt-get install -y -qq dnsutils >/dev/null 2>&1 || true
+          echo "--- A И AAAA"
+          for H in "$DOMAIN" "www.$DOMAIN"; do
+            echo "  $H:"
+            dig +noall +answer A    "$H" | sed 's/^/    A     /'
+            AAAA=$(dig +short AAAA  "$H")
+            echo "    AAAA  ${AAAA:-нет записи}"
+          done
+          echo ""
+          echo "--- NS И SOA"
+          dig +short NS "$DOMAIN" | sed 's/^/  NS   /'
+          dig +short SOA "$DOMAIN" | sed 's/^/  SOA  /'
+          echo ""
+          echo "--- СХОДЯТСЯ ЛИ АДРЕСА ГОЛОГО ДОМЕНА И www"
+          A1=$(dig +short A "$DOMAIN" | sort | tr '\n' ' ')
+          A2=$(dig +short A "www.$DOMAIN" | sort | tr '\n' ' ')
+          echo "  $DOMAIN     → $A1"
+          echo "  www.$DOMAIN → $A2"
+          [ "$A1" = "$A2" ] && echo "  совпадают" || echo "  ⚠ РАСХОДЯТСЯ"
+          echo ""
+          echo "--- ОТВЕЧАЮТ ЛИ РАЗНЫЕ РЕЗОЛВЕРЫ ОДИНАКОВО"
+          for R in 8.8.8.8 1.1.1.1 77.88.8.8 208.67.222.222; do
+            V=$(dig +short +time=5 +tries=1 @$R A "$DOMAIN" | tr '\n' ' ')
+            printf '  %-16s %s\n' "$R" "${V:-нет ответа}"
+          done
+          echo ""
+          echo "--- РЕДИРЕКТЫ, КАЖДЫЙ ШАГ ОТДЕЛЬНО"
+          for START in "http://$DOMAIN/" "https://$DOMAIN/" "http://www.$DOMAIN/" "https://www.$DOMAIN/"; do
+            ADDR="$START"; HOPS=0; LINE=""
+            while [ "$HOPS" -lt 5 ]; do
+              LINE=$(curl -sS -m 20 -o /dev/null -w '%{http_code} %{redirect_url}' "$ADDR" 2>&1) || { echo "  $ADDR → ОШИБКА: $LINE"; break; }
+              CODE=${LINE%% *}; NEXT=${LINE#* }
+              printf '  %-28s → %s %s\n' "$ADDR" "$CODE" "${NEXT:-—}"
+              case "$CODE" in 30*) ;; *) break ;; esac
+              HOPS=$((HOPS+1)); ADDR="$NEXT"
+            done
+            echo "    шагов: $HOPS"
+          done
+
+      - name: 4. Сертификат и TLS
+        run: |
+          set -uo pipefail
+          echo "--- ЦЕПОЧКА: СКОЛЬКО СЕРТИФИКАТОВ И В КАКОМ ПОРЯДКЕ"
+          echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts 2>/dev/null \
+            | grep -E '^ *[0-9]+ [si]:' | sed 's/^/  /'
+          N=$(echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts 2>/dev/null | grep -c 'BEGIN CERTIFICATE')
+          echo "  сертификатов в ответе: $N"
+          [ "$N" -ge 2 ] && echo "  промежуточный отдаётся — старые клиенты цепочку достроят" \
+                         || echo "  ⚠ ПРОМЕЖУТОЧНОГО НЕТ — часть клиентов сайт не откроет"
+
+          echo ""
+          echo "--- ПРОВЕРКА ПОДПИСИ"
+          echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
+            | grep -E 'Verify return code|Verification' | sed 's/^/  /'
+
+          echo ""
+          echo "--- СРОКИ И ИМЕНА"
+          echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
+            | openssl x509 -noout -subject -issuer -dates 2>/dev/null | sed 's/^/  /'
+          echo "  покрываемые имена:"
+          echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
+            | openssl x509 -noout -ext subjectAltName 2>/dev/null | tail -1 | sed 's/^/    /'
+
+          echo ""
+          echo "--- КАКИЕ ВЕРСИИ TLS ВКЛЮЧЕНЫ"
+          # SECLEVEL=0 нужен, иначе OpenSSL 3 сам откажется от старых версий
+          # и мы измерим свой клиент, а не сервер.
+          for V in tls1 tls1_1 tls1_2 tls1_3; do
+            if echo | timeout 15 openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" \
+                 -"$V" -cipher 'DEFAULT@SECLEVEL=0' 2>/dev/null | grep -q 'BEGIN CERTIFICATE'; then
+              printf '  %-8s принимает\n' "$V"
+            else
+              printf '  %-8s не принимает (или не поддержан нашим openssl)\n' "$V"
+            fi
+          done
+
+          echo ""
+          echo "--- БЕЗ SNI: ЧТО ПОЛУЧИТ ОЧЕНЬ СТАРЫЙ КЛИЕНТ"
+          # Клиенты без SNI (Windows XP, старые библиотеки) на общем хостинге
+          # получают чужой сертификат. Смотрим, чей именно.
+          IP=$(dig +short A "$DOMAIN" | head -1)
+          echo | timeout 15 openssl s_client -connect "$IP:443" 2>/dev/null \
+            | openssl x509 -noout -subject 2>/dev/null | sed 's/^/  /' || echo "  соединение без SNI не установилось"
+
+      - name: 5. Что видит первый заход
+        run: |
+          set -uo pipefail
+          echo "--- ВЕС И ВРЕМЯ ГЛАВНОЙ"
+          curl -sS -m 30 --compressed -o /tmp/gz.html -w '  со сжатием:  %{size_download}б, первый байт %{time_starttransfer}s, всего %{time_total}s\n' "https://$DOMAIN/"
+          curl -sS -m 30 -H 'Accept-Encoding: identity' -o /tmp/raw.html -w '  без сжатия:  %{size_download}б\n' "https://$DOMAIN/"
+
+          echo ""
+          echo "--- ЕСТЬ ЛИ СОДЕРЖИМОЕ БЕЗ JAVASCRIPT"
+          # Сайт — статический экспорт, разметка приходит готовой. Проверяем
+          # это фактом, а не верой: ищем в СЫРОМ теле текст первого экрана.
+          for S in "Щебень" "Люберцы" "Оставить заявку" "160-78-78"; do
+            if grep -aq "$S" /tmp/raw.html; then echo "  «$S» — есть в разметке"; else echo "  ⚠ «$S» — в разметке НЕТ"; fi
+          done
+          echo "  тегов <script>: $(grep -ao '<script' /tmp/raw.html | wc -l)"
+          echo "  из них с src:   $(grep -ao '<script[^>]*src=' /tmp/raw.html | wc -l)"
+
+          echo ""
+          echo "--- ВЕС КРИТИЧЕСКОГО ПУТИ"
+          TOTAL=$(wc -c < /tmp/raw.html)
+          echo "  разметка с встроенным CSS: ${TOTAL}б"
+          LCP=$(grep -ao '/img/hero-mobile-[0-9]*\.webp' /tmp/raw.html | head -1)
+          if [ -n "$LCP" ]; then
+            curl -sS -m 30 -o /dev/null -w "  кадр первого экрана $LCP: %{size_download}б, %{time_total}s\n" "https://$DOMAIN$LCP"
+          fi
+          JS=0
+          for U in $(grep -ao '/_next/static/[^"]*\.js' /tmp/raw.html | sort -u | head -12); do
+            S=$(curl -sS -m 30 -o /dev/null -w '%{size_download}' "https://$DOMAIN$U" || echo 0)
+            JS=$((JS + S))
+          done
+          echo "  javascript на первой странице: ${JS}б (файлов: $(grep -ao '/_next/static/[^"]*[.]js' /tmp/raw.html | sort -u | wc -l))"
+
+      - name: 6. Заголовки
+        run: |
+          set -uo pipefail
+          echo "--- ВСЕ ЗАГОЛОВКИ ОТВЕТА ГЛАВНОЙ"
+          curl -sS -m 30 -o /dev/null -D - "https://$DOMAIN/" | tr -d '\r' | sed 's/^/  /'
+          echo ""
+          echo "--- ЧТО ИЗ ЭТОГО МОЖЕТ ЛОМАТЬ ПОКАЗ"
+          curl -sS -m 30 -o /dev/null -D /tmp/h.txt "https://$DOMAIN/"
+          tr -d '\r' < /tmp/h.txt > /tmp/h2.txt
+          look() {
+            V=$(grep -i "^$1:" /tmp/h2.txt | head -1 | cut -d' ' -f2-)
+            printf '  %-26s %s\n' "$1" "${V:-нет — и это хорошо для показа}"
+          }
+          look "Content-Security-Policy"
+          look "Strict-Transport-Security"
+          look "X-Frame-Options"
+          look "X-Content-Type-Options"
+          look "Referrer-Policy"
+          look "Permissions-Policy"
+          look "Content-Encoding"
+          look "Server"
