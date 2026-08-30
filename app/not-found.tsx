@@ -29,7 +29,15 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <Section tone="bg" width="shell" pad="loose">
-      <div className="max-w-[720px]">
+      {/* МЕТКА ДЛЯ ПРОВЕРКИ ВЫКЛАДКИ, а не для стилей. Выкладка убеждается,
+          что 404 отдаётся НАША, а не апачевская «Not Found». Раньше она
+          искала в разметке строку next-error-h1 — метку стоковой страницы
+          Next, которую мы заменили своей; метка ушла, и проверка роняла
+          задание на каждой выкладке при исправной странице. Искать заголовок
+          текстом тоже нельзя: typo() склеивает слова неразрывным пробелом, и
+          обычный grep по фразе не находит ничего. Метка без пробелов и без
+          типографики — единственное, что не разъедется. */}
+      <div className="max-w-[720px]" data-notfound="1">
         <p className="mark text-t1 text-ink-2">Ошибка 404</p>
 
         <h1 className="mt-4 font-black text-t4 leading-[1.04] tracking-[-.02em]">
