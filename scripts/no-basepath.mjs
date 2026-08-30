@@ -31,9 +31,17 @@ function walk(dir) {
   return out;
 }
 
+/* СЕРВЕРНЫЙ КОД ОБХОДИТСЯ СТОРОНОЙ. В out/admin и out/api лежат PHP-файлы
+   админки и приёмника заявки: они не часть экспортированного сайта, ссылок
+   на ресурсы в них нет, а имя репозитория «kirill-design367/element» внутри
+   них выглядит для этой проверки как подпапка и роняло сборку на ровном
+   месте. */
+const SKIP = ['out/admin/', 'out/api/'];
+
 const files = walk(OUT);
 const hits = [];
 for (const file of files) {
+  if (SKIP.some((dir) => file.replaceAll('\\', '/').startsWith(dir))) continue;
   if (BINARY.has(extname(file).toLowerCase())) continue;
   const text = readFileSync(file, 'utf8');
   let from = 0;
