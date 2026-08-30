@@ -4,6 +4,7 @@ import { nbsp } from '@/lib/format';
 import { ButtonLink } from '@/components/ui/Button';
 import { PhoneIcon } from './Icons';
 import { MobileNav } from './MobileNav';
+import { Logo } from './Logo';
 
 /** Один список на десктопное меню и на панель телефона. */
 export const NAV = [
@@ -43,8 +44,23 @@ export function Header() {
         {/* py-3, а не py-1.5: цель нажатия у логотипа была 95×36 при
             рекомендованных 44. Высота пилюли задана жёстко, поэтому поле
             нажатия растёт, а раскладка не меняется ни на пиксель. */}
-        <Link href="/" className="shrink-0 rounded-pill px-1 py-3">
-          <span className="text-t3 font-black leading-none tracking-[-.02em]">Элемент</span>
+        {/* ЗНАК ВМЕСТО СЛОВА. Раньше здесь стояло набранное «Элемент» —
+            логотипа у проекта не было. Теперь он выбран, и в шапку встал тот
+            же знак, что на визитке: те же контуры из ART, версия без плашки,
+            весь знак одним currentColor от темы.
+
+            ВЫСОТА ЗНАКА ФИКСИРОВАНА и не привязана к --pill. Пилюля ужимается
+            по прокрутке с 60 до 51 px, и если бы знак ехал вместе с ней,
+            строка дёргалась бы на каждый щелчок колеса. 18 px помещаются и в
+            ужатую пилюлю с запасом; на телефоне 16 — там рядом ещё телефон и
+            гамбургер.
+
+            Доступное имя даёт sr-only «Элемент», а не aria-label: имя должно
+            совпадать с тем, что человек читает на знаке, иначе голосовое
+            управление не найдёт ссылку. */}
+        <Link href="/" className="shrink-0 rounded-pill px-1 py-3 text-ink">
+          <Logo className="h-4 w-auto md:h-[18px]" />
+          <span className="sr-only">Элемент</span>
         </Link>
 
         <nav aria-label="Основные разделы" className="hidden flex-1 md:block">
