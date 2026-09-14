@@ -155,17 +155,24 @@ INSERT INTO materials (id, category_id, name, group_id, kind, fraction_kind, fra
 ограждения', NULL, 45);
 
 -- Реквизиты и контакты
-INSERT INTO company (k, v) VALUES ('legalName', 'ООО «Строительный Дом Элемент»');
+--
+-- ⚠️ ЗДЕСЬ ЛЕЖАЛИ ЧУЖИЕ КПП, ОГРН, БАНК, СЧЁТ И НАИМЕНОВАНИЕ, и отсюда они
+-- разъехались по сайту: наполнение писалось до того, как заказчик прислал
+-- карточку организации, и правдоподобные числа полтора месяца показывались
+-- как настоящие. Исправлено 14.09 и сверено контрольными суммами.
+-- Наполнение — образец, но образец, который однажды заливают в боевую базу:
+-- выдуманным реквизитам тут не место.
+INSERT INTO company (k, v) VALUES ('legalName', 'ООО «СД ЭЛЕМЕНТ»');
 INSERT INTO company (k, v) VALUES ('phone', '+79301607878');
 INSERT INTO company (k, v) VALUES ('address', 'Московская область, город Люберцы, улица Транспортная, дом 6');
 INSERT INTO company (k, v) VALUES ('email', 'st.dom@internet.ru');
 INSERT INTO company (k, v) VALUES ('hoursOffice', 'Пн–Пт 8:00–19:00, Сб 9:00–15:00');
 INSERT INTO company (k, v) VALUES ('hoursShippingShort', 'круглосуточно');
 INSERT INTO company (k, v) VALUES ('inn', '5027294043');
-INSERT INTO company (k, v) VALUES ('kpp', '771201001');
-INSERT INTO company (k, v) VALUES ('ogrn', '1157746000000');
-INSERT INTO company (k, v) VALUES ('bank', 'ПАО Сбербанк, г. Москва');
-INSERT INTO company (k, v) VALUES ('account', '40702810000000000000');
+INSERT INTO company (k, v) VALUES ('kpp', '502701001');
+INSERT INTO company (k, v) VALUES ('ogrn', '1215000021862');
+INSERT INTO company (k, v) VALUES ('bank', 'ПАО Сбербанк');
+INSERT INTO company (k, v) VALUES ('account', '40702810040000100860');
 INSERT INTO company (k, v) VALUES ('corr', '30101810400000000225');
 INSERT INTO company (k, v) VALUES ('bik', '044525225');
 

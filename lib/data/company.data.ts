@@ -13,17 +13,17 @@
 import type { CompanyData } from './types';
 
 export const COMPANY_DATA: CompanyData = {
-  legalName: 'ООО «Строительный Дом Элемент»',
+  legalName: 'ООО «СД ЭЛЕМЕНТ»',
   phone: '+79301607878',
   address: 'Московская область, город Люберцы, улица Транспортная, дом 6',
   email: 'st.dom@internet.ru',
   hoursOffice: 'Пн–Пт 8:00–19:00, Сб 9:00–15:00',
   hoursShippingShort: 'круглосуточно',
   inn: '5027294043',
-  kpp: '771201001',
-  ogrn: '1157746000000',
-  bank: 'ПАО Сбербанк, г. Москва',
-  account: '40702810000000000000',
+  kpp: '502701001',
+  ogrn: '1215000021862',
+  bank: 'ПАО Сбербанк',
+  account: '40702810040000100860',
   corr: '30101810400000000225',
   bik: '044525225',
 };
