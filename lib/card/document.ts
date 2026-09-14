@@ -117,35 +117,35 @@ export const CARD_CSS = `
 .vc-body{display:flex;flex-direction:column;padding:0 14mm 14mm}
 /* Заголовок опущен с 12 до 8 мм и встал в две строки вместо трёх. Кегль
    реквизитов при этом не тронут: ужимается то, что читают один раз. */
-.vc-offer{font-size:8.6mm;font-weight:900;letter-spacing:-.035em;line-height:.96;
+.vc-offer{font-size:8.1mm;font-weight:900;letter-spacing:-.035em;line-height:.96;
   max-width:172mm}
 /* Строка про самовывоз — обычный текст, а не служебная пометка: прописными
    вразрядку бледно-серым она читалась подписью к чему-то, хотя это условие
    работы, то самое, ради чего к нам едут. */
-.vc-kicker{font-size:4.1mm;line-height:1.35;color:var(--ink);text-decoration:underline;
+.vc-kicker{font-size:3.8mm;line-height:1.35;color:var(--ink);text-decoration:underline;
   text-underline-offset:.24em;text-decoration-thickness:.055em}
 
 /* ── ТРИ ПОКАЗАТЕЛЯ ─────────────────────────────────────────────────── */
 
-/* КАРТОЧЕК КАК КОРОБОК БОЛЬШЕ НЕТ — решение заказчика 14.09: «отделяться
-   пробелом, а не рамкой». Сняты обводка, поля и линия под числом; осталась
-   пара «число — подпись», а разводит их промежуток 10 мм вместо 4.
-   ПОБОЧНАЯ ВЫГОДА ДОРОЖЕ САМОЙ ПРАВКИ: без коробки с полем 3,5 мм число
-   встаёт на ту же левую линию 14 мм, что заголовок, строка самовывоза и
-   реквизиты. Поля коробок сдвигали содержимое на 3,5 и 5 мм от полосы
-   набора, и лист держался на четырёх разных левых линиях вместо одной.
-   Число поднято с 9,5 до 11 мм: освободившимся местом платим за иерархию,
-   а не за воздух. */
-.vc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10mm}
-.vc-card{display:flex;flex-direction:column}
-.vc-card-v{font-size:12.5mm;font-weight:900;letter-spacing:-.045em;line-height:.88;
+/* КОРОБКА У КАРТОЧКИ ЕСТЬ, ЛИНИЙ ВНУТРИ НЕЁ НЕТ — решение заказчика 14.09.
+   Снималось это в два шага, и второй был лишним: сперва убрали обводку
+   ВМЕСТЕ с внутренними разделителями, а просили только разделители.
+   Обводка вернулась, линия под числом — нет.
+   Промежуток вернулся к 4 мм вместе с обводкой. На 10 мм, заведённых пока
+   коробок не было, колонка ужимается с 51 до 47 мм, и подпись «минимальная
+   партия отгрузки» уходит в две строки против одной у соседей. Разводит
+   карточки сама рамка, промежутку столько не нужно. */
+.vc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}
+.vc-card{display:flex;flex-direction:column;background:var(--surface);
+  border:.3mm solid var(--ink-3);border-radius:6mm;padding:3mm 3.5mm}
+.vc-card-v{font-size:10mm;font-weight:900;letter-spacing:-.045em;line-height:.88;
   color:var(--vc-sin);font-variant-numeric:tabular-nums}
-.vc-card-u{font-size:4.2mm;font-weight:700;letter-spacing:0;margin-left:1.6mm;
+.vc-card-u{font-size:3.9mm;font-weight:700;letter-spacing:0;margin-left:1.6mm;
   display:inline-block}
 /* Отбивка ФИКСИРОВАННАЯ, а не margin-top:auto: с auto подпись вставала по
    низу самой высокой карточки и у соседей оказывалась на разной высоте от
    числа — три подписи на трёх уровнях. */
-.vc-card-l{margin-top:2.8mm;font-size:3.6mm;line-height:1.25;color:var(--ink-2)}
+.vc-card-l{margin-top:2.4mm;font-size:3.4mm;line-height:1.25;color:var(--ink-2)}
 
 /* ── СИНЯЯ ПЛАШКА: ПРИЗЫВ, ТЕЛЕФОН, ПОЧТА, АДРЕС ────────────────────── */
 
@@ -163,20 +163,20 @@ export const CARD_CSS = `
    миллиметра листа. Модуль 0,96 мм при 25 модулях. */
 .vc-contacts{background:var(--vc-sin);color:#fff;border-radius:6mm;padding:4.5mm 5mm;
   display:flex;align-items:center;gap:7mm}
-.vc-cta{font-size:4.6mm;font-weight:700;line-height:1.25;letter-spacing:-.015em;
+.vc-cta{font-size:4.3mm;font-weight:700;line-height:1.25;letter-spacing:-.015em;
   padding-bottom:2.6mm;margin-bottom:2.8mm;border-bottom:.4mm solid #fff}
 .vc-contacts-main{flex:1;min-width:0}
 /* nowrap: номер с кодом города рвался после «+7», а разорванный телефон
    читается двумя числами. */
-.vc-phone{font-size:10.6mm;font-weight:900;letter-spacing:-.03em;line-height:1;
+.vc-phone{font-size:9.8mm;font-weight:900;letter-spacing:-.03em;line-height:1;
   color:#fff;text-decoration:none;display:block;white-space:nowrap}
 /* ВЕСЬ ТЕКСТ НА ПЛАШКЕ ЧИСТО БЕЛЫЙ И ВЕСОМ НЕ НИЖЕ 500. Прежний #dde3f8 —
    13 % краски внутри выворотки; разбег тонера съедает 0,04–0,09 мм с каждой
    кромки штриха, и тинт внутри него непредсказуем. */
-.vc-line{margin-top:2.4mm;font-size:4mm;font-weight:500;line-height:1.35;color:#fff}
+.vc-line{margin-top:2.2mm;font-size:3.8mm;font-weight:500;line-height:1.35;color:#fff}
 .vc-two{display:flex;gap:8mm}
 .vc-hours{margin-top:3mm;padding-top:2.8mm;border-top:.4mm solid #fff;
-  font-size:4.3mm;font-weight:700;letter-spacing:-.01em}
+  font-size:4.1mm;font-weight:700;letter-spacing:-.01em}
 /* QR лежит на белом квадрате: тёмные модули по светлому читает любой сканер,
    светлые по синему — не любой. */
 .vc-qr-box{background:#fff;border-radius:3mm;padding:2.5mm;flex:none}
@@ -190,20 +190,24 @@ export const CARD_CSS = `
    двадцать знаков табличными при 3,5 мм, это 38,5 мм. Запас полтора раза,
    переноса нет ни у одного значения — проверено замером ширины строки, а не
    прикидкой. */
-.rq-card{background:transparent}
+/* Боковое поле 4 мм, а не 5: вернувшаяся обводка забрала у реестра ширину,
+   и счёт в двадцать знаков встал в колонку впритык — 52,9 в 52,9. Место
+   взято из поля и промежутка колонок, кегль реквизитов не трогается. */
+.rq-card{background:var(--surface);border:.3mm solid var(--ink-3);
+  border-radius:6mm;padding:3.5mm 4mm}
 .rq-t{font-size:4mm;font-weight:700;line-height:1.25;color:var(--ink)}
 /* СЕКЦИИ РАЗВОДИТ ОТБИВКА, А НЕ ВОЛОСЯНАЯ ЛИНИЯ. Линия работала как граница
    внутри обведённой коробки; без коробки три линии во всю полосу набора
    читались бы таблицей — ровно тем приёмом, который в проекте отклонён.
-   Отбивка 6,5 мм против 3 мм между строками внутри секции: разница больше
-   чем вдвое, и группа видна без линейки. */
-.rq-sec{margin-top:6.5mm}
+   Отбивка 5 мм против 3 мм между строками внутри секции: внутри обведённой
+   коробки этого хватает, чтобы группа читалась группой. */
+.rq-sec{margin-top:5mm}
 /* Промежуток колонок 5 мм, а не 6: самое широкое значение листа — счёт в
    двадцать знаков табличными — занимает 52,9 мм, и при 6 мм колонка давала
    ему 53,7, то есть 0,75 мм запаса. При 5 мм колонка 54,3 и запас вдвое
    больше. Кегль при этом не трогается: пол 3,5 мм и нынешние 4 мм остаются
    как есть, место берётся из промежутка. */
-.rq-g3{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm 5mm}
+.rq-g3{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm 4mm}
 /* Асимметрия колонок намеренная и посчитана по длине: юридический адрес
    84 знака против 60 у фактического. Обход по отрисованному листу, а не
    прикидка: при 1,08fr длинный адрес уходил в три строки с висящей «206»,
@@ -240,11 +244,11 @@ export const CARD_CSS = `
    2,5 мм псевдоэлементом, а не border-left (у border скругление коробки
    срезает концы, и вместо стойки получается запятая). ЕДИНСТВЕННЫЙ синий
    объект в нижней половине листа: из всего документа в платёжное поручение
-   переписывают именно его. После снятия обводок он же — единственное, что
-   отбивает платёжный блок от реестра над ним, поэтому грань осталась и
-   встала на саму левую линию полосы набора. */
-.rq-pay{position:relative;padding-left:9mm}
-.rq-pay::before{content:'';position:absolute;left:0;top:.6mm;bottom:.6mm;
+   переписывают именно его. Грань стоит ВНУТРИ коробки, у её левого поля, и
+   отступы сверху и снизу равны полю карточки — иначе стойка упиралась бы в
+   скругление угла. */
+.rq-pay{position:relative;padding-left:8mm}
+.rq-pay::before{content:'';position:absolute;left:3mm;top:3.5mm;bottom:3.5mm;
   width:2.5mm;border-radius:1.25mm;background:var(--vc-sin)}
 
 @media print{
@@ -340,7 +344,7 @@ function page1() {
   const src = asset('/img/park-2200.webp');
   const PAD = 6;      // поле кадра от краёв листа, мм — только от обреза
   const LOGO = 12;    // высота знака, мм
-  const SEAM = 57;    // нижняя кромка кадра, мм от верха листа
+  const SEAM = 47;    // нижняя кромка кадра, мм от верха листа
   const MARK = 8;     // отступ знака от нижней и левой кромки кадра, мм
   return `<div class="vc">`
     + `<div class="vc-frame" style="height:${SEAM - PAD}mm">`
