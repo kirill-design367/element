@@ -151,12 +151,6 @@ ErrorDocument 404 /404.html
 # окружения, потому что LocationMatch в .htaccess запрещён.
 <IfModule mod_setenvif.c>
   SetEnvIf Request_URI "^/admin/" ADMIN_AREA
-  # ВРЕМЕННАЯ СТРАНИЦА ВЫДАЧИ ДОКУМЕНТА (14.09). Отсюда заказчик забирает
-  # визитку с карточкой организации. Ссылок на неё нет ниоткуда, в robots.txt
-  # её тоже нет — и это не забывчивость: файл открыт всем, и строка Disallow
-  # опубликовала бы ровно тот адрес, который прячется.
-  # УБРАТЬ ВМЕСТЕ СО СТРАНИЦЕЙ, когда документ забран.
-  SetEnvIf Request_URI "^/doc-2f8b6a14" ADMIN_AREA
 </IfModule>
 <IfModule mod_headers.c>
   Header set X-Robots-Tag "noindex, nofollow, noarchive" env=ADMIN_AREA
