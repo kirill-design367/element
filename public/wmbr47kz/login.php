@@ -48,7 +48,10 @@ page_head('Вход', false);
   <div class="msg err"><?= h($error) ?></div>
 <?php endif; ?>
 
-<form method="post" class="card" style="max-width:26rem">
+<?php /* Метка для «Проверки боем» в deploy.yml: по ней выкладка отличает
+         НАШУ страницу входа от заглушки антибота хостинга. Ставится ради
+         проверки и не меняется с текстом и вёрсткой. */ ?>
+<form method="post" class="card" style="max-width:26rem" data-cms-login="1">
   <?= csrf_field() ?>
   <div style="margin-bottom:14px">
     <label class="req" for="login">Логин</label>

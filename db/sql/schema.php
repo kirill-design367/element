@@ -21,7 +21,7 @@ return <<<'SQL'
 -- ёлочки, а в утилите «уточняйте у менеджера» — обычная кириллица. utf8 в
 -- MySQL это трёхбайтовый суррогат, на нём ломается всё за пределами BMP.
 --
--- Разворачивается один раз через /admin/install.php.
+-- Разворачивается один раз через db/install.php — порядок в его шапке.
 
 CREATE TABLE IF NOT EXISTS categories (
   id          VARCHAR(64)  NOT NULL PRIMARY KEY,

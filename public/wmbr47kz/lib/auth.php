@@ -50,16 +50,32 @@ function require_https(): void
     if (str_starts_with($host, 'localhost') || str_starts_with($host, '127.0.0.1')) {
         return;
     }
-    header('Location: https://' . $host . ($_SERVER['REQUEST_URI'] ?? '/admin/'), true, 301);
+    header('Location: https://' . $host . ($_SERVER['REQUEST_URI'] ?? panel_path()), true, 301);
     exit;
+}
+
+/**
+ * ПАПКА ПАНЕЛИ В АДРЕСЕ — ОТ САМОГО СКРИПТА, А НЕ СЛОВОМ.
+ *
+ * 07.10 панель переехала с /admin/ на /wmbr47kz/: антибот рег.ру перестал
+ * пропускать браузер на любой адрес со словом «admin». Путь печенья сессии
+ * был записан здесь строкой, и при переезде он молча остался бы прежним —
+ * браузер не отдавал бы печенье новой папке, и вход не держался бы ни
+ * секунды. Теперь путь берётся из адреса страницы: `/wmbr47kz/login.php` →
+ * `/wmbr47kz/`. Переедет папка ещё раз — эта строка не заметит.
+ */
+function panel_path(): string
+{
+    $dir = str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/')));
+    return rtrim($dir, '/') . '/';
 }
 
 /**
  * Заголовки, общие для всех страниц админки.
  *
  * ОТ ИНДЕКСАЦИИ ЗАКРЫТА ЗАГОЛОВКОМ, А НЕ СТРОКОЙ В robots.txt. robots.txt
- * открыт всем, и запись `Disallow: /admin/` опубликовала бы ровно тот
- * адрес, который прячется. Главная защита — отсутствие ссылок: на админку не
+ * открыт всем, и запись `Disallow:` с папкой панели опубликовала бы ровно
+ * тот адрес, который прячется. Главная защита — отсутствие ссылок: на админку не
  * ссылается ни одна страница сайта.
  */
 function send_headers(): void
@@ -79,13 +95,15 @@ function start_session(): void
     }
     session_set_cookie_params([
         'lifetime' => 0,
-        'path' => '/admin/',
+        'path' => panel_path(),
         'httponly' => true,
         'samesite' => 'Strict',
         'secure' => ($_SERVER['HTTPS'] ?? '') === 'on'
             || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https',
     ]);
-    session_name('elementadm');
+    /* Имя печенья без «adm»: антибот хостинга ловит это слово в адресе, и
+       держать его ещё и в каждом запросе панели незачем. */
+    session_name('elementses');
     session_start();
 }
 

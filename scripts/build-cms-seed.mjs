@@ -21,7 +21,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const OUT = 'public/admin/sql/seed.php';
+// Наполнение лежит в db/, рядом с установщиком, и в выкладку не попадает.
+// Здесь стоял public/admin/sql/ — место, где оно жило до 30.08; после выноса
+// в db/ строка осталась прежней, и скрипт падал бы на несуществующей папке.
+const OUT = 'db/sql/seed.php';
 
 const dir = mkdtempSync(join(tmpdir(), 'element-seed-'));
 try {
