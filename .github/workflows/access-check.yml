@@ -17,6 +17,11 @@ name: Проверка доступности
 
 on:
   workflow_dispatch:
+    inputs:
+      paths:
+        description: Пути для пробы антибота, через пробел, без слэшей (шаг 8)
+        type: string
+        default: ''
   push:
     paths: ['.github/workflows/access-check.yml']
 
@@ -302,6 +307,97 @@ jobs:
           done
           OUT=$(curl -sS -I -m 20 -o /dev/null -w '%{http_code}' "https://$DOMAIN/" 2>&1 | tail -1)
           echo "  HEAD-запрос → $OUT"
+
+      - uses: actions/checkout@v4
+
+      - name: 8. Антибот по путям
+        # АНТИБОТ РЕГ.РУ РЕАГИРУЕТ НА СЛОВО В АДРЕСЕ, А НЕ НА ПАПКУ. 07.10 на
+        # /admin/ он перестал пропускать браузер: заглушка ведёт на ?attempt=1,
+        # потом на 2 и 3, а дальше 403. Та же заглушка стоит на /adminka/ и на
+        # /admin без слэша, а /kabinet/ отвечает обычной 404 — то есть ловится
+        # подстрока, и наличие папки на сервере тут ни при чём.
+        #
+        # Шаг отвечает на вопрос «пропустит ли антибот этот путь» ДО того, как
+        # на него что-то переносить: несуществующий путь без антибота отвечает
+        # обычной 404, с антиботом — заглушкой. Ловушка в именах файлов тоже
+        # возможна (login, password), поэтому по первому пути из списка
+        # обходятся все страницы панели — имена берутся из репозитория, из
+        # той папки public/, где лежит login.php, — и вход отправляется POST
+        # с теми же именами полей, что у настоящей формы.
+        #
+        # Заглушку проходим как браузер: с печеньем и по адресу из meta
+        # Refresh, до пяти шагов. Цепочка печатается целиком.
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          set +e -u
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+          is_stub() { grep -aqi 'http-equiv="refresh"' "$1" && grep -aq 'attempt=' "$1"; }
+          # walk МЕТОД АДРЕС → печатает цепочку; FIRST=stub|ours — что пришло
+          # на первый запрос. Пауза между запросами — чтобы не замерять
+          # реакцию антибота на частоту вместо реакции на адрес.
+          walk() {
+            local method="$1" path="$2" jar cur chain="" i line next
+            jar=$(mktemp); cur="https://$DOMAIN$path"; FIRST=""
+            for i in 1 2 3 4 5; do
+              sleep 1
+              if [ "$method" = POST ]; then
+                line=$(curl -sS -m 25 -A "$UA" -c "$jar" -b "$jar" -o /tmp/w.body \
+                       -w '%{http_code} %{size_download}б' --data 'csrf=probe&login=probe&password=probe' "$cur")
+              else
+                line=$(curl -sS -m 25 -A "$UA" -c "$jar" -b "$jar" -o /tmp/w.body \
+                       -w '%{http_code} %{size_download}б' "$cur")
+              fi
+              if is_stub /tmp/w.body; then
+                [ -z "$FIRST" ] && FIRST=stub
+                chain="$chain $line заглушка →"
+                next=$(tr -d '\r\n' < /tmp/w.body | sed -n 's/.*[Uu][Rr][Ll]=\([^"'"'"' >]*\).*/\1/p' | head -1)
+                case "$next" in
+                  http*) cur="$next" ;;
+                  /*)    cur="https://$DOMAIN$next" ;;
+                  *)     cur="https://$DOMAIN$path?attempt=$i" ;;
+                esac
+                continue
+              fi
+              [ -z "$FIRST" ] && FIRST=ours
+              local title
+              title=$(tr -d '\r\n' < /tmp/w.body | grep -aoi '<title>[^<]*' | head -1 | cut -c8- | cut -c1-60)
+              chain="$chain $line${title:+ «$title»}"
+              break
+            done
+            rm -f "$jar"
+            if [ "$FIRST" = stub ]; then VERDICT="⚠ АНТИБОТ"; else VERDICT="чисто"; fi
+            printf '  %-4s %-34s %-10s%s\n' "$method" "$path" "$VERDICT" "$chain"
+          }
+
+          echo "--- КОНТРОЛЬ: прибор обязан видеть разницу"
+          walk GET "/"
+          walk GET "/kabinet/"
+          walk GET "/admin/"
+
+          if [ -z "$PATHS" ]; then
+            echo ""
+            echo "Путей для пробы не задано — запуск с полем «paths» проверит их."
+            exit 0
+          fi
+
+          echo ""
+          echo "--- КАНДИДАТЫ: папка и страница входа"
+          for P in $PATHS; do
+            walk GET "/$P/"
+            walk GET "/$P"
+          done
+
+          FIRSTP=${PATHS%% *}
+          PANEL=$(dirname "$(ls public/*/login.php 2>/dev/null | head -1)")
+          echo ""
+          echo "--- ВСЕ СТРАНИЦЫ ПАНЕЛИ ПОД /$FIRSTP/ (имена из $PANEL)"
+          for F in "$PANEL"/*.php; do
+            walk GET "/$FIRSTP/$(basename "$F")"
+          done
+          walk GET  "/$FIRSTP/lib/db.php"
+          walk POST "/$FIRSTP/login.php"
+          walk POST "/$FIRSTP/publish.php"
 
       - name: Приговор
         # Диагностические шаги нарочно не падают — они собирают факты. Прогон
