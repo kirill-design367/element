@@ -25,7 +25,50 @@ require_login();
  *
  * 4. Признак «открывать в калькуляторе» ровно один на весь каталог:
  *    поставленный здесь снимается со всех остальных в той же транзакции.
+ *
+ * 5. АДРЕС НОВОЙ ПОЗИЦИИ ВЫДАЁТ СЕРВЕР, человек его не пишет. До 13.10 он
+ *    брался из поля `id`, которого в форме не было никогда, — и ни одна новая
+ *    позиция не сохранялась: баннер «посмотрите поля, отмеченные красным» при
+ *    ни одном красном поле. Адрес выводится из названия, разновидности и
+ *    размера (`slug_ru()`), занятый получает хвост -2, -3.
+ *
+ * 6. У МЕТАЛЛОПРОКАТА ФРАКЦИИ НЕТ — у категории, которая считается тоннами.
+ *    Сохранённая с «фракцией в миллиметрах», позиция проката попала бы на
+ *    сайте в фильтр фракций рядом с песком и в строку «фракция …» на плашке
+ *    категории. Размер проката — обозначение партии: «⌀ 10 мм», «1,8–2,2 мм».
+ *
+ * 7. У ВСЕГО, ЧТО СЧИТАЕТСЯ КУБАМИ, ПЛОТНОСТЬ ОБЯЗАТЕЛЬНА. Без неё сайт
+ *    показывает цену за м³ как «0 ₽», а калькулятор пишет «не число» в
+ *    тоннах и рейсах. Пока новые позиции не сохранялись, дыры не было видно:
+ *    у всех 25 существующих плотность стоит. Сборка (cms-apply) проверяет то же.
+ *
+ * 8. ОДНА ФОРМА — ОДНА НОВАЯ ПОЗИЦИЯ. Адрес выдаётся сервером и при
+ *    совпадении получает хвост -2, поэтому двойное нажатие «Сохранить»
+ *    создавало бы две одинаковые позиции. У формы новой позиции одноразовый
+ *    ключ: повторная отправка той же формы ведёт в каталог, копии нет.
  */
+
+/** Адрес для новой позиции: из названия и размера, свободный. */
+function new_material_id(array $f, float|null|false $from, float|null|false $to, float|null|false $percent): string
+{
+    $size = match ($f['fraction_kind']) {
+        'mm', 'mkr' => dec_label((float) $from) . ' ' . dec_label((float) $to),
+        'gravel' => dec_label((float) $percent),
+        default => (string) $f['fraction_label'],
+    };
+    /* Разновидность обычно повторяет слово из названия («Щебень гранитный»
+       + «гранитный») — в адрес второй раз она не идёт. */
+    $kind = mb_stripos($f['name'], $f['kind']) === false ? ' ' . $f['kind'] : '';
+    $base = slug_ru($f['name'] . $kind . ' ' . $size);
+    if ($base === '') {
+        $base = 'pozitsiya';
+    }
+    $id = $base;
+    for ($n = 2; q1('SELECT id FROM materials WHERE id = ?', [$id]) !== null; $n++) {
+        $id = $base . '-' . $n;
+    }
+    return $id;
+}
 
 $id = (string) ($_GET['id'] ?? '');
 $isNew = $id === '';
@@ -40,11 +83,28 @@ $categories = q('SELECT id, name FROM categories ORDER BY sort, id');
 $groups = q('SELECT id, category_id, name FROM material_groups ORDER BY sort, id');
 $errors = [];
 
+$_SESSION['mat_once'] ??= [];
+$_SESSION['mat_done'] ??= [];
+$once = (string) ($_POST['once'] ?? '');
+
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     csrf_check();
 
+    /* Та же форма пришла второй раз — двойное нажатие или «назад» после
+       успеха. Позиция уже есть: ведём в каталог, копию не создаём. */
+    if ($isNew && isset($_SESSION['mat_done'][$once])) {
+        flash('mat', 'Позиция уже добавлена — повторное нажатие копию не создало.', 'info');
+        header('Location: materials.php');
+        exit;
+    }
+
+    if ($isNew && !isset($_SESSION['mat_once'][$once])) {
+        $errors['once'] = 'Форма устарела — проверьте данные и нажмите «Сохранить» ещё раз.';
+    }
+
     $f = [
-        'id' => $isNew ? clean_id('id') : $id,
+        /* У новой позиции адреса ещё нет: он выдаётся при записи, ниже. */
+        'id' => $id,
         'category_id' => clean('category_id', 64),
         'name' => clean('name', 200),
         'group_id' => clean('group_id', 64),
@@ -56,14 +116,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         'availability' => one_of('availability', ['in-stock', 'on-order', 'out', 'unknown'], 'in-stock'),
         'uses' => clean_multi('uses', 2000),
         'note' => clean_multi('note', 2000),
-        'fraction_label' => clean('fraction_label', 120),
+        'fraction_label' => nbsp_units(clean('fraction_label', 120)),
     ];
+    $unit = $f['category_id'] === ''
+        ? null
+        : (q1('SELECT unit FROM categories WHERE id = ?', [$f['category_id']])['unit'] ?? null);
 
-    if ($f['id'] === '') {
-        $errors['id'] = 'Нужен короткий адрес позиции: латиница, цифры и дефис. Например granit-5-20.';
-    } elseif ($isNew && q1('SELECT id FROM materials WHERE id = ?', [$f['id']]) !== null) {
-        $errors['id'] = 'Такой адрес уже занят другой позицией.';
-    }
     if (mb_strlen($f['name']) < 2) {
         $errors['name'] = 'Как называется позиция?';
     }
@@ -90,12 +148,36 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $errors['density'] = 'Плотность — число, например 1,37. Пусто — если позиция кубами не считается.';
     } elseif ($density !== null && ($density <= 0 || $density > 10)) {
         $errors['density'] = 'Насыпная плотность бывает от 0 до 10 т/м³.';
+    } elseif ($density === null && $unit === 'm3') {
+        $errors['density'] = 'Нужна насыпная плотность: позиция считается кубами, и по плотности сайт '
+            . 'считает цену за м³ и рейсы. Например 1,5.';
     }
 
     $from = num_or_null('fraction_from');
     $to = num_or_null('fraction_to');
     $percent = num_or_null('fraction_percent');
-    if ($f['fraction_kind'] === 'mm' || $f['fraction_kind'] === 'mkr') {
+
+    if ($unit === 't' && $f['fraction_kind'] !== 'none') {
+        /* Металлопрокат с фракцией. Если человек вписал размер в границы
+           фракции — переносим его в обозначение партии сами и просим
+           подтвердить: молча сохранить нельзя, это его данные. */
+        if ($f['fraction_kind'] === 'mm' && is_float($from) && is_float($to) && $from < $to
+            && $f['fraction_label'] === '') {
+            $f['fraction_label'] = dec_label($from) . '–' . dec_label($to) . "\u{00A0}мм";
+            $errors['fraction'] = 'У металлопроката фракции нет — «Чем нормируется» переключили на '
+                . '«Фракции нет», а размер перенесли в «Обозначение партии»: «' . $f['fraction_label']
+                . '». Проверьте и нажмите «Сохранить» ещё раз.';
+        } elseif ($f['fraction_label'] !== '') {
+            $errors['fraction'] = 'У металлопроката фракции нет — «Чем нормируется» переключили на '
+                . '«Фракции нет»; размер берётся из «Обозначения партии»: «' . $f['fraction_label']
+                . '». Проверьте и нажмите «Сохранить» ещё раз.';
+        } else {
+            $errors['fraction'] = 'У металлопроката фракции нет — «Чем нормируется» переключили на '
+                . '«Фракции нет». Впишите размер в «Обозначение партии» — «⌀ 10 мм», «40×20×2 мм» — '
+                . 'и нажмите «Сохранить» ещё раз.';
+        }
+        $f['fraction_kind'] = 'none';
+    } elseif ($f['fraction_kind'] === 'mm' || $f['fraction_kind'] === 'mkr') {
         if ($from === false || $to === false || $from === null || $to === null) {
             $errors['fraction'] = 'Для этого вида нужны обе границы числами.';
         } elseif ($from < 0 || $to <= $from) {
@@ -131,7 +213,18 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
         db()->beginTransaction();
         if ($isNew) {
-            $sort = (int) (q1('SELECT COALESCE(MAX(sort), 0) + 1 AS n FROM materials')['n'] ?? 0);
+            $f['id'] = new_material_id($f, $from, $to, $percent);
+            /* МЕСТО — СРАЗУ ЗА СВОЕЙ КАТЕГОРИЕЙ, а не в конце всего каталога:
+               каталог на сайте идёт одним списком в этом порядке, и новый
+               песок с общим «последний + 1» встал бы после всего металла, а
+               поля порядка у позиции в админке нет. */
+            $last = q1('SELECT MAX(sort) AS s FROM materials WHERE category_id = ?', [$f['category_id']])['s'] ?? null;
+            if ($last === null) {
+                $sort = (int) (q1('SELECT COALESCE(MAX(sort), 0) + 1 AS n FROM materials')['n'] ?? 0);
+            } else {
+                ex('UPDATE materials SET sort = sort + 1 WHERE sort > ?', [(int) $last]);
+                $sort = (int) $last + 1;
+            }
             ex('INSERT INTO materials (category_id, name, group_id, kind, fraction_kind, fraction_from,
                 fraction_to, fraction_percent, fraction_label, gost, strength, frost, density,
                 price_per_ton, availability, uses, note, id, sort)
@@ -150,6 +243,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             ex('UPDATE materials SET is_default = 1 WHERE id = ?', [$f['id']]);
         }
         db()->commit();
+        if ($isNew) {
+            unset($_SESSION['mat_once'][$once]);
+            $_SESSION['mat_done'][$once] = $f['id'];
+            $_SESSION['mat_done'] = array_slice($_SESSION['mat_done'], -20, null, true);
+        }
 
         flash('mat', ($isNew ? 'Позиция добавлена' : 'Позиция сохранена')
             . '. Чтобы правка попала на сайт, нажмите «Опубликовать».');
@@ -167,6 +265,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     ]);
 }
 
+if ($isNew) {
+    $once = bin2hex(random_bytes(16));
+    $_SESSION['mat_once'][$once] = time();
+    $_SESSION['mat_once'] = array_slice($_SESSION['mat_once'], -20, null, true);
+}
+
 $v = static fn(string $k, string $default = ''): string => h((string) ($m[$k] ?? $default));
 $err = static function (string $k) use ($errors): string {
     return isset($errors[$k]) ? '<p class="err-text">' . h($errors[$k]) . '</p>' : '';
@@ -178,11 +282,20 @@ page_head($isNew ? 'Новая позиция' : 'Позиция');
 <p class="lead"><a href="materials.php">← ко всему каталогу</a></p>
 
 <?php if ($errors !== []): ?>
-  <div class="msg err">Не сохранили: посмотрите поля, отмеченные красным.</div>
+  <?php /* ВСЕ ОШИБКИ ВИДНЫ ЗДЕСЬ СПИСКОМ, а не только под своими полями.
+           Ошибка без поля в форме иначе не видна нигде: так до 13.10 висела
+           ошибка про адрес позиции, и человек видел «посмотрите поля,
+           отмеченные красным» при ни одном красном поле. */ ?>
+  <div class="msg err">Не сохранили — поправьте и нажмите «Сохранить» ещё раз:
+    <ul style="margin:6px 0 0;padding-left:20px">
+      <?php foreach ($errors as $e): ?><li><?= h($e) ?></li><?php endforeach; ?>
+    </ul>
+  </div>
 <?php endif; ?>
 
 <form method="post" class="card">
   <?= csrf_field() ?>
+  <?php if ($isNew): ?><input type="hidden" name="once" value="<?= h($once) ?>"><?php endif; ?>
 
   <div class="grid">
     <div>
@@ -250,7 +363,8 @@ page_head($isNew ? 'Новая позиция' : 'Позиция');
     <div>
       <label for="fraction_label">Обозначение партии</label>
       <input id="fraction_label" name="fraction_label" type="text" value="<?= $v('fraction_label') ?>">
-      <p class="hint">Только когда фракции нет: «просеянный», «⌀ 10 мм», «№ 14».</p>
+      <p class="hint">Только когда фракции нет: «просеянный», «⌀ 10 мм», «№ 14».
+        У металлопроката это его размер.</p>
     </div>
   </div>
 
@@ -260,7 +374,7 @@ page_head($isNew ? 'Новая позиция' : 'Позиция');
     <div>
       <label for="price_per_ton">Цена за тонну, ₽</label>
       <input id="price_per_ton" name="price_per_ton" type="text" inputmode="decimal"
-             value="<?= $m['price_per_ton'] === null ? '' : $v('price_per_ton') ?>" placeholder="нет цены">
+             value="<?= ($m['price_per_ton'] ?? null) === null ? '' : $v('price_per_ton') ?>" placeholder="нет цены">
       <p class="hint">Пусто — цены нет, на сайте будет «уточняйте у менеджера».
         Ноль — это цена «0 ₽», а не отсутствие цены.</p>
       <?= $err('price_per_ton') ?>
@@ -268,9 +382,9 @@ page_head($isNew ? 'Новая позиция' : 'Позиция');
     <div>
       <label for="density">Насыпная плотность, т/м³</label>
       <input id="density" name="density" type="text" inputmode="decimal"
-             value="<?= $m['density'] === null ? '' : $v('density') ?>" placeholder="нет">
-      <p class="hint">По ней считается цена за куб и загрузка машины.
-        У металлопроката её нет — оставьте пустым.</p>
+             value="<?= ($m['density'] ?? null) === null ? '' : $v('density') ?>" placeholder="нет">
+      <p class="hint">Обязательна у всего, что считается кубами: по ней сайт считает
+        цену за куб и загрузку машины. У металлопроката её нет — оставьте пустым.</p>
       <?= $err('density') ?>
     </div>
     <div>
